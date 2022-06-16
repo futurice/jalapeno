@@ -1,4 +1,4 @@
-package cmd
+package main
 
 import (
 	"fmt"
@@ -16,13 +16,20 @@ type pepper struct {
 	Peppers  int
 }
 
-// createCmd represents the create command
-var createCmd = &cobra.Command{
-	Use:   "create",
-	Short: "A brief description of your command",
-	Long: "",
-	Run: func(cmd *cobra.Command, args []string) {
-			// The select will show a series of peppers stored inside a slice of structs. To display the content of the struct,
+func newCreateCmd() *cobra.Command {
+	// createCmd represents the create command
+	var createCmd = &cobra.Command{
+		Use:   "create",
+		Short: "A brief description of your command",
+		Long:  "",
+		Run:   exampleFunc,
+	}
+
+	return createCmd
+}
+
+func exampleFunc(cmd *cobra.Command, args []string) {
+	// The select will show a series of peppers stored inside a slice of structs. To display the content of the struct,
 	// the usual dot notation is used inside the templates to select the fields and color them.
 	peppers := []pepper{
 		{Name: "Bell Pepper", HeatUnit: 0, Peppers: 0},
@@ -79,19 +86,4 @@ var createCmd = &cobra.Command{
 
 	// The selected pepper will be displayed with its name and index in a formatted message.
 	fmt.Printf("You choose number %d: %s\n", i+1, peppers[i].Name)
-	},
-}
-
-func init() {
-	rootCmd.AddCommand(createCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// createCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// createCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
