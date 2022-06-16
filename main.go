@@ -1,10 +1,6 @@
-/*
-Copyright © 2022 NAME HERE <EMAIL ADDRESS>
-
-*/
 package main
 
-import "github.com/futurice/sre-dx-cli-template/cmd"
+import "github.com/futurice/jalapeno/cmd"
 
 func main() {
 	cmd.Execute()

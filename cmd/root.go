@@ -8,7 +8,7 @@ import (
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "sre-dx-cli-template",
+	Use:   "jalapeno",
 	Short: "A brief description of your application",
 	Long: `A longer description that spans multiple lines and likely contains
 examples and usage of using your application. For example:
@@ -31,7 +31,6 @@ func Execute() {
 }
 
 func init() {
-	rootCmd.PersistentFlags().BoolP("quiet", "q", false, "Make some output more quiet")
 }
 
 

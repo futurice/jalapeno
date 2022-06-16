@@ -1,2 +1,3 @@
-# sre-dx-cli-template
-Template for DevEx Platform CLI used by SRE &amp; Cloud team
+# Jalapeño
+
+CLI for managing and sharing project configurations and ways of working aka _recipes_
