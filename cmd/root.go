@@ -17,18 +17,13 @@ func newRootCmd(out io.Writer, args []string) (*cobra.Command, error) {
 	Cobra is a CLI library for Go that empowers applications.
 	This application is a tool to generate the needed files
 	to quickly create a Cobra application.`,
-		// Uncomment the following line if your bare application
-		// has an action associated with it:
-		// Run: func(cmd *cobra.Command, args []string) { },
 	}
 
 	cmd.AddCommand(
 		newCreateCmd(),
 		newUpdateCmd(),
+		newExecuteCmd(),
 	)
 
 	return cmd, nil
-}
-
-func init() {
 }
