@@ -8,7 +8,7 @@ import (
 
 func TestRender(t *testing.T) {
 	c := &recipe.Recipe{
-		Metadata: &recipe.Metadata{
+		Metadata: recipe.Metadata{
 			Name:    "test-render",
 			Version: "1.2.3",
 		},

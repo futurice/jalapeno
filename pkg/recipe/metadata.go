@@ -1,14 +1,13 @@
 package recipe
 
 type Metadata struct {
-	Name    string `yaml:"name"`
-	Version string `yaml:"version"`
-	// Source is the URL to the source code of this chart
-	Source      string              `json:"sources,omitempty"`
-	Description string              `yaml:"description"`
-	Variables   map[string]Variable `yaml:"vars,omitempty"`
+	Name        string `yaml:"name"`
+	Version     string `yaml:"version"`
+	Description string `yaml:"description"`
+	URL         string `yaml:"url,omitempty"`
 }
 
-func (re *Metadata) Validate() error {
+func (m *Metadata) Validate() error {
+	// TODO
 	return nil
 }

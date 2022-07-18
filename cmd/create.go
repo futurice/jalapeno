@@ -5,14 +5,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// Any type can be given to the select's item as long as the templates properly implement the dot notation
-// to display it.
-type pepper struct {
-	Name     string
-	HeatUnit int
-	Peppers  int
-}
-
 func newCreateCmd() *cobra.Command {
 	// createCmd represents the create command
 	var createCmd = &cobra.Command{
@@ -25,7 +17,11 @@ func newCreateCmd() *cobra.Command {
 }
 
 func createFunc(cmd *cobra.Command, args []string) {
-	metadata := recipe.Metadata{}
+	name := "example" // TODO: Get from arguments
+	metadata := recipe.Metadata{
+		Name:    name,
+		Version: "0.0.0",
+	}
 
 	metadata.Validate()
 }

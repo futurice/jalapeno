@@ -13,3 +13,8 @@ type VariableValidator struct {
 }
 
 type VariableValues map[string]string
+
+func (v *Variable) Validate() error {
+	// TODO
+	return nil
+}

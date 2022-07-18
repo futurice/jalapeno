@@ -2,6 +2,7 @@ package engine
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 	"text/template"
 
@@ -22,14 +23,27 @@ func (e Engine) Render(recipe *recipe.Recipe, values map[string]interface{}) (ma
 	rendered := make(map[string]string, 1)
 
 	for _, file := range recipe.Templates {
-		t.New(file.Name).Parse(string(file.Data))
+		_, err := t.New(file.Name).Parse(string(file.Data))
+		if err != nil {
+			// TODO: Inner error message includes prefix "template: ", which does not good when printing this error
+			return map[string]string{}, fmt.Errorf("failed to parse template: %w", err)
+		}
 
 		var buf strings.Builder
 		if err := t.ExecuteTemplate(&buf, file.Name, values); err != nil {
-			return map[string]string{}, errors.New("failed to execute template")
+			// TODO: Inner error message includes prefix "template: ", which does not good when printing this error
+			return map[string]string{}, fmt.Errorf("failed to execute template: %w", err)
 		}
 
-		rendered[file.Name] = strings.ReplaceAll(buf.String(), "<no value>", "")
+		output := buf.String()
+
+		// If template uses variables which were undefined, gotpl will insert "<no value>"
+		if strings.Contains(output, "<no value>") {
+			// TODO: Find out which variable was not defined
+			return map[string]string{}, errors.New("some of the variables used in the template were undefined")
+		}
+
+		rendered[file.Name] = output
 	}
 
 	return rendered, nil
