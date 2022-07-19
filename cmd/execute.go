@@ -3,6 +3,8 @@ package main
 import (
 	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/futurice/jalapeno/pkg/engine"
@@ -10,12 +12,15 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var (
+	outputBasePath = ""
+)
+
 func newExecuteCmd() *cobra.Command {
-	// execCmd represents the exec command
 	var execCmd = &cobra.Command{
 		Use:     "execute",
 		Aliases: []string{"exec", "e"},
-		Short:   "Execute a given recipe",
+		Short:   "Execute a given recipe and save output to a path",
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) < 1 {
 				return errors.New("requires a path argument")
@@ -25,19 +30,21 @@ func newExecuteCmd() *cobra.Command {
 		Run: executeFunc,
 	}
 
+	execCmd.Flags().StringVarP(&outputBasePath, "output", "o", ".", "Path where the output files should be created")
+
 	return execCmd
 }
 
 func executeFunc(cmd *cobra.Command, args []string) {
 	r, err := recipe.Load(args[0])
 	if err != nil {
-		fmt.Println(err)
+		fmt.Printf("Error when loading the recipe: %s\n", err)
 		return
 	}
 
 	err = r.Validate()
 	if err != nil {
-		fmt.Println(err)
+		fmt.Printf("The provided recipe was invalid: %s\n", err)
 		return
 	}
 
@@ -53,20 +60,23 @@ func executeFunc(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	fmt.Printf("OUTPUT: %v", output)
-
-	// TODO: Write output files to the given path
+	err = writeMapToFiles(output, outputBasePath)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 }
 
 func promptUserForValues(variables recipe.VariableMap) (recipe.VariableValues, error) {
 	values := recipe.VariableValues{}
 	for name, variable := range variables { // TODO: Sort variables before looping for consistent behaviour
+		// TODO: Check if the value for the variable was alredy provided by CLI arguments
+
 		var prompt survey.Prompt
 
 		if len(variable.Options) != 0 {
 			prompt = &survey.Select{
 				Message: name,
-				Default: variable.Default,
 				Help:    variable.Description,
 				Options: variable.Options,
 			}
@@ -103,4 +113,36 @@ func promptUserForValues(variables recipe.VariableMap) (recipe.VariableValues, e
 	}
 
 	return values, nil
+}
+
+func writeMapToFiles(files map[string]string, basepath string) error {
+	if _, err := os.Stat(basepath); os.IsNotExist(err) {
+		return err
+	}
+
+	for filename, data := range files {
+		path := filepath.Join(basepath, filename)
+
+		// Create file's parent directories (if not already exist)
+		err := os.MkdirAll(filepath.Dir(path), 0700)
+		if err != nil {
+			return err
+		}
+
+		// Create the file
+		f, err := os.Create(path)
+		if err != nil {
+			return err
+		}
+		defer f.Close()
+
+		// Write the data to the file
+		_, err = f.WriteString(data)
+		if err != nil {
+			return err
+		}
+
+		f.Sync()
+	}
+	return nil
 }
