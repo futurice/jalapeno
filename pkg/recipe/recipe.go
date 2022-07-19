@@ -4,9 +4,9 @@ import "fmt"
 
 type Recipe struct {
 	Metadata  `yaml:",inline"`
-	Variables map[string]Variable `yaml:"vars,omitempty"`
-	Values    *VariableValues     `yaml:"values,omitempty"`
-	Templates []*File             `yaml:"-"`
+	Variables VariableMap     `yaml:"vars,omitempty"`
+	Values    *VariableValues `yaml:"values,omitempty"`
+	Templates []*File         `yaml:"-"`
 }
 
 func (re *Recipe) Validate() error {
