@@ -1,12 +1,14 @@
 package recipe
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type Recipe struct {
 	Metadata  `yaml:",inline"`
-	Variables VariableMap     `yaml:"vars,omitempty"`
-	Values    *VariableValues `yaml:"values,omitempty"`
-	Templates []*File         `yaml:"-"`
+	Variables []Variable     `yaml:"vars,omitempty"`
+	Values    VariableValues `yaml:"values,omitempty"`
+	Templates []*File        `yaml:"-"`
 }
 
 func (re *Recipe) Validate() error {
@@ -14,9 +16,9 @@ func (re *Recipe) Validate() error {
 		return err
 	}
 
-	for name, variable := range re.Variables {
+	for _, variable := range re.Variables {
 		if err := variable.Validate(); err != nil {
-			return fmt.Errorf("error on variable %s: %w", name, err)
+			return fmt.Errorf("error on variable %s: %w", variable.Name, err)
 		}
 	}
 

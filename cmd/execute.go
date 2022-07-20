@@ -67,22 +67,23 @@ func executeFunc(cmd *cobra.Command, args []string) {
 	}
 }
 
-func promptUserForValues(variables recipe.VariableMap) (recipe.VariableValues, error) {
+func promptUserForValues(variables []recipe.Variable) (recipe.VariableValues, error) {
 	values := recipe.VariableValues{}
-	for name, variable := range variables { // TODO: Sort variables before looping for consistent behaviour
+
+	for _, variable := range variables {
 		// TODO: Check if the value for the variable was alredy provided by CLI arguments
 
 		var prompt survey.Prompt
 
 		if len(variable.Options) != 0 {
 			prompt = &survey.Select{
-				Message: name,
+				Message: variable.Name,
 				Help:    variable.Description,
 				Options: variable.Options,
 			}
 		} else {
 			prompt = &survey.Input{
-				Message: name,
+				Message: variable.Name,
 				Default: variable.Default,
 				Help:    variable.Description,
 			}
@@ -109,7 +110,11 @@ func promptUserForValues(variables recipe.VariableMap) (recipe.VariableValues, e
 			return recipe.VariableValues{}, err
 		}
 
-		values[name] = answer
+		if _, exist := values[variable.Name]; exist {
+			return recipe.VariableValues{}, fmt.Errorf(`variable "%s" has been declared multiple times`, variable.Name)
+		}
+
+		values[variable.Name] = answer
 	}
 
 	return values, nil

@@ -6,9 +6,8 @@ import (
 	"regexp"
 )
 
-type VariableMap map[string]Variable
-
 type Variable struct {
+	Name        string                  `yaml:"name"`
 	Description string                  `yaml:"description,omitempty"`
 	Default     string                  `yaml:"default,omitempty"`
 	Optional    bool                    `yaml:"optional,omitempty"`
