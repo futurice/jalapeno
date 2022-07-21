@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"bytes"
 	"testing"
 
 	"github.com/futurice/jalapeno/pkg/recipe"
@@ -14,7 +15,6 @@ func TestRender(t *testing.T) {
 		},
 		Templates: []*recipe.File{
 			{Name: "templates/test1", Data: []byte("{{.var1 | title }} {{.var2 | title}}")},
-			{Name: "templates/test2", Data: []byte("{{.noValue}}")},
 		},
 	}
 
@@ -29,14 +29,16 @@ func TestRender(t *testing.T) {
 		t.Errorf("Failed to render templates: %s", err)
 	}
 
-	expect := map[string]string{
-		"templates/test1": "First Second",
-		"templates/test2": "",
+	expect := []*recipe.File{
+		{
+			Name: "templates/test1",
+			Data: []byte("First Second"),
+		},
 	}
 
-	for name, data := range expect {
-		if out[name] != data {
-			t.Errorf("Expected %q, got %q", data, out[name])
+	for i := range expect {
+		if bytes.Compare(out[i].Data, expect[i].Data) != 0 {
+			t.Errorf("Expected %q, got %q", expect[i].Data, out[i].Data)
 		}
 	}
 }

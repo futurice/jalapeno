@@ -9,6 +9,7 @@ import (
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/futurice/jalapeno/pkg/engine"
 	"github.com/futurice/jalapeno/pkg/recipe"
+	"github.com/futurice/jalapeno/pkg/recipeutil"
 	"github.com/spf13/cobra"
 )
 
@@ -60,7 +61,13 @@ func executeFunc(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	err = writeMapToFiles(output, outputBasePath)
+	err = recipeutil.SaveRecipe(r, outputBasePath)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	err = recipeutil.SaveFiles(output, outputBasePath)
 	if err != nil {
 		fmt.Println(err)
 		return
