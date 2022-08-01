@@ -26,12 +26,21 @@ func SaveRecipe(r *recipe.Recipe, dest string) error {
 		return err
 	}
 
+	err = SaveRecipeMetadata(r, path)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func SaveRecipeMetadata(r *recipe.Recipe, dest string) error {
 	out, err := yaml.Marshal(r)
 	if err != nil {
 		return err
 	}
 
-	err = os.WriteFile(filepath.Join(path, RecipeFile), out, 0700)
+	err = os.WriteFile(filepath.Join(dest, RecipeFile), out, 0700)
 	if err != nil {
 		return err
 	}
