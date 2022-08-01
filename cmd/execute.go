@@ -74,14 +74,14 @@ func executeFunc(cmd *cobra.Command, args []string) {
 	}
 
 	// Create sub directory for recipe
-	path := filepath.Join(outputBasePath, ".jalapeno")
-	err = os.MkdirAll(path, 0700)
+	recipePath := filepath.Join(outputBasePath, ".jalapeno")
+	err = os.MkdirAll(recipePath, 0700)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	err = recipeutil.SaveRecipe(re, outputBasePath)
+	err = recipeutil.SaveRecipe(re, recipePath)
 	if err != nil {
 		fmt.Println(err)
 		return

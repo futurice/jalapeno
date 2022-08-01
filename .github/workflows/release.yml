@@ -1,4 +1,4 @@
-name: goreleaser
+name: publish
 
 on:
   push:
@@ -7,6 +7,7 @@ on:
 
 jobs:
   goreleaser:
+    name: Publish binaries
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
