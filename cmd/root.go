@@ -21,8 +21,9 @@ func newRootCmd(out io.Writer, args []string) (*cobra.Command, error) {
 
 	cmd.AddCommand(
 		newCreateCmd(),
-		newUpdateCmd(),
+		newUpgradeCmd(),
 		newExecuteCmd(),
+		newValidateCmd(),
 	)
 
 	return cmd, nil
