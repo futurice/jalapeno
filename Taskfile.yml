@@ -7,3 +7,6 @@ tasks:
   build:
     cmds:
       - go build ./cmd
+  test:
+    cmds:
+      - go test ./...

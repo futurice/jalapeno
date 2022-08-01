@@ -25,8 +25,9 @@ func createFunc(cmd *cobra.Command, args []string) {
 	name := "example" // TODO: Get from arguments
 	r := &recipe.Recipe{
 		Metadata: recipe.Metadata{
-			Name:    name,
-			Version: "0.0.0",
+			Name:        name,
+			Version:     "0.0.0",
+			Description: "Description about what the recipe is used for and what it contains. For example tech stack, cloud environments, tools",
 		},
 	}
 
@@ -35,7 +36,7 @@ func createFunc(cmd *cobra.Command, args []string) {
 		panic("invalid example recipe") // TODO
 	}
 
-	recipeutil.SaveRecipeMetadata(r, ".")
+	recipeutil.SaveRecipe(r, ".")
 
 	err = os.Mkdir("./templates", 0700)
 	if err != nil {

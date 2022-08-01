@@ -37,37 +37,57 @@ func newExecuteCmd() *cobra.Command {
 }
 
 func executeFunc(cmd *cobra.Command, args []string) {
-	r, err := recipe.Load(args[0])
+	if _, err := os.Stat(outputBasePath); os.IsNotExist(err) {
+		fmt.Println("Output path does not exist")
+		return
+	}
+
+	re, err := recipe.Load(args[0])
 	if err != nil {
 		fmt.Printf("Error when loading the recipe: %s\n", err)
 		return
 	}
 
-	err = r.Validate()
+	fmt.Printf("Recipe name: %s\n\n", re.Metadata.Name)
+
+	err = re.Validate()
 	if err != nil {
 		fmt.Printf("The provided recipe was invalid: %s\n", err)
 		return
 	}
 
-	values, _ := promptUserForValues(r.Variables)
+	values, err := promptUserForValues(re.Variables)
+	if err != nil {
+		fmt.Printf("Error when prompting for values: %s\n", err)
+		return
+	}
 
+	// Define the context which is available on templates
 	context := map[string]interface{}{
 		"Variables": values,
 	}
 
-	output, err := engine.Render(r, context)
+	renderedFiles, err := engine.Render(re, context)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	err = recipeutil.SaveRecipe(r, outputBasePath)
+	// Create sub directory for recipe
+	path := filepath.Join(outputBasePath, ".jalapeno")
+	err = os.MkdirAll(path, 0700)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	err = recipeutil.SaveFiles(output, outputBasePath)
+	err = recipeutil.SaveRecipe(re, outputBasePath)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	err = recipeutil.SaveFiles(renderedFiles, outputBasePath)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -125,36 +145,4 @@ func promptUserForValues(variables []recipe.Variable) (recipe.VariableValues, er
 	}
 
 	return values, nil
-}
-
-func writeMapToFiles(files map[string]string, basepath string) error {
-	if _, err := os.Stat(basepath); os.IsNotExist(err) {
-		return err
-	}
-
-	for filename, data := range files {
-		path := filepath.Join(basepath, filename)
-
-		// Create file's parent directories (if not already exist)
-		err := os.MkdirAll(filepath.Dir(path), 0700)
-		if err != nil {
-			return err
-		}
-
-		// Create the file
-		f, err := os.Create(path)
-		if err != nil {
-			return err
-		}
-		defer f.Close()
-
-		// Write the data to the file
-		_, err = f.WriteString(data)
-		if err != nil {
-			return err
-		}
-
-		f.Sync()
-	}
-	return nil
 }

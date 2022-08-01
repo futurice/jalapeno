@@ -11,36 +11,16 @@ import (
 
 // All Jalapeno related metadata will be saved to this directory on the project
 const (
-	ProjectDir = ".jalapeno"
-	RecipeFile = "recipe.yml"
+	RecipeFileName = "recipe.yml"
 )
 
 func SaveRecipe(r *recipe.Recipe, dest string) error {
-	if _, err := os.Stat(dest); os.IsNotExist(err) {
-		return errors.New("destination path does not exist")
-	}
-
-	path := filepath.Join(dest, ProjectDir)
-	err := os.MkdirAll(path, 0700)
-	if err != nil {
-		return err
-	}
-
-	err = SaveRecipeMetadata(r, path)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func SaveRecipeMetadata(r *recipe.Recipe, dest string) error {
 	out, err := yaml.Marshal(r)
 	if err != nil {
 		return err
 	}
 
-	err = os.WriteFile(filepath.Join(dest, RecipeFile), out, 0700)
+	err = os.WriteFile(filepath.Join(dest, RecipeFileName), out, 0700)
 	if err != nil {
 		return err
 	}

@@ -21,6 +21,6 @@ vars:
       - europe-west4 # NETHERLANDS
       - europe-west6 # ZURICH
   - name: GCP_FOLDER_ID
-    description: "The GCP project will be created under this folder"
+    description: "The GCP project will be created under this folder. You can look up for the folder ID at https://console.cloud.google.com/cloud-resource-manager"
   - name: GCP_BILLING_ACCOUNT_ID
     description: "You can find available billing accounts at https://console.cloud.google.com/billing"
