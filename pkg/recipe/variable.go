@@ -10,6 +10,7 @@ type Variable struct {
 	Name        string                  `yaml:"name"`
 	Description string                  `yaml:"description,omitempty"`
 	Default     string                  `yaml:"default,omitempty"`
+	Confirm     bool                    `yaml:"confirm,omitempty"`
 	Optional    bool                    `yaml:"optional,omitempty"`
 	Options     []string                `yaml:"options,omitempty"`
 	RegExp      VariableRegExpValidator `yaml:"regexp,omitempty"`
@@ -20,7 +21,7 @@ type VariableRegExpValidator struct {
 	Help    string `yaml:"help,omitempty"`
 }
 
-type VariableValues map[string]string
+type VariableValues map[string]interface{}
 
 func (v *Variable) Validate() error {
 	// TODO

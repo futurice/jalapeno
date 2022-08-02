@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -19,16 +18,11 @@ var (
 
 func newExecuteCmd() *cobra.Command {
 	var execCmd = &cobra.Command{
-		Use:     "execute",
+		Use:     "execute <recipe_path>",
 		Aliases: []string{"exec", "e"},
-		Short:   "Execute a given recipe and save output to a path",
-		Args: func(cmd *cobra.Command, args []string) error {
-			if len(args) < 1 {
-				return errors.New("requires a path argument")
-			}
-			return nil
-		},
-		Run: executeFunc,
+		Short:   "Execute a given recipe and save output to path",
+		Args:    cobra.ExactArgs(1),
+		Run:     executeFunc,
 	}
 
 	execCmd.Flags().StringVarP(&outputBasePath, "output", "o", ".", "Path where the output files should be created")
@@ -56,7 +50,7 @@ func executeFunc(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	re.Values, err = promptUserForValues(re.Variables)
+	re.Values, err = promptUserForValues(re)
 	if err != nil {
 		fmt.Printf("Error when prompting for values: %s\n", err)
 		return
@@ -64,6 +58,7 @@ func executeFunc(cmd *cobra.Command, args []string) {
 
 	// Define the context which is available on templates
 	context := map[string]interface{}{
+		"Recipe":    re.Metadata,
 		"Variables": re.Values,
 	}
 
@@ -94,13 +89,15 @@ func executeFunc(cmd *cobra.Command, args []string) {
 	}
 }
 
-func promptUserForValues(variables []recipe.Variable) (recipe.VariableValues, error) {
+func promptUserForValues(re *recipe.Recipe) (recipe.VariableValues, error) {
 	values := recipe.VariableValues{}
 
-	for _, variable := range variables {
-		// TODO: Check if the value for the variable was alredy provided by CLI arguments
+	// TODO: Check if the value for the variable was alredy provided by CLI arguments
+	// 			 or already exists in "values" property in recipe.yml
 
+	for _, variable := range re.Variables {
 		var prompt survey.Prompt
+		var askFunc AskFunc = askString
 
 		if len(variable.Options) != 0 {
 			prompt = &survey.Select{
@@ -108,6 +105,12 @@ func promptUserForValues(variables []recipe.Variable) (recipe.VariableValues, er
 				Help:    variable.Description,
 				Options: variable.Options,
 			}
+		} else if variable.Confirm {
+			prompt = &survey.Confirm{
+				Message: variable.Name,
+				Help:    variable.Description,
+			}
+			askFunc = askBool
 		} else {
 			prompt = &survey.Input{
 				Message: variable.Name,
@@ -131,8 +134,7 @@ func promptUserForValues(variables []recipe.Variable) (recipe.VariableValues, er
 			opts = append(opts, survey.WithValidator(validator))
 		}
 
-		var answer string
-		err := survey.AskOne(prompt, &answer, opts...)
+		answer, err := askFunc(prompt, opts)
 		if err != nil {
 			return recipe.VariableValues{}, err
 		}
@@ -145,4 +147,25 @@ func promptUserForValues(variables []recipe.Variable) (recipe.VariableValues, er
 	}
 
 	return values, nil
+}
+
+// NOTE: Since survey.AskOne tries to cast the answer to the type of the response
+// value pointer and the type of response value can not be interface{},
+// we need to create different ask functions for each response type and return interface{}
+type AskFunc func(prompt survey.Prompt, opts []survey.AskOpt) (interface{}, error)
+
+func askString(prompt survey.Prompt, opts []survey.AskOpt) (interface{}, error) {
+	var answer string
+	if err := survey.AskOne(prompt, &answer, opts...); err != nil {
+		return nil, err
+	}
+	return answer, nil
+}
+
+func askBool(prompt survey.Prompt, opts []survey.AskOpt) (interface{}, error) {
+	var answer bool
+	if err := survey.AskOne(prompt, &answer, opts...); err != nil {
+		return nil, err
+	}
+	return answer, nil
 }
