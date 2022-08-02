@@ -56,7 +56,7 @@ func executeFunc(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	values, err := promptUserForValues(re.Variables)
+	re.Values, err = promptUserForValues(re.Variables)
 	if err != nil {
 		fmt.Printf("Error when prompting for values: %s\n", err)
 		return
@@ -64,7 +64,7 @@ func executeFunc(cmd *cobra.Command, args []string) {
 
 	// Define the context which is available on templates
 	context := map[string]interface{}{
-		"Variables": values,
+		"Variables": re.Values,
 	}
 
 	renderedFiles, err := engine.Render(re, context)
