@@ -1,0 +1,29 @@
+version: "3"
+
+tasks:
+  setup:
+    desc: Setup Docusaurus locally
+    cmds:
+      - npm install
+
+  start:
+    desc: Start website
+    vars:
+      PORT: '{{default "3001" .PORT}}'
+    cmds:
+      - npx docusaurus start --no-open --port={{.PORT}}
+
+  build:
+    desc: Build website
+    cmds:
+      - npx docusaurus build
+
+  clean:
+    desc: Clean temp directories
+    cmds:
+      - rm -rf ./build
+
+  deploy:
+    desc: Build and deploy Docusaurus. Requires GIT_USER and GIT_PASS envs to be previous set
+    cmds:
+      - npx docusaurus deploy

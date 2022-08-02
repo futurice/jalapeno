@@ -1,4 +1,4 @@
-![Jalapeno - Empowered by Futurice](/docs/logo.png)
+![Jalapeno - Empowered by Futurice](/docs/static/img/logo.png)
 
 # Jalapeño
 
