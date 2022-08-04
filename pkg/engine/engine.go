@@ -12,25 +12,27 @@ import (
 type Engine struct {
 }
 
-func Render(recipe *recipe.Recipe, values map[string]interface{}) ([]*recipe.File, error) {
+var _ recipe.RenderEngine = Engine{}
+
+func Render(recipe *recipe.Recipe, values map[string]interface{}) (map[string][]byte, error) {
 	return new(Engine).Render(recipe, values)
 }
 
-func (e Engine) Render(r *recipe.Recipe, values map[string]interface{}) ([]*recipe.File, error) {
+func (e Engine) Render(r *recipe.Recipe, values map[string]interface{}) (map[string][]byte, error) {
 	t := template.New("gotpl")
 	t.Funcs(funcMap())
 
-	rendered := make([]*recipe.File, 0, len(r.Templates))
+	rendered := make(map[string][]byte)
 
-	for _, file := range r.Templates {
-		_, err := t.New(file.Name).Parse(string(file.Data))
+	for name, data := range r.Templates {
+		_, err := t.New(name).Parse(string(data))
 		if err != nil {
 			// TODO: Inner error message includes prefix "template: ", which does not good when printing this error
 			return nil, fmt.Errorf("failed to parse template: %w", err)
 		}
 
 		var buf strings.Builder
-		if err := t.ExecuteTemplate(&buf, file.Name, values); err != nil {
+		if err := t.ExecuteTemplate(&buf, name, values); err != nil {
 			// TODO: Inner error message includes prefix "template: ", which does not good when printing this error
 			return nil, fmt.Errorf("failed to execute template: %w", err)
 		}
@@ -43,7 +45,9 @@ func (e Engine) Render(r *recipe.Recipe, values map[string]interface{}) ([]*reci
 			return nil, errors.New("some of the variables used in the template were undefined")
 		}
 
-		rendered = append(rendered, &recipe.File{Name: file.Name, Data: []byte(output)})
+		// TODO: Could we detect unused variables, and give warning about those?
+
+		rendered[name] = []byte(output)
 	}
 
 	return rendered, nil

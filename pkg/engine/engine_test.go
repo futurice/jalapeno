@@ -13,8 +13,8 @@ func TestRender(t *testing.T) {
 			Name:    "test-render",
 			Version: "1.2.3",
 		},
-		Templates: []*recipe.File{
-			{Name: "templates/test1", Data: []byte("{{.var1 | title }} {{.var2 | title}}")},
+		Templates: map[string][]byte{
+			"templates/test1": []byte("{{.var1 | title }} {{.var2 | title}}"),
 		},
 	}
 
@@ -29,16 +29,13 @@ func TestRender(t *testing.T) {
 		t.Errorf("Failed to render templates: %s", err)
 	}
 
-	expect := []*recipe.File{
-		{
-			Name: "templates/test1",
-			Data: []byte("First Second"),
-		},
+	expect := map[string][]byte{
+		"templates/test1": []byte("First Second"),
 	}
 
-	for i := range expect {
-		if bytes.Compare(out[i].Data, expect[i].Data) != 0 {
-			t.Errorf("Expected %q, got %q", expect[i].Data, out[i].Data)
+	for name := range expect {
+		if bytes.Compare(out[name], expect[name]) != 0 {
+			t.Errorf("Expected %q, got %q", expect[name], out[name])
 		}
 	}
 }

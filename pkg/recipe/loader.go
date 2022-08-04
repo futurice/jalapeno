@@ -11,6 +11,7 @@ import (
 const (
 	RecipeFileName         = "recipe.yml"
 	RecipeTemplatesDirName = "templates"
+	RenderedRecipeDirName  = ".jalapeno"
 )
 
 func Load(path string) (*Recipe, error) {
@@ -33,14 +34,16 @@ func LoadFromDir(path string) (*Recipe, error) {
 	}
 
 	recipe := &Recipe{}
-
 	err = yaml.Unmarshal(dat, recipe)
 	if err != nil {
 		return nil, err
 	}
 
-	templates := make([]*File, 0)
+	if err := recipe.Validate(); err != nil {
+		return nil, err
+	}
 
+	templates := make(map[string][]byte)
 	templatesDir := filepath.Join(rootdir, RecipeTemplatesDirName)
 
 	walk := func(path string, info os.FileInfo, err error) error {
@@ -52,21 +55,16 @@ func LoadFromDir(path string) (*Recipe, error) {
 			return nil
 		}
 
-		templateData, err := os.ReadFile(path)
+		data, err := os.ReadFile(path)
 		if err != nil {
 			return err
 		}
 
 		prefix := filepath.Join(rootdir, RecipeTemplatesDirName)
 		prefix += string(filepath.Separator)
-		templateName := filepath.ToSlash(strings.TrimPrefix(path, prefix))
+		name := filepath.ToSlash(strings.TrimPrefix(path, prefix))
 
-		file := &File{
-			Name: templateName,
-			Data: templateData,
-		}
-
-		templates = append(templates, file)
+		templates[name] = data
 		return nil
 	}
 
@@ -76,6 +74,71 @@ func LoadFromDir(path string) (*Recipe, error) {
 	}
 
 	recipe.Templates = templates
+
+	return recipe, nil
+}
+
+// Load recipe which already has been rendered
+func LoadRenderedFromDir(path string) (*Recipe, error) {
+	rootDir, err := filepath.Abs(path)
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO: Check if root path was not a dir
+
+	recipeFile := filepath.Join(rootDir, RenderedRecipeDirName, RecipeFileName)
+	dat, err := os.ReadFile(recipeFile)
+	if err != nil {
+		return nil, err
+	}
+
+	recipe := &Recipe{}
+	err = yaml.Unmarshal(dat, recipe)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := recipe.Validate(); err != nil {
+		return nil, err
+	}
+
+	files := make(map[string][]byte)
+
+	walk := func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		// Continue walking if the path is directory
+		if info.IsDir() {
+			return nil
+		}
+
+		trimmedPath := strings.TrimPrefix(path, rootDir+string(filepath.Separator))
+
+		// Skip recipe directory
+		if filepath.Dir(trimmedPath) == RenderedRecipeDirName {
+			return nil
+		}
+
+		data, err := os.ReadFile(path)
+		if err != nil {
+			return err
+		}
+
+		name := filepath.ToSlash(trimmedPath)
+
+		files[name] = data
+		return nil
+	}
+
+	err = filepath.Walk(rootDir, walk)
+	if err != nil {
+		return nil, err
+	}
+
+	recipe.RenderedTemplates = files
 
 	return recipe, nil
 }

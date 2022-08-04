@@ -1,5 +1,5 @@
-name: gcp-frontend
-version: 0.0.1
+name: gcp-web-server
+version: v0.0.1
 description: Description what the recipe is used for. Tech stack, environments etc
 vars:
   - name: SERVICE_NAME

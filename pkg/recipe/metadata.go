@@ -1,5 +1,13 @@
 package recipe
 
+import (
+	"errors"
+	"fmt"
+	"net/url"
+
+	"golang.org/x/mod/semver"
+)
+
 type Metadata struct {
 	Name        string `yaml:"name"`
 	Version     string `yaml:"version"`
@@ -8,6 +16,15 @@ type Metadata struct {
 }
 
 func (m *Metadata) Validate() error {
-	// TODO
+	if !semver.IsValid(m.Version) {
+		return errors.New("version is not a valid semver")
+	}
+
+	if m.URL != "" {
+		if _, err := url.ParseRequestURI(m.URL); err != nil {
+			return fmt.Errorf("url is invalid: %w", err)
+		}
+	}
+
 	return nil
 }
