@@ -49,6 +49,11 @@ func executeFunc(cmd *cobra.Command, args []string) {
 		return
 	}
 
+	if len(re.Templates) == 0 {
+		fmt.Printf("Error: the recipe does not contain any templates")
+		return
+	}
+
 	// TODO: Set values provided by --set flag to re.Values
 
 	err = recipeutil.PromptUserForValues(re)
@@ -77,7 +82,7 @@ func executeFunc(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	err = recipeutil.SaveFiles(re.RenderedTemplates, outputBasePath)
+	err = recipeutil.SaveFiles(re.Files, outputBasePath)
 	if err != nil {
 		fmt.Println(err)
 		return

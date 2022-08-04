@@ -15,19 +15,24 @@ const (
 )
 
 func Load(path string) (*Recipe, error) {
-	// Later on here we can add additional load mechanisms (example from URL)
+	// Check if the path points to already rendered recipe
+	rootDir, _ := filepath.Abs(path)
+	if _, err := os.Stat(filepath.Join(rootDir, RenderedRecipeDirName)); !os.IsNotExist(err) {
+		return LoadRenderedFromDir(path)
+	}
+
 	return LoadFromDir(path)
 }
 
 func LoadFromDir(path string) (*Recipe, error) {
-	rootdir, err := filepath.Abs(path)
+	rootDir, err := filepath.Abs(path)
 	if err != nil {
 		return nil, err
 	}
 
 	// TODO: Check if root path was not a dir
 
-	recipeFile := filepath.Join(rootdir, RecipeFileName)
+	recipeFile := filepath.Join(rootDir, RecipeFileName)
 	dat, err := os.ReadFile(recipeFile)
 	if err != nil {
 		return nil, err
@@ -44,7 +49,7 @@ func LoadFromDir(path string) (*Recipe, error) {
 	}
 
 	templates := make(map[string][]byte)
-	templatesDir := filepath.Join(rootdir, RecipeTemplatesDirName)
+	templatesDir := filepath.Join(rootDir, RecipeTemplatesDirName)
 
 	walk := func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -60,7 +65,7 @@ func LoadFromDir(path string) (*Recipe, error) {
 			return err
 		}
 
-		prefix := filepath.Join(rootdir, RecipeTemplatesDirName)
+		prefix := filepath.Join(rootDir, RecipeTemplatesDirName)
 		prefix += string(filepath.Separator)
 		name := filepath.ToSlash(strings.TrimPrefix(path, prefix))
 
@@ -138,7 +143,7 @@ func LoadRenderedFromDir(path string) (*Recipe, error) {
 		return nil, err
 	}
 
-	recipe.RenderedTemplates = files
+	recipe.Files = files
 
 	return recipe, nil
 }

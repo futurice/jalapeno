@@ -65,9 +65,9 @@ func upgradeFunc(cmd *cobra.Command, args []string) {
 	// Collect files which should be written to the destination directory
 	output := make(map[string][]byte)
 
-	for name := range re.RenderedTemplates {
-		if _, exists := exRe.RenderedTemplates[name]; exists {
-			if bytes.Compare(re.RenderedTemplates[name], exRe.RenderedTemplates[name]) != 0 {
+	for name := range re.Files {
+		if _, exists := exRe.Files[name]; exists {
+			if bytes.Compare(re.Files[name], exRe.Files[name]) != 0 {
 				fmt.Printf("%s: MODIFIED\n", name)
 				// TODO: Apply merge, handle conflicts
 			} else {
@@ -76,7 +76,7 @@ func upgradeFunc(cmd *cobra.Command, args []string) {
 			}
 		} else {
 			fmt.Printf("%s: NEW\n", name)
-			output[name] = re.RenderedTemplates[name]
+			output[name] = re.Files[name]
 		}
 	}
 

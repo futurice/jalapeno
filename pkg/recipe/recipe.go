@@ -5,11 +5,11 @@ import (
 )
 
 type Recipe struct {
-	Metadata          `yaml:",inline"`
-	Variables         []Variable        `yaml:"vars,omitempty"`
-	Values            VariableValues    `yaml:"values,omitempty"`
-	Templates         map[string][]byte `yaml:"-"`
-	RenderedTemplates map[string][]byte `yaml:"-"`
+	Metadata  `yaml:",inline"`
+	Variables []Variable        `yaml:"vars,omitempty"`
+	Values    VariableValues    `yaml:"values,omitempty"`
+	Templates map[string][]byte `yaml:"-"`
+	Files     map[string][]byte `yaml:"-"`
 }
 
 func (re *Recipe) Validate() error {
@@ -38,7 +38,7 @@ func (re *Recipe) Render(engine RenderEngine) error {
 		"Variables": re.Values,
 	}
 
-	re.RenderedTemplates, err = engine.Render(re, context)
+	re.Files, err = engine.Render(re, context)
 	if err != nil {
 		return err
 	}

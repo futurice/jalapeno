@@ -10,8 +10,9 @@ import (
 func newValidateCmd() *cobra.Command {
 	var validateCmd = &cobra.Command{
 		Use:          "validate",
-		Short:        "validate a recipe",
+		Short:        "Validate a recipe",
 		RunE:         validateFunc,
+		Args:         cobra.ExactArgs(1),
 		SilenceUsage: true,
 	}
 
