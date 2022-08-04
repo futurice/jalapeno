@@ -87,4 +87,10 @@ func executeFunc(cmd *cobra.Command, args []string) {
 		fmt.Println(err)
 		return
 	}
+
+	fmt.Println("Recipe executed successfully!")
+
+	if re.InitHelp != "" {
+		fmt.Printf("Next up: %s\n", re.InitHelp)
+	}
 }

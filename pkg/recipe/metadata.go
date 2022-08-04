@@ -13,6 +13,7 @@ type Metadata struct {
 	Version     string `yaml:"version"`
 	Description string `yaml:"description"`
 	URL         string `yaml:"url,omitempty"`
+	InitHelp    string `yaml:"initHelp,omitempty"`
 }
 
 func (m *Metadata) Validate() error {
