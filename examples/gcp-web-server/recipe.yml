@@ -1,7 +1,7 @@
 name: gcp-web-server
 version: v0.0.1
 description: Description what the recipe is used for. Tech stack, environments etc
-initHelp: Run `task init` to create the cloud environment
+initHelp: Install Task from https://taskfile.dev and run `task init` in the project directory to create the cloud environment
 vars:
   - name: SERVICE_NAME
     default: hello-world

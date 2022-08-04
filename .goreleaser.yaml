@@ -1,6 +1,3 @@
-before:
-  hooks:
-    - go mod tidy
 build:
   dir: cmd
   env:
@@ -13,14 +10,11 @@ build:
     - amd64
     - arm64
 archives:
-  - replacements:
-      darwin: Darwin
-      linux: Linux
-      windows: Windows
-      386: i386
-      amd64: x86_64
+  - id: archives
+    format: binary
+    name_template: "{{ .ProjectName }}-{{ .Os }}-{{ .Arch }}"
 checksum:
-  name_template: "checksums.txt"
+  name_template: "{{ .ProjectName }}-checksums.txt"
 snapshot:
   name_template: "{{ incpatch .Version }}-next"
 changelog:

@@ -7,7 +7,7 @@ on:
 
 jobs:
   goreleaser:
-    name: Publish binaries
+    name: Create release
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
