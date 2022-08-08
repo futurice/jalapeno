@@ -1,6 +1,7 @@
 package recipe
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"strings"
@@ -15,22 +16,35 @@ const (
 )
 
 func Load(path string) (*Recipe, error) {
-	// Check if the path points to already rendered recipe
-	rootDir, _ := filepath.Abs(path)
-	if _, err := os.Stat(filepath.Join(rootDir, RenderedRecipeDirName)); !os.IsNotExist(err) {
-		return LoadRenderedFromDir(path)
-	}
-
-	return LoadFromDir(path)
-}
-
-func LoadFromDir(path string) (*Recipe, error) {
 	rootDir, err := filepath.Abs(path)
 	if err != nil {
 		return nil, err
 	}
 
-	// TODO: Check if root path was not a dir
+	// Check that the path exists
+	info, err := os.Stat(rootDir)
+	if os.IsNotExist(err) {
+		return nil, err
+	}
+
+	// Check that the path points to a directory
+	if !info.IsDir() {
+		return nil, errors.New("path is not a directory")
+	}
+
+	// Check if the path points to already rendered recipe
+	if _, err := os.Stat(filepath.Join(rootDir, RenderedRecipeDirName)); !os.IsNotExist(err) {
+		return loadRenderedFromDir(path)
+	}
+
+	return loadFromDir(path)
+}
+
+func loadFromDir(path string) (*Recipe, error) {
+	rootDir, err := filepath.Abs(path)
+	if err != nil {
+		return nil, err
+	}
 
 	recipeFile := filepath.Join(rootDir, RecipeFileName)
 	dat, err := os.ReadFile(recipeFile)
@@ -84,13 +98,11 @@ func LoadFromDir(path string) (*Recipe, error) {
 }
 
 // Load recipe which already has been rendered
-func LoadRenderedFromDir(path string) (*Recipe, error) {
+func loadRenderedFromDir(path string) (*Recipe, error) {
 	rootDir, err := filepath.Abs(path)
 	if err != nil {
 		return nil, err
 	}
-
-	// TODO: Check if root path was not a dir
 
 	recipeFile := filepath.Join(rootDir, RenderedRecipeDirName, RecipeFileName)
 	dat, err := os.ReadFile(recipeFile)

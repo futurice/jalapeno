@@ -51,3 +51,8 @@ func (re *Recipe) Render(engine RenderEngine) error {
 
 	return nil
 }
+
+// Check if the recipe is in executed state (all templates has been rendered)
+func (re *Recipe) IsExecuted() bool {
+	return len(re.Files) > 0
+}

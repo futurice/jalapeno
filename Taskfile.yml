@@ -5,6 +5,9 @@ includes:
     taskfile: ./docs
     dir: ./docs
 
+vars:
+  ENTRYPOINT: ./cmd # Path to main package
+
 tasks:
   mod:
     desc: Downloads and tidy Go modules
@@ -19,18 +22,18 @@ tasks:
       - golangci-lint run
   run:
     cmds:
-      - go run ./cmd {{.CLI_ARGS}}
+      - go run {{.ENTRYPOINT}} {{.CLI_ARGS}}
   build:
     desc: Build the CLI
     sources:
       - "./**/*.go"
     cmds:
-      - go build -o bin/jalapeno ./cmd
+      - go build -o bin/jalapeno {{.ENTRYPOINT}}
   debug:
     desc: Starts the CLI in debug mode. After running the task, you can use for example VSCode to connect to the session
     cmds:
       - >-
-        $(go env GOPATH)/bin/dlv debug ./cmd
+        $(go env GOPATH)/bin/dlv debug {{.ENTRYPOINT}}
         --headless
         --listen 127.0.0.1:52800
         --api-version 2
