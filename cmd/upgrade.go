@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"path/filepath"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/futurice/jalapeno/pkg/engine"
@@ -50,7 +51,13 @@ func upgradeFunc(cmd *cobra.Command, args []string) {
 
 	re.Values = prevRe.Values
 
-	// TODO: Clean up values which does not exist in the new recipe
+	// Check if the new version of the recipe has removed some variables
+	// which existed on previous version
+	for _, v := range re.Variables {
+		if _, exists := re.Values[v.Name]; !exists {
+			delete(re.Values, v.Name)
+		}
+	}
 
 	err = recipeutil.PromptUserForValues(re)
 	if err != nil {
@@ -100,6 +107,12 @@ func upgradeFunc(cmd *cobra.Command, args []string) {
 	}
 
 	err = recipeutil.SaveFiles(output, target)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	err = re.Save(filepath.Join(target, recipe.RenderedRecipeDirName))
 	if err != nil {
 		fmt.Println(err)
 		return
