@@ -7,18 +7,30 @@ import (
 )
 
 type Variable struct {
-	Name        string                  `yaml:"name"`
-	Description string                  `yaml:"description,omitempty"`
-	Default     string                  `yaml:"default,omitempty"`
-	Confirm     bool                    `yaml:"confirm,omitempty"`
-	Optional    bool                    `yaml:"optional,omitempty"`
-	Options     []string                `yaml:"options,omitempty"`
-	RegExp      VariableRegExpValidator `yaml:"regexp,omitempty"`
+	Name        string `yaml:"name"`
+	Description string `yaml:"description,omitempty"`
+
+	// Default value for the variable
+	Default string `yaml:"default,omitempty"`
+
+	// If set to true, the prompt will be yes/no question, and the value type will be boolean
+	Confirm bool `yaml:"confirm,omitempty"`
+
+	// If set to true, the variable can be left empty
+	Optional bool `yaml:"optional,omitempty"`
+
+	// The user selects the value from a list of options
+	Options []string `yaml:"options,omitempty"`
+
+	// Regular expression validator for the variable value
+	RegExp VariableRegExpValidator `yaml:"regexp,omitempty"`
 }
 
 type VariableRegExpValidator struct {
 	Pattern string `yaml:"pattern,omitempty"`
-	Help    string `yaml:"help,omitempty"`
+
+	// If the RegExp validation fails, this help message will be showed to the user
+	Help string `yaml:"help,omitempty"`
 }
 
 type VariableValues map[string]interface{}

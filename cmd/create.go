@@ -12,14 +12,14 @@ import (
 func newCreateCmd() *cobra.Command {
 	// createCmd represents the create command
 	var createCmd = &cobra.Command{
-		Use:   "create <recipe_name>",
+		Use:   "create NAME",
 		Short: "Create a new recipe",
 		Long: `
-		...
-			foo/
-			├── recipe.yml
-			├── templates/
-		`,
+...
+	foo/
+	├── recipe.yml
+	├── templates/
+`, // TODO
 		Args: cobra.ExactArgs(1),
 		Run:  createFunc,
 	}
@@ -49,21 +49,21 @@ func createFunc(cmd *cobra.Command, args []string) {
 
 	err := os.Mkdir(path, 0700)
 	if err != nil {
-		panic("can not create directory") // TODO
+		panic("can not create directory") // TODO: more graceful error handling
 	}
 
 	err = re.Validate()
 	if err != nil {
-		panic("invalid example recipe") // TODO
+		panic("invalid example recipe") // TODO: more graceful error handling
 	}
 
 	err = re.Save(path)
 	if err != nil {
-		panic("recipe saving failed") // TODO
+		panic("recipe saving failed") // TODO: more graceful error handling
 	}
 
 	err = os.Mkdir(filepath.Join(path, recipe.RecipeTemplatesDirName), 0700)
 	if err != nil {
-		panic("can not create directory") // TODO
+		panic("can not create directory") // TODO: more graceful error handling
 	}
 }

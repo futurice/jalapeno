@@ -12,32 +12,38 @@ type Recipe struct {
 	Files     map[string][]byte `yaml:"-"`
 }
 
+type RenderEngine interface {
+	Render(recipe *Recipe, values map[string]interface{}) (map[string][]byte, error)
+}
+
 func (re *Recipe) Validate() error {
 	if err := re.Metadata.Validate(); err != nil {
 		return err
 	}
 
-	for _, variable := range re.Variables {
-		if err := variable.Validate(); err != nil {
-			return fmt.Errorf("error on variable %s: %w", variable.Name, err)
+	checkDuplicates := make(map[string]bool)
+	for _, v := range re.Variables {
+		if err := v.Validate(); err != nil {
+			return fmt.Errorf("error on variable %s: %w", v.Name, err)
 		}
+		if _, exists := checkDuplicates[v.Name]; exists {
+			return fmt.Errorf("variable %s has been declared multiple times", v.Name)
+		}
+		checkDuplicates[v.Name] = true
 	}
 
 	return nil
 }
 
-type RenderEngine interface {
-	Render(recipe *Recipe, values map[string]interface{}) (map[string][]byte, error)
-}
-
+// Renders recipe templates to files
 func (re *Recipe) Render(engine RenderEngine) error {
-	var err error
 	// Define the context which is available on templates
 	context := map[string]interface{}{
 		"Recipe":    re.Metadata,
 		"Variables": re.Values,
 	}
 
+	var err error
 	re.Files, err = engine.Render(re, context)
 	if err != nil {
 		return err

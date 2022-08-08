@@ -9,12 +9,18 @@ import (
 
 func PromptUserForValues(re *recipe.Recipe) error {
 	values := recipe.VariableValues{}
+	headerAdded := false
 
 	for _, variable := range re.Variables {
 		// Check if there already exist value for the given variable
 		if value, exists := re.Values[variable.Name]; exists {
 			values[variable.Name] = value
 			continue
+		}
+
+		if !headerAdded {
+			fmt.Println("\nProvide the following variables:")
+			headerAdded = true
 		}
 
 		var prompt survey.Prompt

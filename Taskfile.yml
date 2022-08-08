@@ -6,7 +6,7 @@ tasks:
       - go run ./cmd {{.CLI_ARGS}}
   build:
     cmds:
-      - go build ./cmd
+      - go build -o jalapeno ./cmd
   test:
     cmds:
       - go test ./...

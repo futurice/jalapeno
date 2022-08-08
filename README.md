@@ -2,4 +2,4 @@
 
 # Jalapeño
 
-CLI for managing and sharing project configurations and ways of working aka _recipes_
+CLI for creating, managing and sharing spiced up project templates aka _recipes_

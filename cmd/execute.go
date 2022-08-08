@@ -17,9 +17,10 @@ var (
 
 func newExecuteCmd() *cobra.Command {
 	var execCmd = &cobra.Command{
-		Use:     "execute <recipe_path>",
+		Use:     "execute RECIPE",
 		Aliases: []string{"exec", "e"},
 		Short:   "Execute a given recipe and save output to path",
+		Long:    "", // TODO
 		Args:    cobra.ExactArgs(1),
 		Run:     executeFunc,
 	}
@@ -41,7 +42,11 @@ func executeFunc(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	fmt.Printf("Recipe name: %s\n\n", re.Metadata.Name)
+	fmt.Printf("Recipe name: %s\n", re.Metadata.Name)
+
+	if re.Metadata.Description != "" {
+		fmt.Printf("Description: %s\n", re.Metadata.Description)
+	}
 
 	err = re.Validate()
 	if err != nil {
@@ -88,7 +93,7 @@ func executeFunc(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	fmt.Println("Recipe executed successfully!")
+	fmt.Println("\nRecipe executed successfully!")
 
 	if re.InitHelp != "" {
 		fmt.Printf("Next up: %s\n", re.InitHelp)
