@@ -34,7 +34,7 @@ func TestRender(t *testing.T) {
 	}
 
 	for name := range expect {
-		if bytes.Equal(out[name], expect[name]) {
+		if !bytes.Equal(out[name], expect[name]) {
 			t.Errorf("Expected %q, got %q", expect[name], out[name])
 		}
 	}
