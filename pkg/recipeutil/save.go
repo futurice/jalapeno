@@ -33,7 +33,10 @@ func SaveFiles(files map[string][]byte, dest string) error {
 			return err
 		}
 
-		f.Sync()
+		err = f.Sync()
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }

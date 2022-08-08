@@ -95,7 +95,12 @@ func upgradeFunc(cmd *cobra.Command, args []string) {
 				Message: name,
 				Default: true,
 			}
-			survey.AskOne(prompt, &override)
+			err = survey.AskOne(prompt, &override)
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+
 			if !override {
 				// User decided not to override the file with manual changes, we can skip the file
 				continue
