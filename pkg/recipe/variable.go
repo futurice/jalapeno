@@ -7,10 +7,11 @@ import (
 )
 
 type Variable struct {
+	// The name of the variable. It is also used as unique identifier.
 	Name        string `yaml:"name"`
 	Description string `yaml:"description,omitempty"`
 
-	// Default value for the variable
+	// Default value of the variable
 	Default string `yaml:"default,omitempty"`
 
 	// If set to true, the prompt will be yes/no question, and the value type will be boolean
@@ -27,16 +28,27 @@ type Variable struct {
 }
 
 type VariableRegExpValidator struct {
+	// Regular expression pattern to match the input against
 	Pattern string `yaml:"pattern,omitempty"`
 
-	// If the RegExp validation fails, this help message will be showed to the user
+	// If the regular expression validation fails, this help message will be showed to the user
 	Help string `yaml:"help,omitempty"`
 }
 
 type VariableValues map[string]interface{}
 
 func (v *Variable) Validate() error {
-	// TODO
+	if v.Name == "" {
+		return errors.New("variable name is required")
+	}
+	if v.Confirm && len(v.Options) > 0 {
+		return errors.New("`cofirm` and `options` properties can not be defined at the same time")
+	}
+	if v.RegExp.Pattern != "" {
+		if _, err := regexp.Compile(v.RegExp.Pattern); err != nil {
+			return fmt.Errorf("invalid variable regexp pattern: %w", err)
+		}
+	}
 	return nil
 }
 

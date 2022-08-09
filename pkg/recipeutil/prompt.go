@@ -26,18 +26,23 @@ func PromptUserForValues(re *recipe.Recipe) error {
 		var prompt survey.Prompt
 		var askFunc AskFunc = askString
 
+		// Select with predefined options
 		if len(variable.Options) != 0 {
 			prompt = &survey.Select{
 				Message: variable.Name,
 				Help:    variable.Description,
 				Options: variable.Options,
 			}
+
+			// Yes/No question
 		} else if variable.Confirm {
 			prompt = &survey.Confirm{
 				Message: variable.Name,
 				Help:    variable.Description,
 			}
 			askFunc = askBool
+
+			// Free input question
 		} else {
 			prompt = &survey.Input{
 				Message: variable.Name,
@@ -64,10 +69,6 @@ func PromptUserForValues(re *recipe.Recipe) error {
 		answer, err := askFunc(prompt, opts)
 		if err != nil {
 			return err
-		}
-
-		if _, exist := values[variable.Name]; exist {
-			return fmt.Errorf(`variable "%s" has been declared multiple times`, variable.Name)
 		}
 
 		values[variable.Name] = answer

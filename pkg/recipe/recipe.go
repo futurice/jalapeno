@@ -35,7 +35,7 @@ func (re *Recipe) Validate() error {
 	return nil
 }
 
-// Renders recipe templates to files
+// Renders recipe templates from .Templates to .Files
 func (re *Recipe) Render(engine RenderEngine) error {
 	// Define the context which is available on templates
 	context := map[string]interface{}{
@@ -52,7 +52,7 @@ func (re *Recipe) Render(engine RenderEngine) error {
 	return nil
 }
 
-// Check if the recipe is in executed state (all templates has been rendered)
+// Check if the recipe is in executed state (the templates has been rendered)
 func (re *Recipe) IsExecuted() bool {
 	return len(re.Files) > 0
 }

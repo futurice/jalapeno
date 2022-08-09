@@ -49,21 +49,25 @@ func createFunc(cmd *cobra.Command, args []string) {
 
 	err := os.Mkdir(path, 0700)
 	if err != nil {
-		panic("can not create directory") // TODO: more graceful error handling
+		fmt.Printf("error: can not create directory %s: %v", path, err)
+		return
 	}
 
 	err = re.Validate()
 	if err != nil {
-		panic("invalid example recipe") // TODO: more graceful error handling
+		fmt.Println("internal error: placeholder recipe is not valid")
+		return
 	}
 
 	err = re.Save(path)
 	if err != nil {
-		panic("recipe saving failed") // TODO: more graceful error handling
+		fmt.Printf("error: can not save recipe to the directory: %v", err)
+		return
 	}
 
 	err = os.Mkdir(filepath.Join(path, recipe.RecipeTemplatesDirName), 0700)
 	if err != nil {
-		panic("can not create directory") // TODO: more graceful error handling
+		fmt.Printf("error: can not save templates to the directory: %v", err)
+		return
 	}
 }
