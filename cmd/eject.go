@@ -40,6 +40,7 @@ func ejectFunc(cmd *cobra.Command, args []string) {
 		return
 	}
 
+	fmt.Printf("Deleting %s...", jalapenoPath)
 	err := os.RemoveAll(jalapenoPath)
 	if err != nil {
 		fmt.Println(err)
