@@ -14,7 +14,7 @@ func (re *Recipe) Save(dest string) error {
 		return err
 	}
 
-	err = os.WriteFile(filepath.Join(dest, RecipeFileName), out, 0700)
+	err = os.WriteFile(filepath.Join(dest, RecipeFileName), out, 0644)
 	if err != nil {
 		return err
 	}
