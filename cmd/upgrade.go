@@ -30,7 +30,13 @@ func upgradeFunc(cmd *cobra.Command, args []string) {
 	target := args[0]
 	source := args[1]
 
-	prevRe, err := recipe.Load(target)
+	re, err := recipe.Load(source)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	prevRe, err := recipe.LoadRendered(target, re.Name)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -38,12 +44,6 @@ func upgradeFunc(cmd *cobra.Command, args []string) {
 
 	if !prevRe.IsExecuted() {
 		fmt.Println("error: the first argument should point to the project which uses the recipe")
-		return
-	}
-
-	re, err := recipe.Load(source)
-	if err != nil {
-		fmt.Println(err)
 		return
 	}
 

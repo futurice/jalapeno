@@ -1,7 +1,6 @@
 package recipe
 
 import (
-	"errors"
 	"os"
 	"path/filepath"
 	"strings"
@@ -15,32 +14,8 @@ const (
 	RenderedRecipeDirName  = ".jalapeno"
 )
 
+// Load a recipe from its source.
 func Load(path string) (*Recipe, error) {
-	rootDir, err := filepath.Abs(path)
-	if err != nil {
-		return nil, err
-	}
-
-	// Check that the path exists
-	info, err := os.Stat(rootDir)
-	if os.IsNotExist(err) {
-		return nil, err
-	}
-
-	// Check that the path points to a directory
-	if !info.IsDir() {
-		return nil, errors.New("path is not a directory")
-	}
-
-	// Check if the path points to already rendered recipe
-	if _, err := os.Stat(filepath.Join(rootDir, RenderedRecipeDirName)); !os.IsNotExist(err) {
-		return loadRenderedFromDir(path)
-	}
-
-	return loadFromDir(path)
-}
-
-func loadFromDir(path string) (*Recipe, error) {
 	rootDir, err := filepath.Abs(path)
 	if err != nil {
 		return nil, err
@@ -97,8 +72,10 @@ func loadFromDir(path string) (*Recipe, error) {
 	return recipe, nil
 }
 
-// Load recipe which already has been rendered
-func loadRenderedFromDir(path string) (*Recipe, error) {
+// Load recipe which already has been rendered by name.
+// The stack index of the rendered recipe gets discovered
+// automatically.
+func LoadRendered(path, recipeName string) (*Recipe, error) {
 	rootDir, err := filepath.Abs(path)
 	if err != nil {
 		return nil, err
