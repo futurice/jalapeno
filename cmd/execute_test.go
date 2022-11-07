@@ -8,11 +8,35 @@ import (
 	"testing"
 
 	"github.com/cucumber/godog"
+	"github.com/spf13/cobra"
 )
 
 type projectDirectoryPathCtxKey struct{}
 type recipesDirectoryPathCtxKey struct{}
-type templateCtxKey struct{}
+type recipeStdoutCtxKey struct{}
+type recipeStderrCtxKey struct{}
+
+/*
+ * UTILITIES
+ */
+
+type outputCapturingWriter struct {
+	output *string
+}
+
+func (o outputCapturingWriter) Write(p []byte) (int, error) {
+	*(o.output) = fmt.Sprint(*(o.output), string(p))
+	return len(p), nil
+}
+
+func newOutputCapturingExecuteCmd(stdout, stderr *string) *cobra.Command {
+	w_out := outputCapturingWriter{output: stdout}
+	w_err := outputCapturingWriter{output: stderr}
+	cmd := newExecuteCmd()
+	cmd.SetOut(w_out)
+	cmd.SetErr(w_err)
+	return cmd
+}
 
 /*
  * STEP DEFINITIONS
@@ -54,13 +78,25 @@ func aRecipeThatGeneratesFile(ctx context.Context, recipe, filename string) (con
 func iExecuteRecipe(ctx context.Context, recipe string) (context.Context, error) {
 	projectDir := ctx.Value(projectDirectoryPathCtxKey{}).(string)
 	recipesDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
-	outputBasePath = projectDir
-	executeFunc(nil, []string{filepath.Join(recipesDir, recipe)})
-	return ctx, nil
+	recipeStdout := ""
+	recipeStderr := ""
+	cmd := newOutputCapturingExecuteCmd(&recipeStdout, &recipeStderr)
+	cmd.Flags().Set("output", projectDir)
+	executeFunc(cmd, []string{filepath.Join(recipesDir, recipe)})
+	return context.WithValue(
+		context.WithValue(ctx, recipeStdoutCtxKey{}, recipeStdout),
+		recipeStderrCtxKey{},
+		recipeStderr,
+	), nil
 }
 
-func theProjectDirectoryShouldContainFile(recipe string) error {
-	return godog.ErrPending
+func theProjectDirectoryShouldContainFile(ctx context.Context, filename string) error {
+	dir := ctx.Value(projectDirectoryPathCtxKey{}).(string)
+	info, err := os.Stat(filepath.Join(dir, filename))
+	if err == nil && !info.Mode().IsRegular() {
+		return fmt.Errorf("%s is not a regular file", filename)
+	}
+	return err
 }
 
 func cleanTempDirs(ctx context.Context, sc *godog.Scenario, err error) (context.Context, error) {
@@ -75,7 +111,7 @@ func cleanTempDirs(ctx context.Context, sc *godog.Scenario, err error) (context.
 	return ctx, err
 }
 
-func TestFeatures(t *testing.T) {
+func TestExecuteFeature(t *testing.T) {
 	suite := godog.TestSuite{
 		ScenarioInitializer: func(s *godog.ScenarioContext) {
 			s.Step(`^a project directory$`, aProjectDirectory)
