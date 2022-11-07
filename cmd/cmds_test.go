@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"testing"
 
 	"github.com/cucumber/godog"
@@ -111,7 +112,30 @@ func cleanTempDirs(ctx context.Context, sc *godog.Scenario, err error) (context.
 	return ctx, err
 }
 
-func TestExecuteFeature(t *testing.T) {
+func executionOfRecipeHasFailedWithError(ctx context.Context, _recipe, errorMessage string) (context.Context, error) {
+	out := ctx.Value(recipeStderrCtxKey{}).(string)
+	if match, err := regexp.Match(errorMessage, []byte(out)); !match {
+		if err != nil {
+			return ctx, err
+		}
+		return ctx, fmt.Errorf("'%s' not found in stderr", errorMessage)
+	}
+	return ctx, nil
+}
+
+func iChangeRecipeToVersion(arg1, arg2 string) error {
+	return godog.ErrPending
+}
+
+func iUpgradeRecipe(arg1 string) error {
+	return godog.ErrPending
+}
+
+func theProjectDirectoryShouldContainFileWith(arg1, arg2 string) error {
+	return godog.ErrPending
+}
+
+func TestFeatures(t *testing.T) {
 	suite := godog.TestSuite{
 		ScenarioInitializer: func(s *godog.ScenarioContext) {
 			s.Step(`^a project directory$`, aProjectDirectory)
@@ -119,6 +143,10 @@ func TestExecuteFeature(t *testing.T) {
 			s.Step(`^a recipe "([^"]*)" that generates file "([^"]*)"$`, aRecipeThatGeneratesFile)
 			s.Step(`^I execute recipe "([^"]*)"$`, iExecuteRecipe)
 			s.Step(`^the project directory should contain file "([^"]*)"$`, theProjectDirectoryShouldContainFile)
+			s.Step(`^the project directory should contain file "([^"]*)" with "([^"]*)"$`, theProjectDirectoryShouldContainFileWith)
+			s.Step(`^execution of recipe "([^"]*)" has failed with error "([^"]*)"$`, executionOfRecipeHasFailedWithError)
+			s.Step(`^I change recipe "([^"]*)" to version "([^"]*)"$`, iChangeRecipeToVersion)
+			s.Step(`^I upgrade recipe "([^"]*)"$`, iUpgradeRecipe)
 			s.After(cleanTempDirs)
 		},
 		Options: &godog.Options{
