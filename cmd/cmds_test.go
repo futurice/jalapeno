@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/cucumber/godog"
@@ -39,6 +40,15 @@ func newOutputCapturingExecuteCmd(stdout, stderr *string) *cobra.Command {
 	return cmd
 }
 
+func newOutputCapturingUpgradeCmd(stdout, stderr *string) *cobra.Command {
+	w_out := outputCapturingWriter{output: stdout}
+	w_err := outputCapturingWriter{output: stderr}
+	cmd := newUpgradeCmd()
+	cmd.SetOut(w_out)
+	cmd.SetErr(w_err)
+	return cmd
+}
+
 /*
  * STEP DEFINITIONS
  */
@@ -67,10 +77,10 @@ func aRecipeThatGeneratesFile(ctx context.Context, recipe, filename string) (con
 		return ctx, err
 	}
 	template := "name: %[1]s\nversion: v0.0.1\ndescription: %[1]s"
-	if err := os.WriteFile(filepath.Join(dir, recipe, "recipe.yml"), []byte(fmt.Sprintf(template, recipe)), 0660); err != nil {
+	if err := os.WriteFile(filepath.Join(dir, recipe, "recipe.yml"), []byte(fmt.Sprintf(template, recipe)), 0644); err != nil {
 		return ctx, err
 	}
-	if err := os.WriteFile(filepath.Join(dir, recipe, "templates", filename), []byte(recipe), 0660); err != nil {
+	if err := os.WriteFile(filepath.Join(dir, recipe, "templates", filename), []byte(recipe), 0644); err != nil {
 		return ctx, err
 	}
 	return context.WithValue(ctx, recipesDirectoryPathCtxKey{}, dir), nil
@@ -129,16 +139,49 @@ func executionOfTheRecipeHasFailedWithError(ctx context.Context, errorMessage st
 	return ctx, nil
 }
 
-func iChangeRecipeToVersion(arg1, arg2 string) error {
-	return godog.ErrPending
+func iChangeRecipeToVersion(ctx context.Context, recipeName, version string) (context.Context, error) {
+	dir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
+
+	template := "name: %[1]s\nversion: %[2]s\ndescription: %[1]s"
+	if err := os.WriteFile(filepath.Join(dir, recipeName, "recipe.yml"), []byte(fmt.Sprintf(template, recipeName, version)), 0644); err != nil {
+		return ctx, err
+	}
+
+	return ctx, nil
 }
 
-func iUpgradeRecipe(arg1 string) error {
-	return godog.ErrPending
+func iUpgradeRecipe(ctx context.Context, recipe string) (context.Context, error) {
+	recipesDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
+	projectDir := ctx.Value(projectDirectoryPathCtxKey{}).(string)
+
+	recipeStdout := ""
+	recipeStderr := ""
+	cmd := newOutputCapturingUpgradeCmd(&recipeStdout, &recipeStderr)
+	upgradeFunc(cmd, []string{projectDir, filepath.Join(recipesDir, recipe)})
+	return context.WithValue(
+		context.WithValue(ctx, recipeStdoutCtxKey{}, recipeStdout),
+		recipeStderrCtxKey{},
+		recipeStderr,
+	), nil
 }
 
-func theProjectDirectoryShouldContainFileWith(arg1, arg2 string) error {
-	return godog.ErrPending
+func theProjectDirectoryShouldContainFileWith(ctx context.Context, filename, searchTerm string) error {
+	dir := ctx.Value(projectDirectoryPathCtxKey{}).(string)
+	path := filepath.Join(dir, filename)
+	info, err := os.Stat(path)
+	if err != nil {
+		return err
+	} else if !info.Mode().IsRegular() {
+		return fmt.Errorf("%s is not a regular file", filename)
+	}
+	bytes, err := os.ReadFile(path)
+	if err != nil {
+		return err
+	}
+	if !strings.Contains(string(bytes), searchTerm) {
+		return fmt.Errorf("substring %s not found in %s", searchTerm, filename)
+	}
+	return nil
 }
 
 func TestFeatures(t *testing.T) {
