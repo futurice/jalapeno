@@ -162,3 +162,25 @@ func renderedRecipeFilesToRecipeNames(paths []string) ([]string, error) {
 	}
 	return recipeNames, nil
 }
+
+func LoadAllRendered(path string) ([]*Recipe, error) {
+	matches, err := filepath.Glob(filepath.Join(path, RenderedRecipeDirName, "*-*.yml"))
+	if err != nil {
+		return nil, err
+	}
+
+	recipes := make([]*Recipe, len(matches))
+	recipeNames, err := renderedRecipeFilesToRecipeNames(matches)
+	if err != nil {
+		return nil, err
+	}
+
+	for i, recipeName := range recipeNames {
+		recipe, err := LoadRendered(path, recipeName)
+		if err != nil {
+			return nil, err
+		}
+		recipes[i] = recipe
+	}
+	return recipes, err
+}
