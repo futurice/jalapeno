@@ -90,6 +90,22 @@ func executeFunc(cmd *cobra.Command, args []string) {
 		return
 	}
 
+	// Load all rendered recipes
+	rendered, err := recipe.LoadAllRendered(outputBasePath)
+	if err != nil {
+		cmd.PrintErrln(err)
+		return
+	}
+
+	// Check for conflicts
+	for _, r := range rendered {
+		conflicts := re.Conflicts(r)
+		if conflicts != nil {
+			cmd.PrintErrf("conflict in recipe %s: %s was already created by recipe %s\n", re.Name, conflicts[0].Filename, r.Name)
+			return
+		}
+	}
+
 	err = re.Save(recipePath)
 	if err != nil {
 		cmd.PrintErrln(err)
