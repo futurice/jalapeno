@@ -20,12 +20,9 @@ func (re *Recipe) Save(dest string) error {
 	if err != nil {
 		// The only case for this should be a malformed glob pattern
 		return err
-	}
-	if len(matches) > 1 {
+	} else if len(matches) > 1 {
 		return fmt.Errorf("this should never happen: more than one rendered %s recipe in %s", re.Name, dest)
-	}
-
-	if len(matches) == 0 {
+	} else if len(matches) == 0 {
 		// No matches -- this is the first time rendering this recipe in this directory.
 		// The index therefore needs to be the next highest integer, which is the length
 		// of the list of all rendered recipes, plus 1.
