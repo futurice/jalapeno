@@ -104,22 +104,26 @@ func theProjectDirectoryShouldContainFile(ctx context.Context, filename string) 
 
 func cleanTempDirs(ctx context.Context, sc *godog.Scenario, err error) (context.Context, error) {
 	if dir := ctx.Value(projectDirectoryPathCtxKey{}); dir != nil {
-		fmt.Printf("Removing %s\n", dir)
 		os.RemoveAll(dir.(string))
 	}
 	if dir := ctx.Value(recipesDirectoryPathCtxKey{}); dir != nil {
-		fmt.Printf("Removing %s\n", dir)
 		os.RemoveAll(dir.(string))
 	}
 	return ctx, err
 }
 
-func executionOfRecipeHasFailedWithError(ctx context.Context, _recipe, errorMessage string) (context.Context, error) {
-	out := ctx.Value(recipeStderrCtxKey{}).(string)
-	if match, err := regexp.Match(errorMessage, []byte(out)); !match {
-		if err != nil {
-			return ctx, err
-		}
+func executionOfTheRecipeHasSucceeded(ctx context.Context) (context.Context, error) {
+	recipeStdout := ctx.Value(recipeStdoutCtxKey{}).(string)
+	recipeStderr := ctx.Value(recipeStderrCtxKey{}).(string)
+	if matched, _ := regexp.Match("Recipe executed successfully", []byte(recipeStdout)); !matched {
+		return ctx, fmt.Errorf("Recipe failed to execute!\nstdout:\n%s\n\nstderr:\n%s\n\n", recipeStdout, recipeStderr)
+	}
+	return ctx, nil
+}
+
+func executionOfTheRecipeHasFailedWithError(ctx context.Context, errorMessage string) (context.Context, error) {
+	recipeStderr := ctx.Value(recipeStderrCtxKey{}).(string)
+	if matched, _ := regexp.Match(errorMessage, []byte(recipeStderr)); !matched {
 		return ctx, fmt.Errorf("'%s' not found in stderr", errorMessage)
 	}
 	return ctx, nil
@@ -146,7 +150,8 @@ func TestFeatures(t *testing.T) {
 			s.Step(`^I execute recipe "([^"]*)"$`, iExecuteRecipe)
 			s.Step(`^the project directory should contain file "([^"]*)"$`, theProjectDirectoryShouldContainFile)
 			s.Step(`^the project directory should contain file "([^"]*)" with "([^"]*)"$`, theProjectDirectoryShouldContainFileWith)
-			s.Step(`^execution of recipe "([^"]*)" has failed with error "([^"]*)"$`, executionOfRecipeHasFailedWithError)
+			s.Step(`^execution of the recipe has succeeded$`, executionOfTheRecipeHasSucceeded)
+			s.Step(`^execution of the recipe has failed with error "([^"]*)"$`, executionOfTheRecipeHasFailedWithError)
 			s.Step(`^I change recipe "([^"]*)" to version "([^"]*)"$`, iChangeRecipeToVersion)
 			s.Step(`^I upgrade recipe "([^"]*)"$`, iUpgradeRecipe)
 			s.After(cleanTempDirs)
