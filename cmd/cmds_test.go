@@ -82,7 +82,9 @@ func iExecuteRecipe(ctx context.Context, recipe string) (context.Context, error)
 	recipeStdout := ""
 	recipeStderr := ""
 	cmd := newOutputCapturingExecuteCmd(&recipeStdout, &recipeStderr)
-	cmd.Flags().Set("output", projectDir)
+	if err := cmd.Flags().Set("output", projectDir); err != nil {
+		return ctx, err
+	}
 	executeFunc(cmd, []string{filepath.Join(recipesDir, recipe)})
 	return context.WithValue(
 		context.WithValue(ctx, recipeStdoutCtxKey{}, recipeStdout),
