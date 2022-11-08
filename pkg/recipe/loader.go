@@ -150,11 +150,11 @@ func LoadRendered(path, recipeName string) (*Recipe, error) {
 func renderedRecipeFilesToRecipeNames(paths []string) ([]string, error) {
 	recipeNames := make([]string, len(paths))
 	for i, path := range paths {
-		re, err := regexp.Compile("/([0-9]+)-([^.]+).yml$")
+		re, err := regexp.Compile("([0-9]+)-([^.]+).yml$")
 		if err != nil {
 			return nil, err
 		}
-		parts := re.FindStringSubmatch(path)
+		parts := re.FindStringSubmatch(filepath.Base(path))
 		if len(parts) != 3 {
 			return nil, fmt.Errorf("Expected to match 3 parts of %s but got %d", path, len(parts))
 		}
