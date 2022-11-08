@@ -62,7 +62,7 @@ func upgradeFunc(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	fmt.Printf("Upgrade from %s to %s\n", re.Metadata.Version, prevRe.Metadata.Version)
+	fmt.Printf("Upgrade from %s to %s\n", prevRe.Metadata.Version, re.Metadata.Version)
 
 	re.Values = prevRe.Values
 
