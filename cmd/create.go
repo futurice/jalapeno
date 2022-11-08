@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 
@@ -43,31 +42,31 @@ func createFunc(cmd *cobra.Command, args []string) {
 	path := filepath.Join(".", recipeName)
 
 	if _, err := os.Stat(path); !os.IsNotExist(err) {
-		fmt.Printf("error: directory '%s' already exists", recipeName)
+		cmd.PrintErrf("directory '%s' already exists", recipeName)
 		return
 	}
 
 	err := os.Mkdir(path, 0700)
 	if err != nil {
-		fmt.Printf("error: can not create directory %s: %v", path, err)
+		cmd.PrintErrf("can not create directory %s: %v", path, err)
 		return
 	}
 
 	err = re.Validate()
 	if err != nil {
-		fmt.Println("internal error: placeholder recipe is not valid")
+		cmd.PrintErrln("internal error: placeholder recipe is not valid")
 		return
 	}
 
 	err = re.Save(path)
 	if err != nil {
-		fmt.Printf("error: can not save recipe to the directory: %v", err)
+		cmd.PrintErrf("can not save recipe to the directory: %v", err)
 		return
 	}
 
 	err = os.Mkdir(filepath.Join(path, recipe.RecipeTemplatesDirName), 0700)
 	if err != nil {
-		fmt.Printf("error: can not save templates to the directory: %v", err)
+		cmd.PrintErrf("can not save templates to the directory: %v", err)
 		return
 	}
 }
