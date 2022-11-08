@@ -56,3 +56,20 @@ func (re *Recipe) Render(engine RenderEngine) error {
 func (re *Recipe) IsExecuted() bool {
 	return len(re.Files) > 0
 }
+
+type RecipeConflict struct {
+	Filename string
+}
+
+// Check if the recipe conflicts with another recipe. Recipes conflict if they touch the same files.
+func (re *Recipe) Conflicts(other *Recipe) []RecipeConflict {
+	var conflicts []RecipeConflict
+	for filename := range re.Files {
+		for otherFilename := range other.Files {
+			if filename == otherFilename {
+				conflicts = append(conflicts, RecipeConflict{Filename: filename})
+			}
+		}
+	}
+	return conflicts
+}
