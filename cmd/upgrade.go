@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"fmt"
 	"path/filepath"
 
 	"github.com/AlecAivazis/survey/v2"
@@ -32,37 +31,37 @@ func upgradeFunc(cmd *cobra.Command, args []string) {
 
 	re, err := recipe.Load(source)
 	if err != nil {
-		fmt.Println(err)
+		cmd.PrintErrln(err)
 		return
 	}
 
 	prevRe, err := recipe.LoadRendered(target, re.Name)
 	if err != nil {
-		fmt.Println(err)
+		cmd.PrintErrln(err)
 		return
 	}
 
 	if !prevRe.IsExecuted() {
-		fmt.Println("error: the first argument should point to the project which uses the recipe")
+		cmd.PrintErrln("the first argument should point to the project which uses the recipe")
 		return
 	}
 
 	if re.IsExecuted() {
-		fmt.Println("error: the second argument should point to the recipe which will be used for upgrading")
+		cmd.PrintErrln("the second argument should point to the recipe which will be used for upgrading")
 		return
 	}
 
 	if re.Metadata.Name != prevRe.Metadata.Name {
-		fmt.Println("error: recipe name used in the project should match the recipe which is used for upgrading")
+		cmd.PrintErrln("recipe name used in the project should match the recipe which is used for upgrading")
 		return
 	}
 
 	if semver.Compare(re.Metadata.Version, prevRe.Metadata.Version) <= 0 {
-		fmt.Println("error: new recipe version is lower or same than the existing one")
+		cmd.PrintErrln("new recipe version is lower or same than the existing one")
 		return
 	}
 
-	fmt.Printf("Upgrade from %s to %s\n", prevRe.Metadata.Version, re.Metadata.Version)
+	cmd.Printf("Upgrade from %s to %s\n", prevRe.Metadata.Version, re.Metadata.Version)
 
 	re.Values = prevRe.Values
 
@@ -76,13 +75,13 @@ func upgradeFunc(cmd *cobra.Command, args []string) {
 
 	err = recipeutil.PromptUserForValues(re)
 	if err != nil {
-		fmt.Println(err)
+		cmd.PrintErrln(err)
 		return
 	}
 
 	err = re.Render(engine.Engine{})
 	if err != nil {
-		fmt.Println(err)
+		cmd.PrintErrln(err)
 		return
 	}
 
@@ -100,7 +99,7 @@ func upgradeFunc(cmd *cobra.Command, args []string) {
 			// The file contents has been modified
 
 			if !overrideNoticed {
-				fmt.Println("Some of the files has been manually modified. Do you want to override the following files:")
+				cmd.Println("Some of the files has been manually modified. Do you want to override the following files:")
 				overrideNoticed = true
 			}
 
@@ -112,7 +111,7 @@ func upgradeFunc(cmd *cobra.Command, args []string) {
 			}
 			err = survey.AskOne(prompt, &override)
 			if err != nil {
-				fmt.Println(err)
+				cmd.Println(err)
 				return
 			}
 
@@ -128,13 +127,13 @@ func upgradeFunc(cmd *cobra.Command, args []string) {
 
 	err = recipeutil.SaveFiles(output, target)
 	if err != nil {
-		fmt.Println(err)
+		cmd.PrintErrln(err)
 		return
 	}
 
 	err = re.Save(filepath.Join(target, recipe.RenderedRecipeDirName))
 	if err != nil {
-		fmt.Println(err)
+		cmd.PrintErrln(err)
 		return
 	}
 }
