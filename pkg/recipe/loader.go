@@ -83,7 +83,15 @@ func LoadRendered(path, recipeName string) (*Recipe, error) {
 		return nil, err
 	}
 
-	recipeFile := filepath.Join(rootDir, RenderedRecipeDirName, RecipeFileName)
+	matches, err := filepath.Glob(filepath.Join(rootDir, RenderedRecipeDirName, fmt.Sprintf("*-%s.yml", recipeName)))
+	if err != nil {
+		// The only case for this should be a malformed glob pattern
+		return nil, err
+	} else if len(matches) != 1 {
+		return nil, fmt.Errorf("Directory %s does not contain recipe %s", path, recipeName)
+	}
+
+	recipeFile := matches[0]
 	dat, err := os.ReadFile(recipeFile)
 	if err != nil {
 		return nil, err
