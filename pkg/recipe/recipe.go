@@ -60,7 +60,7 @@ func (re *Recipe) Render(engine RenderEngine) error {
 	for filename, content := range files {
 		re.Files[idx] = File{Path: filename, Content: content, Sha256Sum: "123"}
 		idx += 1
-		if idx >= len(files) {
+		if idx > len(files) {
 			return fmt.Errorf("Files array grew during execution")
 		}
 	}
