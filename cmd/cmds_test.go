@@ -167,20 +167,22 @@ func iUpgradeRecipe(ctx context.Context, recipe string) (context.Context, error)
 }
 
 func theProjectDirectoryShouldContainFileWith(ctx context.Context, filename, searchTerm string) error {
+	recipeStdout := ctx.Value(recipeStdoutCtxKey{}).(string)
+	recipeStderr := ctx.Value(recipeStderrCtxKey{}).(string)
 	dir := ctx.Value(projectDirectoryPathCtxKey{}).(string)
 	path := filepath.Join(dir, filename)
 	info, err := os.Stat(path)
 	if err != nil {
 		return err
 	} else if !info.Mode().IsRegular() {
-		return fmt.Errorf("%s is not a regular file", filename)
+		return fmt.Errorf("%s is not a regular file.\nstdout:\n%s\n\nstderr:\n%s\n", filename, recipeStdout, recipeStderr)
 	}
 	bytes, err := os.ReadFile(path)
 	if err != nil {
 		return err
 	}
 	if !strings.Contains(string(bytes), searchTerm) {
-		return fmt.Errorf("substring %s not found in %s", searchTerm, filename)
+		return fmt.Errorf("substring %s not found in %s.\nstdout:\n%s\n\nstderr:\n%s\n", searchTerm, filename, recipeStdout, recipeStderr)
 	}
 	return nil
 }
