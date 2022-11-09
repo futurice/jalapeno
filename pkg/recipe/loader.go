@@ -107,43 +107,6 @@ func LoadRendered(path, recipeName string) (*Recipe, error) {
 		return nil, err
 	}
 
-	files := make(map[string][]byte)
-
-	walk := func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-
-		// Continue walking if the path is directory
-		if info.IsDir() {
-			return nil
-		}
-
-		trimmedPath := strings.TrimPrefix(path, rootDir+string(filepath.Separator))
-
-		// Skip recipe directory
-		if filepath.Dir(trimmedPath) == RenderedRecipeDirName {
-			return nil
-		}
-
-		data, err := os.ReadFile(path)
-		if err != nil {
-			return err
-		}
-
-		name := filepath.ToSlash(trimmedPath)
-
-		files[name] = data
-		return nil
-	}
-
-	err = filepath.Walk(rootDir, walk)
-	if err != nil {
-		return nil, err
-	}
-
-	recipe.Files = files
-
 	return recipe, nil
 }
 

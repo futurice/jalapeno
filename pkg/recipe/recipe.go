@@ -4,12 +4,18 @@ import (
 	"fmt"
 )
 
+type File struct {
+	Path      string `yaml:"path"`
+	Sha256Sum string `yaml:"sha256sum"`
+	Content   []byte `yaml:"-"`
+}
+
 type Recipe struct {
 	Metadata  `yaml:",inline"`
 	Variables []Variable        `yaml:"vars,omitempty"`
 	Values    VariableValues    `yaml:"values,omitempty"`
 	Templates map[string][]byte `yaml:"-"`
-	Files     map[string][]byte `yaml:"-"`
+	Files     []File            `yaml:"files"`
 }
 
 type RenderEngine interface {
@@ -44,9 +50,19 @@ func (re *Recipe) Render(engine RenderEngine) error {
 	}
 
 	var err error
-	re.Files, err = engine.Render(re, context)
+	files, err := engine.Render(re, context)
 	if err != nil {
 		return err
+	}
+
+	re.Files = make([]File, len(files))
+	idx := 0
+	for filename, content := range files {
+		re.Files[idx] = File{Path: filename, Content: content, Sha256Sum: "123"}
+		idx += 1
+		if idx >= len(files) {
+			return fmt.Errorf("Files array grew during execution")
+		}
 	}
 
 	return nil
@@ -58,16 +74,24 @@ func (re *Recipe) IsExecuted() bool {
 }
 
 type RecipeConflict struct {
-	Filename string
+	Path       string
+	Sha256Sum      string
+	OtherSha256Sum string
 }
 
 // Check if the recipe conflicts with another recipe. Recipes conflict if they touch the same files.
 func (re *Recipe) Conflicts(other *Recipe) []RecipeConflict {
 	var conflicts []RecipeConflict
-	for filename := range re.Files {
-		for otherFilename := range other.Files {
-			if filename == otherFilename {
-				conflicts = append(conflicts, RecipeConflict{Filename: filename})
+	for _, file := range re.Files {
+		for _, otherFile := range other.Files {
+			if file.Path == otherFile.Path {
+				conflicts = append(
+					conflicts,
+					RecipeConflict{
+						Path: file.Path,
+						Sha256Sum: file.Sha256Sum,
+						OtherSha256Sum: otherFile.Sha256Sum,
+					})
 			}
 		}
 	}

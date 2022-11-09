@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"path/filepath"
 
 	"github.com/AlecAivazis/survey/v2"
@@ -9,6 +8,7 @@ import (
 	"github.com/futurice/jalapeno/pkg/recipe"
 	"github.com/futurice/jalapeno/pkg/recipeutil"
 	"github.com/spf13/cobra"
+	"golang.org/x/exp/slices"
 	"golang.org/x/mod/semver"
 )
 
@@ -86,43 +86,44 @@ func upgradeFunc(cmd *cobra.Command, args []string) {
 	}
 
 	// Collect files which should be written to the destination directory
-	output := make(map[string][]byte)
+	output := make([]recipe.File, len(re.Files))
 	overrideNoticed := false
 
-	for name := range re.Files {
-		if _, exists := prevRe.Files[name]; exists {
-			if bytes.Equal(re.Files[name], prevRe.Files[name]) {
-				// A file with exactly same name and content already exist, skip
-				continue
-			}
-
-			// The file contents has been modified
-
-			if !overrideNoticed {
-				cmd.Println("Some of the files has been manually modified. Do you want to override the following files:")
-				overrideNoticed = true
-			}
-
-			// TODO: We could do better in terms of merge conflict management. Like show the diff or something
-			var override bool
-			prompt := &survey.Confirm{
-				Message: name,
-				Default: true,
-			}
-			err = survey.AskOne(prompt, &override)
-			if err != nil {
-				cmd.Println(err)
-				return
-			}
-
-			if !override {
-				// User decided not to override the file with manual changes, we can skip the file
-				continue
-			}
+	for _, conflict := range re.Conflicts(prevRe) {
+		// here "other" is prevRe
+		if conflict.Sha256Sum == conflict.OtherSha256Sum {
+			// A file with exactly same name and content already exist, skip
+			continue
 		}
 
-		// Add new file or replace existing one
-		output[name] = re.Files[name]
+		// The file contents has been modified
+
+		if !overrideNoticed {
+			cmd.Println("Some of the files has been manually modified. Do you want to override the following files:")
+			overrideNoticed = true
+		}
+
+		// TODO: We could do better in terms of merge conflict management. Like show the diff or something
+		var override bool
+		prompt := &survey.Confirm{
+			Message: conflict.Path,
+			Default: true,
+		}
+		err = survey.AskOne(prompt, &override)
+		if err != nil {
+			cmd.Println(err)
+			return
+		}
+
+		if !override {
+			// User decided not to override the file with manual changes, remove from
+			// list of changes to write
+			idx := slices.IndexFunc(output, func(f recipe.File) bool { return f.Path == conflict.Path })
+			// sanity check
+			if idx >= 0 {
+				slices.Delete(output, idx, idx + 1)
+			}
+		}
 	}
 
 	err = recipeutil.SaveFiles(output, target)

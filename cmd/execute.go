@@ -91,7 +91,7 @@ func executeFunc(cmd *cobra.Command, args []string) {
 	for _, r := range rendered {
 		conflicts := re.Conflicts(r)
 		if conflicts != nil {
-			cmd.PrintErrf("conflict in recipe %s: %s was already created by recipe %s\n", re.Name, conflicts[0].Filename, r.Name)
+			cmd.PrintErrf("conflict in recipe %s: %s was already created by recipe %s\n", re.Name, conflicts[0].Path, r.Name)
 			return
 		}
 	}
