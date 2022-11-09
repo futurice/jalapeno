@@ -126,15 +126,16 @@ func executionOfTheRecipeHasSucceeded(ctx context.Context) (context.Context, err
 	recipeStdout := ctx.Value(recipeStdoutCtxKey{}).(string)
 	recipeStderr := ctx.Value(recipeStderrCtxKey{}).(string)
 	if matched, _ := regexp.Match("Recipe executed successfully", []byte(recipeStdout)); !matched {
-		return ctx, fmt.Errorf("Recipe failed to execute!\nstdout:\n%s\n\nstderr:\n%s\n\n", recipeStdout, recipeStderr)
+		return ctx, fmt.Errorf("Recipe failed to execute!\nstdout:\n%s\n\nstderr:\n%s\n", recipeStdout, recipeStderr)
 	}
 	return ctx, nil
 }
 
 func executionOfTheRecipeHasFailedWithError(ctx context.Context, errorMessage string) (context.Context, error) {
+	recipeStdout := ctx.Value(recipeStdoutCtxKey{}).(string)
 	recipeStderr := ctx.Value(recipeStderrCtxKey{}).(string)
 	if matched, _ := regexp.Match(errorMessage, []byte(recipeStderr)); !matched {
-		return ctx, fmt.Errorf("'%s' not found in stderr", errorMessage)
+		return ctx, fmt.Errorf("'%s' not found in stderr.\nstdout:\n%s\n\nstderr:\n%s\n", errorMessage, recipeStdout, recipeStderr)
 	}
 	return ctx, nil
 }
