@@ -87,6 +87,7 @@ func upgradeFunc(cmd *cobra.Command, args []string) {
 
 	// Collect files which should be written to the destination directory
 	output := make([]recipe.File, len(re.Files))
+	copy(output, re.Files)
 	overrideNoticed := false
 
 	for _, conflict := range re.Conflicts(prevRe) {
