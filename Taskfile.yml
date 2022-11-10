@@ -39,8 +39,5 @@ tasks:
         --api-version 2
         -- {{.CLI_ARGS}}
   test:
-    sources:
-      - "./**/*.go"
-      - "./features/**/*.feature"
     cmds:
       - go test {{.CLI_ARGS}} ./...
