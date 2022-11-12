@@ -8,8 +8,8 @@ const darkCodeTheme = require("prism-react-renderer/themes/dracula");
 const config = {
   title: "Jalapeno",
   tagline: "CLI for creating, managing and sharing spiced up project templates",
-  url: "https://futurice.github.io/jalapeno",
-  baseUrl: "/",
+  url: "https://futurice.github.io",
+  baseUrl: "jalapeno/",
   trailingSlash: false,
   onBrokenLinks: "throw",
   onBrokenMarkdownLinks: "warn",
