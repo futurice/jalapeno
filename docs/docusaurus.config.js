@@ -33,9 +33,11 @@ const config = {
       /** @type {import('@docusaurus/preset-classic').Options} */
       ({
         docs: {
+          routeBasePath: "/",
           sidebarPath: require.resolve("./sidebars.js"),
           editUrl: "https://github.com/futurice/jalapeno/tree/main/docs/",
         },
+        blog: false,
         theme: {
           customCss: require.resolve("./src/css/custom.css"),
         },
@@ -57,7 +59,13 @@ const config = {
             type: "doc",
             docId: "intro",
             position: "left",
-            label: "Tutorial",
+            label: "Installation",
+          },
+          {
+            type: "doc",
+            docId: "usage",
+            position: "left",
+            label: "Usage",
           },
           {
             href: "https://github.com/futurice/jalapeno",
@@ -73,8 +81,12 @@ const config = {
             title: "Pages",
             items: [
               {
-                label: "Tutorial",
-                to: "/docs/intro",
+                label: "Installation",
+                to: "/installation",
+              },
+              {
+                label: "Usage",
+                to: "/usage",
               },
             ],
           },
