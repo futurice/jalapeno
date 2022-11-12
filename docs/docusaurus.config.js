@@ -8,16 +8,16 @@ const darkCodeTheme = require("prism-react-renderer/themes/dracula");
 const config = {
   title: "Jalapeno",
   tagline: "CLI for creating, managing and sharing spiced up project templates",
-  url: "https://your-docusaurus-test-site.com",
+  url: "https://futurice.github.io/jalapeno",
   baseUrl: "/",
+  trailingSlash: false,
   onBrokenLinks: "throw",
   onBrokenMarkdownLinks: "warn",
   favicon: "img/logo.svg",
 
-  // GitHub pages deployment config.
-  // If you aren't using GitHub pages, you don't need these.
-  organizationName: "futurice", // Usually your GitHub org/user name.
-  projectName: "jalapeno", // Usually your repo name.
+  // GitHub pages deployment config
+  organizationName: "futurice",
+  projectName: "jalapeno",
 
   // Even if you don't use internalization, you can use this field to set useful
   // metadata like html lang. For example, if your site is Chinese, you may want
