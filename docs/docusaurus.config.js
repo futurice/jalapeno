@@ -9,7 +9,7 @@ const config = {
   title: "Jalapeno",
   tagline: "CLI for creating, managing and sharing spiced up project templates",
   url: "https://futurice.github.io",
-  baseUrl: "jalapeno/",
+  baseUrl: "/jalapeno/",
   trailingSlash: false,
   onBrokenLinks: "throw",
   onBrokenMarkdownLinks: "warn",
