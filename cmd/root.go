@@ -34,6 +34,7 @@ func newRootCmd(out io.Writer, args []string) (*cobra.Command, error) {
 		newUpgradeCmd(),
 		newExecuteCmd(),
 		newValidateCmd(),
+		newEjectCmd(),
 	)
 
 	return cmd, nil
