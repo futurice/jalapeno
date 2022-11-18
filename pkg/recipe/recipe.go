@@ -5,9 +5,8 @@ import (
 )
 
 type File struct {
-	Path      string `yaml:"path"`
-	Sha256Sum string `yaml:"sha256sum"`
-	Content   []byte `yaml:"-"`
+	Checksum string `yaml:"checksum"` // e.g. "sha256:asdjfajdfa" w. default algo
+	Content  []byte `yaml:"-"`
 }
 
 type Recipe struct {
@@ -15,7 +14,7 @@ type Recipe struct {
 	Variables []Variable        `yaml:"vars,omitempty"`
 	Values    VariableValues    `yaml:"values,omitempty"`
 	Templates map[string][]byte `yaml:"-"`
-	Files     []File            `yaml:"files"`
+	Files     map[string]File   `yaml:"files"`
 }
 
 type RenderEngine interface {
@@ -58,7 +57,7 @@ func (re *Recipe) Render(engine RenderEngine) error {
 	re.Files = make([]File, len(files))
 	idx := 0
 	for filename, content := range files {
-		re.Files[idx] = File{Path: filename, Content: content, Sha256Sum: "123"}
+		re.Files[idx] = File{Path: filename, Content: content, Checksum: "123"}
 		idx += 1
 		if idx > len(files) {
 			return fmt.Errorf("Files array grew during execution")
@@ -74,7 +73,7 @@ func (re *Recipe) IsExecuted() bool {
 }
 
 type RecipeConflict struct {
-	Path       string
+	Path           string
 	Sha256Sum      string
 	OtherSha256Sum string
 }
@@ -88,9 +87,9 @@ func (re *Recipe) Conflicts(other *Recipe) []RecipeConflict {
 				conflicts = append(
 					conflicts,
 					RecipeConflict{
-						Path: file.Path,
-						Sha256Sum: file.Sha256Sum,
-						OtherSha256Sum: otherFile.Sha256Sum,
+						Path:           file.Path,
+						Sha256Sum:      file.Checksum,
+						OtherSha256Sum: otherFile.Checksum,
 					})
 			}
 		}
