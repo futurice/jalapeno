@@ -107,6 +107,16 @@ func LoadRendered(path, recipeName string) (*Recipe, error) {
 		return nil, err
 	}
 
+	// read rendered files
+	for path, file := range recipe.Files {
+		data, err := os.ReadFile(filepath.Join(rootDir, path))
+		if err != nil {
+			return nil, err
+		}
+		file.Content = data
+		recipe.Files[path] = file
+	}
+
 	return recipe, nil
 }
 
