@@ -1,6 +1,6 @@
 {
 	"name": "Jalapeno",
-	"dockerFile": "Dockerfile",
+	"image": "debian:bullseye",
 	"features": {
 		"ghcr.io/devcontainers/features/node:1": {
 			"version": "lts"
@@ -8,16 +8,9 @@
 		"ghcr.io/devcontainers/features/git:1": {},
 		"ghcr.io/devcontainers/features/github-cli:1": {},
 		"ghcr.io/devcontainers/features/go:1": {},
-		"ghcr.io/devcontainers/features/kubectl-helm-minikube:1": {},
-		"ghcr.io/devcontainers/features/terraform:1": {},
-		"ghcr.io/devcontainers-contrib/features/kubie:1": {},
 		"ghcr.io/eitsupi/devcontainer-features/go-task:0": {},
-		"ghcr.io/eitsupi/devcontainer-features/jq-likes:0": {},
-		"ghcr.io/dhoeric/features/act:1": {},
-		"ghcr.io/dhoeric/features/k9s:1": {},
 		"ghcr.io/guiyomh/features/golangci-lint:0": {},
-		"ghcr.io/guiyomh/features/goreleaser:0": {},
-		"ghcr.io/jungaretti/features/ripgrep:1": {}
+		"ghcr.io/guiyomh/features/goreleaser:0": {}
 	},
 	// Configure tool-specific properties.
 	"customizations": {
