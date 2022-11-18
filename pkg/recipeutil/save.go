@@ -8,22 +8,22 @@ import (
 	"github.com/futurice/jalapeno/pkg/recipe"
 )
 
-func SaveFiles(files []recipe.File, dest string) error {
+func SaveFiles(files map[string]recipe.File, dest string) error {
 	if _, err := os.Stat(dest); os.IsNotExist(err) {
 		return errors.New("destination path does not exist")
 	}
 
-	for _, file := range files {
-		path := filepath.Join(dest, file.Path)
+	for path, file := range files {
+		destPath := filepath.Join(dest, path)
 
 		// Create file's parent directories (if not already exist)
-		err := os.MkdirAll(filepath.Dir(path), 0700)
+		err := os.MkdirAll(filepath.Dir(destPath), 0700)
 		if err != nil {
 			return err
 		}
 
 		// Create the file
-		f, err := os.Create(path)
+		f, err := os.Create(destPath)
 		if err != nil {
 			return err
 		}

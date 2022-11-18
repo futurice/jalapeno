@@ -54,10 +54,10 @@ func (re *Recipe) Render(engine RenderEngine) error {
 		return err
 	}
 
-	re.Files = make([]File, len(files))
+	re.Files = make(map[string]File, len(files))
 	idx := 0
 	for filename, content := range files {
-		re.Files[idx] = File{Path: filename, Content: content, Checksum: "123"}
+		re.Files[filename] = File{Content: content, Checksum: "sha256:123"}
 		idx += 1
 		if idx > len(files) {
 			return fmt.Errorf("Files array grew during execution")
@@ -81,17 +81,15 @@ type RecipeConflict struct {
 // Check if the recipe conflicts with another recipe. Recipes conflict if they touch the same files.
 func (re *Recipe) Conflicts(other *Recipe) []RecipeConflict {
 	var conflicts []RecipeConflict
-	for _, file := range re.Files {
-		for _, otherFile := range other.Files {
-			if file.Path == otherFile.Path {
-				conflicts = append(
-					conflicts,
-					RecipeConflict{
-						Path:           file.Path,
-						Sha256Sum:      file.Checksum,
-						OtherSha256Sum: otherFile.Checksum,
-					})
-			}
+	for path, file := range re.Files {
+		if otherFile, exists := other.Files[path]; !exists {
+			conflicts = append(
+				conflicts,
+				RecipeConflict{
+					Path:           path,
+					Sha256Sum:      file.Checksum,
+					OtherSha256Sum: otherFile.Checksum,
+				})
 		}
 	}
 	return conflicts
