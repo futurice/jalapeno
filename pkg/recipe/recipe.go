@@ -82,7 +82,7 @@ type RecipeConflict struct {
 func (re *Recipe) Conflicts(other *Recipe) []RecipeConflict {
 	var conflicts []RecipeConflict
 	for path, file := range re.Files {
-		if otherFile, exists := other.Files[path]; !exists {
+		if otherFile, exists := other.Files[path]; exists {
 			conflicts = append(
 				conflicts,
 				RecipeConflict{
