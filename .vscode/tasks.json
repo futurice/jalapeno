@@ -1,0 +1,27 @@
+{
+	// See https://go.microsoft.com/fwlink/?LinkId=733558
+	// for the documentation about the tasks.json format
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "task test",
+			"type": "shell",
+			"command": "task test",
+			"problemMatcher": "$go",
+			"group": {
+				"kind": "test",
+				"isDefault": true
+			}
+		},
+		{
+			"label": "task build",
+			"type": "shell",
+			"command": "task build",
+			"problemMatcher": "$go",
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			}
+		}
+	]
+}
