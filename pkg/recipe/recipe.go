@@ -1,6 +1,7 @@
 package recipe
 
 import (
+	"crypto/sha256"
 	"fmt"
 )
 
@@ -57,7 +58,8 @@ func (re *Recipe) Render(engine RenderEngine) error {
 	re.Files = make(map[string]File, len(files))
 	idx := 0
 	for filename, content := range files {
-		re.Files[filename] = File{Content: content, Checksum: "sha256:123"}
+		sum := sha256.Sum256(content)
+		re.Files[filename] = File{Content: content, Checksum: fmt.Sprintf("sha256:%x", sum)}
 		idx += 1
 		if idx > len(files) {
 			return fmt.Errorf("Files array grew during execution")
