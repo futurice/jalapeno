@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"path/filepath"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/futurice/jalapeno/pkg/engine"
@@ -35,9 +34,20 @@ func upgradeFunc(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	prevRe, err := recipe.LoadRendered(target, re.Name)
+	rendered, err := recipe.LoadRendered(target)
 	if err != nil {
 		cmd.PrintErrln(err)
+		return
+	}
+	var prevRe *recipe.Recipe
+	for _, r := range rendered {
+		if r.Name == re.Name {
+			prevRe = &r
+			break
+		}
+	}
+	if prevRe == nil {
+		cmd.PrintErrf("directory %s does not contain recipe %s\n", target, re.Name)
 		return
 	}
 
@@ -133,7 +143,7 @@ func upgradeFunc(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	err = re.Save(filepath.Join(target, recipe.RenderedRecipeDirName))
+	err = re.Save(target)
 	if err != nil {
 		cmd.PrintErrln(err)
 		return

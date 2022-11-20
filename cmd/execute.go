@@ -2,7 +2,6 @@ package main
 
 import (
 	"os"
-	"path/filepath"
 
 	"github.com/futurice/jalapeno/pkg/engine"
 	"github.com/futurice/jalapeno/pkg/recipe"
@@ -72,16 +71,8 @@ func executeFunc(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	// Create sub directory for recipe
-	recipePath := filepath.Join(outputBasePath, recipe.RenderedRecipeDirName)
-	err = os.MkdirAll(recipePath, 0700)
-	if err != nil {
-		cmd.PrintErrln(err)
-		return
-	}
-
 	// Load all rendered recipes
-	rendered, err := recipe.LoadAllRendered(outputBasePath)
+	rendered, err := recipe.LoadRendered(outputBasePath)
 	if err != nil {
 		cmd.PrintErrln(err)
 		return
@@ -89,14 +80,14 @@ func executeFunc(cmd *cobra.Command, args []string) {
 
 	// Check for conflicts
 	for _, r := range rendered {
-		conflicts := re.Conflicts(r)
+		conflicts := re.Conflicts(&r)
 		if conflicts != nil {
 			cmd.PrintErrf("conflict in recipe %s: %s was already created by recipe %s\n", re.Name, conflicts[0].Path, r.Name)
 			return
 		}
 	}
 
-	err = re.Save(recipePath)
+	err = re.Save(outputBasePath)
 	if err != nil {
 		cmd.PrintErrln(err)
 		return

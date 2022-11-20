@@ -10,36 +10,43 @@ import (
 
 // Saves recipe file to given destination
 func (re *Recipe) Save(dest string) error {
-	out, err := yaml.Marshal(re)
+	// load all recipes from target dir, because we will either replace
+	// a previous rendering of this recipe, or create a new file
+	recipes, err := LoadRendered(dest)
 	if err != nil {
 		return err
 	}
+	added := false
+	for i, prev := range recipes {
+		if re.Name == prev.Name {
+			// found by name
+			recipes[i] = *re
+			added = true
+			break
+		}
+	}
+	if !added {
+		// we hit the end, append
+		recipes = append(recipes, *re)
+	}
 
-	// find our stack order ()
-	matches, err := filepath.Glob(filepath.Join(dest, fmt.Sprintf("*-%s.yml", re.Name)))
+	if err := os.MkdirAll(filepath.Join(dest, RenderedRecipeDirName), 0755); err != nil {
+		return fmt.Errorf("failed to create rendered recipe dir: %w", err)
+	}
+	file, err := os.Create(filepath.Join(dest, RenderedRecipeDirName, RecipeFileName))
 	if err != nil {
-		// The only case for this should be a malformed glob pattern
-		return err
-	} else if len(matches) > 1 {
-		return fmt.Errorf("this should never happen: more than one rendered %s recipe in %s", re.Name, dest)
-	} else if len(matches) == 0 {
-		// No matches -- this is the first time rendering this recipe in this directory.
-		// The index therefore needs to be the next highest integer, which is the length
-		// of the list of all rendered recipes, plus 1.
-		allRendered, err := filepath.Glob(filepath.Join(dest, "*-*.yml"))
-		if err != nil {
-			return err
-		}
-		err = os.WriteFile(filepath.Join(dest, fmt.Sprintf("%d-%s.yml", len(allRendered)+1, re.Name)), out, 0644)
-		if err != nil {
-			return err
-		}
-	} else {
-		// One match -- this is the case where we're overwriting an existing version.
-		err = os.WriteFile(matches[0], out, 0644)
-		if err != nil {
-			return err
-		}
+		return fmt.Errorf("failed to create rendered recipe file: %w", err)
+	}
+	encoder := yaml.NewEncoder(file)
+
+	if err := encoder.Encode(recipes); err != nil {
+		return fmt.Errorf("failed to write recipes: %w", err)
+	}
+	if err := encoder.Close(); err != nil {
+		return fmt.Errorf("failed to close recipe file: %w", err)
+	}
+	if err := file.Close(); err != nil {
+		return fmt.Errorf("failed to close recipe file: %w", err)
 	}
 
 	return nil

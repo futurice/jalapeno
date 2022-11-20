@@ -1,7 +1,10 @@
 package recipe
 
 import (
+	"bytes"
+	"errors"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -74,50 +77,50 @@ func Load(path string) (*Recipe, error) {
 	return recipe, nil
 }
 
-// Load recipe which already has been rendered by name.
-// The stack index of the rendered recipe gets discovered
-// automatically.
-func LoadRendered(path, recipeName string) (*Recipe, error) {
-	rootDir, err := filepath.Abs(path)
-	if err != nil {
-		return nil, err
-	}
+// Load recipes which already have been rendered. Always loads
+// all recipes.
+func LoadRendered(projectDir string) ([]Recipe, error) {
+	var recipes []Recipe
 
-	matches, err := filepath.Glob(filepath.Join(rootDir, RenderedRecipeDirName, fmt.Sprintf("*-%s.yml", recipeName)))
-	if err != nil {
-		// The only case for this should be a malformed glob pattern
-		return nil, err
-	} else if len(matches) != 1 {
-		return nil, fmt.Errorf("Directory %s does not contain recipe %s", path, recipeName)
-	}
-
-	recipeFile := matches[0]
-	dat, err := os.ReadFile(recipeFile)
-	if err != nil {
-		return nil, err
-	}
-
-	recipe := &Recipe{}
-	err = yaml.Unmarshal(dat, recipe)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := recipe.Validate(); err != nil {
-		return nil, err
-	}
-
-	// read rendered files
-	for path, file := range recipe.Files {
-		data, err := os.ReadFile(filepath.Join(rootDir, path))
-		if err != nil {
-			return nil, err
+	recipeFile := filepath.Join(projectDir, RenderedRecipeDirName, RecipeFileName)
+	if _, err := os.Stat(recipeFile); err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			// treat missing file as empty
+			return recipes, nil
 		}
-		file.Content = data
-		recipe.Files[path] = file
+		// other errors go boom in os.ReadFile() below
+	}
+	recipedata, err := os.ReadFile(recipeFile)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read recipe file: %w", err)
 	}
 
-	return recipe, nil
+	decoder := yaml.NewDecoder(bytes.NewReader(recipedata))
+	for {
+		recipe := Recipe{}
+		if err := decoder.Decode(&recipe); err != nil {
+			if err != io.EOF {
+				return nil, fmt.Errorf("failed to decode recipe: %w", err)
+			}
+			// ran out of recipe file, all yaml documents read
+			break
+		}
+		if err := recipe.Validate(); err != nil {
+			return nil, fmt.Errorf("failed to validate recipe: %w", err)
+		}
+		// read rendered files
+		for path, file := range recipe.Files {
+			data, err := os.ReadFile(filepath.Join(projectDir, path))
+			if err != nil {
+				return nil, fmt.Errorf("failed to read rendered file: %w", err)
+			}
+			file.Content = data
+			recipe.Files[path] = file
+		}
+		recipes = append(recipes, recipe)
+	}
+
+	return recipes, nil
 }
 
 func renderedRecipeFilesToRecipeNames(paths []string) ([]string, error) {
@@ -134,26 +137,4 @@ func renderedRecipeFilesToRecipeNames(paths []string) ([]string, error) {
 		recipeNames[i] = parts[2]
 	}
 	return recipeNames, nil
-}
-
-func LoadAllRendered(path string) ([]*Recipe, error) {
-	matches, err := filepath.Glob(filepath.Join(path, RenderedRecipeDirName, "*-*.yml"))
-	if err != nil {
-		return nil, err
-	}
-
-	recipes := make([]*Recipe, len(matches))
-	recipeNames, err := renderedRecipeFilesToRecipeNames(matches)
-	if err != nil {
-		return nil, err
-	}
-
-	for i, recipeName := range recipeNames {
-		recipe, err := LoadRendered(path, recipeName)
-		if err != nil {
-			return nil, err
-		}
-		recipes[i] = recipe
-	}
-	return recipes, err
 }
