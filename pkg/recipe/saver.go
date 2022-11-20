@@ -39,8 +39,10 @@ func (re *Recipe) Save(dest string) error {
 	}
 	encoder := yaml.NewEncoder(file)
 
-	if err := encoder.Encode(recipes); err != nil {
-		return fmt.Errorf("failed to write recipes: %w", err)
+	for _, recipe := range recipes {
+		if err := encoder.Encode(recipe); err != nil {
+			return fmt.Errorf("failed to write recipes: %w", err)
+		}
 	}
 	if err := encoder.Close(); err != nil {
 		return fmt.Errorf("failed to close recipe file: %w", err)
