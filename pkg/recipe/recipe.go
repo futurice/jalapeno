@@ -14,7 +14,7 @@ type Recipe struct {
 	Variables []Variable        `yaml:"vars,omitempty"`
 	Values    VariableValues    `yaml:"values,omitempty"`
 	Templates map[string][]byte `yaml:"-"`
-	Files     map[string]File   `yaml:"files"`
+	Files     map[string]File   `yaml:"files,omitempty"`
 }
 
 type RenderEngine interface {
