@@ -20,9 +20,13 @@ func (e TestRenderEngine) Render(r *Recipe, values map[string]interface{}) (map[
 	rendered := make(map[string][]byte)
 
 	for name, data := range r.Templates {
-		t.New(name).Parse(string(data))
+		if _, err := t.New(name).Parse(string(data)); err != nil {
+			return nil, err
+		}
 		var buf strings.Builder
-		t.ExecuteTemplate(&buf, name, values)
+		if err := t.ExecuteTemplate(&buf, name, values); err != nil {
+			return nil, err
+		}
 		rendered[name] = []byte(buf.String())
 	}
 
