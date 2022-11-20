@@ -21,8 +21,8 @@ Feature: Execute recipes
     Then execution of the recipe has succeeded
     And the project directory should contain file "README.md"
     And the project directory should contain file "Taskfile.yml"
-    And the project directory should contain file ".jalapeno/1-foo.yml"
-    And the project directory should contain file ".jalapeno/2-bar.yml"
+    And the project directory should contain file ".jalapeno/recipe.yml" with "name: foo"
+    And the project directory should contain file ".jalapeno/recipe.yml" with "name: bar"
 
   Scenario: New recipe conflicts with the previous recipe
     Given a project directory

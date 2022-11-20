@@ -8,4 +8,4 @@ Feature: Upgrade recipe
     When I execute recipe "foo"
     And I change recipe "foo" to version "v0.0.2"
     And I upgrade recipe "foo"
-    Then the project directory should contain file ".jalapeno/1-foo.yml" with "version: v0.0.2"
+    Then the project directory should contain file ".jalapeno/recipe.yml" with "version: v0.0.2"
