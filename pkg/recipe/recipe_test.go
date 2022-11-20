@@ -1,8 +1,6 @@
 package recipe
 
 import (
-	"crypto/sha256"
-	"fmt"
 	"html/template"
 	"strings"
 	"testing"
@@ -55,9 +53,8 @@ func TestRecipeRenderChecksums(t *testing.T) {
 	}
 
 	readme := recipe.Files["README.md"]
-	sum := sha256.Sum256(readme.Content)
-	sumWithAlgo := fmt.Sprintf("sha256:%x", sum)
-	if sumWithAlgo != readme.Checksum {
-		t.Errorf("Expected file checksum %s to match %s", readme.Checksum, sumWithAlgo)
+	sumWithAlgo := "sha256:fcde2b2edba56bf408601fb721fe9b5c338d10ee429ea04fae5511b68fbf8fb9"
+	if readme.Checksum != sumWithAlgo {
+		t.Errorf("Expected checksum %s for content %s to match %s", readme.Content, readme.Checksum, sumWithAlgo)
 	}
 }
