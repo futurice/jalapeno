@@ -46,7 +46,7 @@ func TestRecipeRenderChecksums(t *testing.T) {
 		},
 		Values: VariableValues{"foo": "bar"},
 		Templates: map[string][]byte{
-			"README.md": []byte("{{ foo }}"),
+			"README.md": []byte("{{ .Variables.foo }}"),
 		},
 	}
 
