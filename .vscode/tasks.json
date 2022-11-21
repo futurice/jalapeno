@@ -22,6 +22,12 @@
 				"kind": "build",
 				"isDefault": true
 			}
+		},
+		{
+			"label": "task lint",
+			"type": "shell",
+			"command": "task lint",
+			"problemMatcher": "$go"
 		}
 	]
 }

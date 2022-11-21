@@ -3,25 +3,8 @@ package recipe
 import (
 	"os"
 	"path/filepath"
-	"reflect"
 	"testing"
 )
-
-func TestRenderedRecipeFilesToRecipeNames(t *testing.T) {
-	paths := []string{
-		"foo/.jalapeno/1-bar.yml",
-		"foo/.jalapeno/2-quux.yml",
-	}
-
-	recipeNames, err := renderedRecipeFilesToRecipeNames(paths)
-	if err != nil {
-		t.Error(err)
-	}
-
-	if !reflect.DeepEqual(recipeNames, []string{"bar", "quux"}) {
-		t.Errorf("Expected 'bar' and 'quux', got %s", recipeNames)
-	}
-}
 
 func TestLoadNoRenderedRecipes(t *testing.T) {
 	dir, err := os.MkdirTemp("", "jalapeno-test-render")

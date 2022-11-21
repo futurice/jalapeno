@@ -7,7 +7,6 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strings"
 
 	"github.com/go-yaml/yaml"
@@ -121,20 +120,4 @@ func LoadRendered(projectDir string) ([]Recipe, error) {
 	}
 
 	return recipes, nil
-}
-
-func renderedRecipeFilesToRecipeNames(paths []string) ([]string, error) {
-	recipeNames := make([]string, len(paths))
-	for i, path := range paths {
-		re, err := regexp.Compile("([0-9]+)-([^.]+).yml$")
-		if err != nil {
-			return nil, err
-		}
-		parts := re.FindStringSubmatch(filepath.Base(path))
-		if len(parts) != 3 {
-			return nil, fmt.Errorf("Expected to match 3 parts of %s but got %d", path, len(parts))
-		}
-		recipeNames[i] = parts[2]
-	}
-	return recipeNames, nil
 }
