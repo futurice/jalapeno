@@ -187,6 +187,37 @@ func theProjectDirectoryShouldContainFileWith(ctx context.Context, filename, sea
 	return nil
 }
 
+func recipeIgnoresFile(ctx context.Context, recipeName, filename string) (context.Context, error) {
+	recipesDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
+	recipeFile := filepath.Join(recipesDir, recipeName, "recipe.yml")
+	recipeData, err := os.ReadFile(recipeFile)
+	if err != nil {
+		return ctx, err
+	}
+	recipe := fmt.Sprintf("%s\nignore:\n  - %s\n", string(recipeData), filename)
+	if err := os.WriteFile(recipeFile, []byte(recipe), 0644); err != nil {
+		return ctx, err
+	}
+	return ctx, nil
+}
+
+func iChangeProjectFileToContain(ctx context.Context, filename, content string) (context.Context, error) {
+	projectDir := ctx.Value(projectDirectoryPathCtxKey{}).(string)
+	if err := os.WriteFile(filepath.Join(projectDir, filename), []byte(content), 0644); err != nil {
+		return ctx, err
+	}
+	return ctx, nil
+}
+
+func noConflictsWereReported(ctx context.Context) (context.Context, error) {
+	recipeStdout := ctx.Value(recipeStdoutCtxKey{}).(string)
+	recipeStderr := ctx.Value(recipeStderrCtxKey{}).(string)
+	if matched, _ := regexp.Match("modified", []byte(recipeStdout)); matched {
+		return ctx, fmt.Errorf("Conflict in recipe\nstdout:\n%s\n\nstderr:\n%s\n", recipeStdout, recipeStderr)
+	}
+	return ctx, nil
+}
+
 func TestFeatures(t *testing.T) {
 	suite := godog.TestSuite{
 		ScenarioInitializer: func(s *godog.ScenarioContext) {
@@ -200,6 +231,9 @@ func TestFeatures(t *testing.T) {
 			s.Step(`^execution of the recipe has failed with error "([^"]*)"$`, executionOfTheRecipeHasFailedWithError)
 			s.Step(`^I change recipe "([^"]*)" to version "([^"]*)"$`, iChangeRecipeToVersion)
 			s.Step(`^I upgrade recipe "([^"]*)"$`, iUpgradeRecipe)
+			s.Step(`^recipe "([^"]*)" ignores file "([^"]*)"$`, recipeIgnoresFile)
+			s.Step(`^I change project file "([^"]*)" to contain "([^"]*)"$`, iChangeProjectFileToContain)
+			s.Step(`^no conflicts were reported$`, noConflictsWereReported)
 			s.After(cleanTempDirs)
 		},
 		Options: &godog.Options{
