@@ -1,15 +1,21 @@
 package recipe
 
 import (
+	"crypto/sha256"
 	"fmt"
 )
+
+type File struct {
+	Checksum string `yaml:"checksum"` // e.g. "sha256:asdjfajdfa" w. default algo
+	Content  []byte `yaml:"-"`
+}
 
 type Recipe struct {
 	Metadata  `yaml:",inline"`
 	Variables []Variable        `yaml:"vars,omitempty"`
 	Values    VariableValues    `yaml:"values,omitempty"`
 	Templates map[string][]byte `yaml:"-"`
-	Files     map[string][]byte `yaml:"-"`
+	Files     map[string]File   `yaml:"files,omitempty"`
 }
 
 type RenderEngine interface {
@@ -44,9 +50,20 @@ func (re *Recipe) Render(engine RenderEngine) error {
 	}
 
 	var err error
-	re.Files, err = engine.Render(re, context)
+	files, err := engine.Render(re, context)
 	if err != nil {
 		return err
+	}
+
+	re.Files = make(map[string]File, len(files))
+	idx := 0
+	for filename, content := range files {
+		sum := sha256.Sum256(content)
+		re.Files[filename] = File{Content: content, Checksum: fmt.Sprintf("sha256:%x", sum)}
+		idx += 1
+		if idx > len(files) {
+			return fmt.Errorf("Files array grew during execution")
+		}
 	}
 
 	return nil
@@ -55,4 +72,27 @@ func (re *Recipe) Render(engine RenderEngine) error {
 // Check if the recipe is in executed state (the templates has been rendered)
 func (re *Recipe) IsExecuted() bool {
 	return len(re.Files) > 0
+}
+
+type RecipeConflict struct {
+	Path           string
+	Sha256Sum      string
+	OtherSha256Sum string
+}
+
+// Check if the recipe conflicts with another recipe. Recipes conflict if they touch the same files.
+func (re *Recipe) Conflicts(other *Recipe) []RecipeConflict {
+	var conflicts []RecipeConflict
+	for path, file := range re.Files {
+		if otherFile, exists := other.Files[path]; exists {
+			conflicts = append(
+				conflicts,
+				RecipeConflict{
+					Path:           path,
+					Sha256Sum:      file.Checksum,
+					OtherSha256Sum: otherFile.Checksum,
+				})
+		}
+	}
+	return conflicts
 }

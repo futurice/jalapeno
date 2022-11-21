@@ -1,9 +1,13 @@
 package recipe
 
 import (
+	"bytes"
 	"errors"
+	"fmt"
+	"io"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/go-yaml/yaml"
@@ -15,32 +19,8 @@ const (
 	RenderedRecipeDirName  = ".jalapeno"
 )
 
+// Load a recipe from its source.
 func Load(path string) (*Recipe, error) {
-	rootDir, err := filepath.Abs(path)
-	if err != nil {
-		return nil, err
-	}
-
-	// Check that the path exists
-	info, err := os.Stat(rootDir)
-	if os.IsNotExist(err) {
-		return nil, err
-	}
-
-	// Check that the path points to a directory
-	if !info.IsDir() {
-		return nil, errors.New("path is not a directory")
-	}
-
-	// Check if the path points to already rendered recipe
-	if _, err := os.Stat(filepath.Join(rootDir, RenderedRecipeDirName)); !os.IsNotExist(err) {
-		return loadRenderedFromDir(path)
-	}
-
-	return loadFromDir(path)
-}
-
-func loadFromDir(path string) (*Recipe, error) {
 	rootDir, err := filepath.Abs(path)
 	if err != nil {
 		return nil, err
@@ -97,65 +77,64 @@ func loadFromDir(path string) (*Recipe, error) {
 	return recipe, nil
 }
 
-// Load recipe which already has been rendered
-func loadRenderedFromDir(path string) (*Recipe, error) {
-	rootDir, err := filepath.Abs(path)
+// Load recipes which already have been rendered. Always loads
+// all recipes.
+func LoadRendered(projectDir string) ([]Recipe, error) {
+	var recipes []Recipe
+
+	recipeFile := filepath.Join(projectDir, RenderedRecipeDirName, RecipeFileName)
+	if _, err := os.Stat(recipeFile); err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			// treat missing file as empty
+			return recipes, nil
+		}
+		// other errors go boom in os.ReadFile() below
+	}
+	recipedata, err := os.ReadFile(recipeFile)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to read recipe file: %w", err)
 	}
 
-	recipeFile := filepath.Join(rootDir, RenderedRecipeDirName, RecipeFileName)
-	dat, err := os.ReadFile(recipeFile)
-	if err != nil {
-		return nil, err
+	decoder := yaml.NewDecoder(bytes.NewReader(recipedata))
+	for {
+		recipe := Recipe{}
+		if err := decoder.Decode(&recipe); err != nil {
+			if err != io.EOF {
+				return nil, fmt.Errorf("failed to decode recipe: %w", err)
+			}
+			// ran out of recipe file, all yaml documents read
+			break
+		}
+		if err := recipe.Validate(); err != nil {
+			return nil, fmt.Errorf("failed to validate recipe: %w", err)
+		}
+		// read rendered files
+		for path, file := range recipe.Files {
+			data, err := os.ReadFile(filepath.Join(projectDir, path))
+			if err != nil {
+				return nil, fmt.Errorf("failed to read rendered file: %w", err)
+			}
+			file.Content = data
+			recipe.Files[path] = file
+		}
+		recipes = append(recipes, recipe)
 	}
 
-	recipe := &Recipe{}
-	err = yaml.Unmarshal(dat, recipe)
-	if err != nil {
-		return nil, err
-	}
+	return recipes, nil
+}
 
-	if err := recipe.Validate(); err != nil {
-		return nil, err
-	}
-
-	files := make(map[string][]byte)
-
-	walk := func(path string, info os.FileInfo, err error) error {
+func renderedRecipeFilesToRecipeNames(paths []string) ([]string, error) {
+	recipeNames := make([]string, len(paths))
+	for i, path := range paths {
+		re, err := regexp.Compile("([0-9]+)-([^.]+).yml$")
 		if err != nil {
-			return err
+			return nil, err
 		}
-
-		// Continue walking if the path is directory
-		if info.IsDir() {
-			return nil
+		parts := re.FindStringSubmatch(filepath.Base(path))
+		if len(parts) != 3 {
+			return nil, fmt.Errorf("Expected to match 3 parts of %s but got %d", path, len(parts))
 		}
-
-		trimmedPath := strings.TrimPrefix(path, rootDir+string(filepath.Separator))
-
-		// Skip recipe directory
-		if filepath.Dir(trimmedPath) == RenderedRecipeDirName {
-			return nil
-		}
-
-		data, err := os.ReadFile(path)
-		if err != nil {
-			return err
-		}
-
-		name := filepath.ToSlash(trimmedPath)
-
-		files[name] = data
-		return nil
+		recipeNames[i] = parts[2]
 	}
-
-	err = filepath.Walk(rootDir, walk)
-	if err != nil {
-		return nil, err
-	}
-
-	recipe.Files = files
-
-	return recipe, nil
+	return recipeNames, nil
 }

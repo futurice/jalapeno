@@ -14,6 +14,7 @@ type Metadata struct {
 	Description string `yaml:"description"`
 	URL         string `yaml:"url,omitempty"`
 	InitHelp    string `yaml:"initHelp,omitempty"`
+	// "exclude from upgrades" field
 }
 
 func (m *Metadata) Validate() error {

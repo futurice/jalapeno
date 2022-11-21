@@ -2,8 +2,6 @@ package main
 
 import (
 	"bytes"
-	"fmt"
-	"path/filepath"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/futurice/jalapeno/pkg/engine"
@@ -30,39 +28,50 @@ func upgradeFunc(cmd *cobra.Command, args []string) {
 	target := args[0]
 	source := args[1]
 
-	prevRe, err := recipe.Load(target)
+	re, err := recipe.Load(source)
 	if err != nil {
-		fmt.Println(err)
+		cmd.PrintErrln(err)
+		return
+	}
+
+	rendered, err := recipe.LoadRendered(target)
+	if err != nil {
+		cmd.PrintErrln(err)
+		return
+	}
+	var prevRe *recipe.Recipe
+	for _, r := range rendered {
+		if r.Name == re.Name {
+			prevRe = &r
+			break
+		}
+	}
+	if prevRe == nil {
+		cmd.PrintErrf("directory %s does not contain recipe %s\n", target, re.Name)
 		return
 	}
 
 	if !prevRe.IsExecuted() {
-		fmt.Println("error: the first argument should point to the project which uses the recipe")
-		return
-	}
-
-	re, err := recipe.Load(source)
-	if err != nil {
-		fmt.Println(err)
+		cmd.PrintErrln("the first argument should point to the project which uses the recipe")
 		return
 	}
 
 	if re.IsExecuted() {
-		fmt.Println("error: the second argument should point to the recipe which will be used for upgrading")
+		cmd.PrintErrln("the second argument should point to the recipe which will be used for upgrading")
 		return
 	}
 
 	if re.Metadata.Name != prevRe.Metadata.Name {
-		fmt.Println("error: recipe name used in the project should match the recipe which is used for upgrading")
+		cmd.PrintErrln("recipe name used in the project should match the recipe which is used for upgrading")
 		return
 	}
 
 	if semver.Compare(re.Metadata.Version, prevRe.Metadata.Version) <= 0 {
-		fmt.Println("error: new recipe version is lower or same than the existing one")
+		cmd.PrintErrln("new recipe version is lower or same than the existing one")
 		return
 	}
 
-	fmt.Printf("Upgrade from %s to %s\n", re.Metadata.Version, prevRe.Metadata.Version)
+	cmd.Printf("Upgrade from %s to %s\n", prevRe.Metadata.Version, re.Metadata.Version)
 
 	re.Values = prevRe.Values
 
@@ -76,65 +85,67 @@ func upgradeFunc(cmd *cobra.Command, args []string) {
 
 	err = recipeutil.PromptUserForValues(re)
 	if err != nil {
-		fmt.Println(err)
+		cmd.PrintErrln(err)
 		return
 	}
 
 	err = re.Render(engine.Engine{})
 	if err != nil {
-		fmt.Println(err)
+		cmd.PrintErrln(err)
 		return
 	}
 
 	// Collect files which should be written to the destination directory
-	output := make(map[string][]byte)
+	output := make(map[string]recipe.File, len(re.Files))
 	overrideNoticed := false
 
-	for name := range re.Files {
-		if _, exists := prevRe.Files[name]; exists {
-			if bytes.Equal(re.Files[name], prevRe.Files[name]) {
-				// A file with exactly same name and content already exist, skip
+	for path, file := range re.Files {
+		if prevFile, exists := prevRe.Files[path]; exists {
+			// TODO: where do we check checksums?
+			if bytes.Equal(file.Content, prevFile.Content) {
+				// A file with exactly same path and content already exists, skip
 				continue
 			}
 
 			// The file contents has been modified
 
 			if !overrideNoticed {
-				fmt.Println("Some of the files has been manually modified. Do you want to override the following files:")
+				cmd.Println("Some of the files has been manually modified. Do you want to override the following files:")
 				overrideNoticed = true
 			}
 
 			// TODO: We could do better in terms of merge conflict management. Like show the diff or something
 			var override bool
 			prompt := &survey.Confirm{
-				Message: name,
+				Message: path,
 				Default: true,
 			}
 			err = survey.AskOne(prompt, &override)
 			if err != nil {
-				fmt.Println(err)
+				cmd.Println(err)
 				return
 			}
 
 			if !override {
-				// User decided not to override the file with manual changes, we can skip the file
+				// User decided not to override the file with manual changes, remove from
+				// list of changes to write
 				continue
 			}
 		}
 
 		// Add new file or replace existing one
-		output[name] = re.Files[name]
+		output[path] = re.Files[path]
 	}
 
 	err = recipeutil.SaveFiles(output, target)
 	if err != nil {
-		fmt.Println(err)
+		cmd.PrintErrln(err)
 		return
 	}
 
-	err = re.Save(filepath.Join(target, recipe.RenderedRecipeDirName))
+	err = re.Save(target)
 	if err != nil {
-		fmt.Println(err)
+		cmd.PrintErrln(err)
 		return
 	}
 }

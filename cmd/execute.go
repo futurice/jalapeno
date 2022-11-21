@@ -1,9 +1,7 @@
 package main
 
 import (
-	"fmt"
 	"os"
-	"path/filepath"
 
 	"github.com/futurice/jalapeno/pkg/engine"
 	"github.com/futurice/jalapeno/pkg/recipe"
@@ -32,30 +30,30 @@ func newExecuteCmd() *cobra.Command {
 
 func executeFunc(cmd *cobra.Command, args []string) {
 	if _, err := os.Stat(outputBasePath); os.IsNotExist(err) {
-		fmt.Println("Output path does not exist")
+		cmd.PrintErrln("Error: output path does not exist")
 		return
 	}
 
 	re, err := recipe.Load(args[0])
 	if err != nil {
-		fmt.Printf("Error when loading the recipe: %s\n", err)
+		cmd.PrintErrf("Error: can't load the recipe: %s\n", err)
 		return
 	}
 
-	fmt.Printf("Recipe name: %s\n", re.Metadata.Name)
+	cmd.Printf("Recipe name: %s\n", re.Metadata.Name)
 
 	if re.Metadata.Description != "" {
-		fmt.Printf("Description: %s\n", re.Metadata.Description)
+		cmd.Printf("Description: %s\n", re.Metadata.Description)
 	}
 
 	err = re.Validate()
 	if err != nil {
-		fmt.Printf("The provided recipe was invalid: %s\n", err)
+		cmd.PrintErrf("Error: the provided recipe was invalid: %s\n", err)
 		return
 	}
 
 	if len(re.Templates) == 0 {
-		fmt.Printf("Error: the recipe does not contain any templates")
+		cmd.PrintErrf("Error: the recipe does not contain any templates")
 		return
 	}
 
@@ -63,39 +61,47 @@ func executeFunc(cmd *cobra.Command, args []string) {
 
 	err = recipeutil.PromptUserForValues(re)
 	if err != nil {
-		fmt.Printf("Error when prompting for values: %s\n", err)
+		cmd.PrintErrf("Error when prompting for values: %s\n", err)
 		return
 	}
 
 	err = re.Render(engine.Engine{})
 	if err != nil {
-		fmt.Println(err)
+		cmd.PrintErrln(err)
 		return
 	}
 
-	// Create sub directory for recipe
-	recipePath := filepath.Join(outputBasePath, recipe.RenderedRecipeDirName)
-	err = os.MkdirAll(recipePath, 0700)
+	// Load all rendered recipes
+	rendered, err := recipe.LoadRendered(outputBasePath)
 	if err != nil {
-		fmt.Println(err)
+		cmd.PrintErrln(err)
 		return
 	}
 
-	err = re.Save(recipePath)
+	// Check for conflicts
+	for _, r := range rendered {
+		conflicts := re.Conflicts(&r)
+		if conflicts != nil {
+			cmd.PrintErrf("conflict in recipe %s: %s was already created by recipe %s\n", re.Name, conflicts[0].Path, r.Name)
+			return
+		}
+	}
+
+	err = re.Save(outputBasePath)
 	if err != nil {
-		fmt.Println(err)
+		cmd.PrintErrln(err)
 		return
 	}
 
 	err = recipeutil.SaveFiles(re.Files, outputBasePath)
 	if err != nil {
-		fmt.Println(err)
+		cmd.PrintErrln(err)
 		return
 	}
 
-	fmt.Println("\nRecipe executed successfully!")
+	cmd.Println("\nRecipe executed successfully!")
 
 	if re.InitHelp != "" {
-		fmt.Printf("Next up: %s\n", re.InitHelp)
+		cmd.Printf("Next up: %s\n", re.InitHelp)
 	}
 }
