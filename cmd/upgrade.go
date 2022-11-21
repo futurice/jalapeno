@@ -100,6 +100,10 @@ func upgradeFunc(cmd *cobra.Command, args []string) {
 	overrideNoticed := false
 
 	for path, file := range re.Files {
+		if file.IgnoreUpgrade {
+			// file was marked as ignored for upgrades
+			continue
+		}
 		if prevFile, exists := prevRe.Files[path]; exists {
 			// TODO: where do we check checksums?
 			if bytes.Equal(file.Content, prevFile.Content) {

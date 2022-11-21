@@ -114,6 +114,14 @@ func LoadRendered(projectDir string) ([]Recipe, error) {
 				return nil, fmt.Errorf("failed to read rendered file: %w", err)
 			}
 			file.Content = data
+			for _, pattern := range recipe.Metadata.IgnorePatterns {
+				if matched, err := filepath.Match(pattern, path); err != nil {
+					return nil, fmt.Errorf("bad ignore pattern %s: %w", pattern, err)
+				} else if matched {
+					// mark file as ignored
+					file.IgnoreUpgrade = true
+				}
+			}
 			recipe.Files[path] = file
 		}
 		recipes = append(recipes, recipe)

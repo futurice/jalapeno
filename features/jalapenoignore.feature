@@ -5,7 +5,7 @@ Feature: Jalapenoignore
 		Given a project directory
 		And a recipes directory
 		And a recipe "foo" that generates file "README.md"
-		And recipe "foo" ignores file "README.md"
+		And recipe "foo" ignores pattern "README.md"
 		When I execute recipe "foo"
 		Then the project directory should contain file "README.md" with "foo"
 		When I change recipe "foo" to version "v0.0.2"

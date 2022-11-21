@@ -27,7 +27,7 @@ type Metadata struct {
 	// Can be used to guide the user what should be done next in the project directory.
 	InitHelp string `yaml:"initHelp,omitempty"`
 
-	// TODO: "exclude from upgrades" field
+	IgnorePatterns []string `yaml:"ignorePatterns,omitempty"`
 }
 
 func (m *Metadata) Validate() error {

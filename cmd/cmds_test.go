@@ -187,14 +187,14 @@ func theProjectDirectoryShouldContainFileWith(ctx context.Context, filename, sea
 	return nil
 }
 
-func recipeIgnoresFile(ctx context.Context, recipeName, filename string) (context.Context, error) {
+func recipeIgnoresPattern(ctx context.Context, recipeName, pattern string) (context.Context, error) {
 	recipesDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
 	recipeFile := filepath.Join(recipesDir, recipeName, "recipe.yml")
 	recipeData, err := os.ReadFile(recipeFile)
 	if err != nil {
 		return ctx, err
 	}
-	recipe := fmt.Sprintf("%s\nignore:\n  - %s\n", string(recipeData), filename)
+	recipe := fmt.Sprintf("%s\nignorePatterns:\n  - %s\n", string(recipeData), pattern)
 	if err := os.WriteFile(recipeFile, []byte(recipe), 0644); err != nil {
 		return ctx, err
 	}
@@ -231,7 +231,7 @@ func TestFeatures(t *testing.T) {
 			s.Step(`^execution of the recipe has failed with error "([^"]*)"$`, executionOfTheRecipeHasFailedWithError)
 			s.Step(`^I change recipe "([^"]*)" to version "([^"]*)"$`, iChangeRecipeToVersion)
 			s.Step(`^I upgrade recipe "([^"]*)"$`, iUpgradeRecipe)
-			s.Step(`^recipe "([^"]*)" ignores file "([^"]*)"$`, recipeIgnoresFile)
+			s.Step(`^recipe "([^"]*)" ignores pattern "([^"]*)"$`, recipeIgnoresPattern)
 			s.Step(`^I change project file "([^"]*)" to contain "([^"]*)"$`, iChangeProjectFileToContain)
 			s.Step(`^no conflicts were reported$`, noConflictsWereReported)
 			s.After(cleanTempDirs)
