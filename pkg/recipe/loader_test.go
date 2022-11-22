@@ -31,10 +31,13 @@ func TestLoadMultipleRenderedRecipes(t *testing.T) {
 		t.Error("cannot create metadata dir", err)
 	}
 
-	recipes := `name: foo
+	recipes := `
+apiVersion: v1
+name: foo
 version: v1.0.0
 description: foo recipe
 ---
+apiVersion: v1
 name: bar
 version: v2.0.0
 description: bar recipe

@@ -30,6 +30,7 @@ func createFunc(cmd *cobra.Command, args []string) {
 	recipeName := args[0]
 	re := &recipe.Recipe{
 		Metadata: recipe.Metadata{
+			APIVersion:  "v1",
 			Name:        recipeName,
 			Version:     "0.0.0",
 			Description: "Description about what the recipe is used for and what it contains. For example tech stack, cloud environments, tools",

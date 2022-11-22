@@ -1,7 +1,6 @@
 package recipe
 
 import (
-	"errors"
 	"fmt"
 	"net/url"
 
@@ -9,22 +8,41 @@ import (
 )
 
 type Metadata struct {
-	Name        string `yaml:"name"`
-	Version     string `yaml:"version"`
+	// Version of the recipe metadata API schema. Currently should have value "v1"
+	APIVersion string `yaml:"apiVersion"`
+
+	// Name of the recipe
+	Name string `yaml:"name"`
+
+	// Version of the recipe
+	Version string `yaml:"version"`
+
+	// Description of what the recipe does
 	Description string `yaml:"description"`
-	URL         string `yaml:"url,omitempty"`
-	InitHelp    string `yaml:"initHelp,omitempty"`
-	// "exclude from upgrades" field
+
+	// A list of URLs to source code for this recipe
+	Sources []string `yaml:"sources,omitempty"`
+
+	// A message which will be showed to an user after a succesful recipe execution.
+	// Can be used to guide the user what should be done next in the project directory.
+	InitHelp string `yaml:"initHelp,omitempty"`
+
+	// TODO: "exclude from upgrades" field
 }
 
 func (m *Metadata) Validate() error {
-	if !semver.IsValid(m.Version) {
-		return errors.New("version is not a valid semver")
+	// Currently we support only apiVersion v1
+	if m.APIVersion != "v1" {
+		return fmt.Errorf("unreconized metadata API version \"%s\"", m.APIVersion)
 	}
 
-	if m.URL != "" {
-		if _, err := url.ParseRequestURI(m.URL); err != nil {
-			return fmt.Errorf("url is invalid: %w", err)
+	if !semver.IsValid(m.Version) {
+		return fmt.Errorf("version \"%s\" is not a valid semver", m.Version)
+	}
+
+	for _, sourceURL := range m.Sources {
+		if _, err := url.ParseRequestURI(sourceURL); err != nil {
+			return fmt.Errorf("source url is invalid: %w", err)
 		}
 	}
 
