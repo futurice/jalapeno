@@ -76,7 +76,7 @@ func aRecipeThatGeneratesFile(ctx context.Context, recipe, filename string) (con
 	if err := os.MkdirAll(filepath.Join(dir, recipe, "templates"), 0755); err != nil {
 		return ctx, err
 	}
-	template := "name: %[1]s\nversion: v0.0.1\ndescription: %[1]s"
+	template := "apiVersion: v1\nname: %[1]s\nversion: v0.0.1\ndescription: %[1]s"
 	if err := os.WriteFile(filepath.Join(dir, recipe, "recipe.yml"), []byte(fmt.Sprintf(template, recipe)), 0644); err != nil {
 		return ctx, err
 	}
@@ -143,7 +143,7 @@ func executionOfTheRecipeHasFailedWithError(ctx context.Context, errorMessage st
 func iChangeRecipeToVersion(ctx context.Context, recipeName, version string) (context.Context, error) {
 	dir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
 
-	template := "name: %[1]s\nversion: %[2]s\ndescription: %[1]s"
+	template := "apiVersion: v1\nname: %[1]s\nversion: %[2]s\ndescription: %[1]s"
 	if err := os.WriteFile(filepath.Join(dir, recipeName, "recipe.yml"), []byte(fmt.Sprintf(template, recipeName, version)), 0644); err != nil {
 		return ctx, err
 	}
