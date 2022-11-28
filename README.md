@@ -10,6 +10,6 @@
   </p>
 
   <p>
-    <a href="https://futurice.github.io/jalapeno/installation/">Installation</a> | <a href="https://futurice.github.io/jalapeno/usage/">Documentation</a> | <a href="https://futurice.github.io/jalapeno/usage/">Contributing</a>
+    <a href="https://futurice.github.io/jalapeno/installation/">Installation</a> | <a href="https://futurice.github.io/jalapeno/usage/">Documentation</a> | <a href="https://futurice.github.io/jalapeno/contributing/">Contributing</a>
   </p>
 </div>
