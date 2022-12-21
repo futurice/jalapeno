@@ -70,8 +70,4 @@ files:
 	if err := yaml.Unmarshal([]byte(recipeStr), &recipe); err != nil {
 		t.Errorf("failed to unmarshal %s: %s", recipeStr, err)
 	}
-
-	if recipe.Files["README.md"].IgnoreUpgrade {
-		t.Error("expected falsy for ignoreUpgrade but got truthy", recipe)
-	}
 }

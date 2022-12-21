@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -96,15 +95,6 @@ func LoadRendered(projectDir string) ([]Recipe, error) {
 		return nil, fmt.Errorf("failed to read recipe file: %w", err)
 	}
 
-	// read common ignore file if it exists
-	commonIgnores := make([]string, 0)
-	if data, err := os.ReadFile(filepath.Join(projectDir, IgnoreFileName)); err == nil {
-		commonIgnores = append(commonIgnores, strings.Split(string(data), "\n")...)
-	} else if !errors.Is(err, fs.ErrNotExist) {
-		// something else happened than trying to read an ignore file that does not exist
-		return nil, fmt.Errorf("failed to read %s file: %w", IgnoreFileName, err)
-	}
-
 	decoder := yaml.NewDecoder(bytes.NewReader(recipedata))
 	for {
 		recipe := Recipe{}
@@ -118,9 +108,6 @@ func LoadRendered(projectDir string) ([]Recipe, error) {
 		if err := recipe.Validate(); err != nil {
 			return nil, fmt.Errorf("failed to validate recipe: %w", err)
 		}
-		// combine common and recipe metadata ignore patterns
-		ignorePatterns := append([]string{}, commonIgnores...)
-		ignorePatterns = append(ignorePatterns, recipe.Metadata.IgnorePatterns...)
 		// read rendered files
 		for path, file := range recipe.Files {
 			data, err := os.ReadFile(filepath.Join(projectDir, path))
@@ -128,14 +115,6 @@ func LoadRendered(projectDir string) ([]Recipe, error) {
 				return nil, fmt.Errorf("failed to read rendered file: %w", err)
 			}
 			file.Content = data
-			for _, pattern := range ignorePatterns {
-				if matched, err := filepath.Match(pattern, path); err != nil {
-					return nil, fmt.Errorf("bad ignore pattern %s: %w", pattern, err)
-				} else if matched {
-					// mark file as ignored
-					file.IgnoreUpgrade = true
-				}
-			}
 			recipe.Files[path] = file
 		}
 		recipes = append(recipes, recipe)

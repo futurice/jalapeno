@@ -3,13 +3,11 @@ package recipe
 import (
 	"crypto/sha256"
 	"fmt"
-	"path/filepath"
 )
 
 type File struct {
-	Checksum      string `yaml:"checksum"` // e.g. "sha256:asdjfajdfa" w. default algo
-	Content       []byte `yaml:"-"`
-	IgnoreUpgrade bool   `yaml:"-"` // default value is false from golang bool default
+	Checksum string `yaml:"checksum"` // e.g. "sha256:asdjfajdfa" w. default algo
+	Content  []byte `yaml:"-"`
 }
 
 type Recipe struct {
@@ -62,14 +60,6 @@ func (re *Recipe) Render(engine RenderEngine) error {
 	for filename, content := range files {
 		sum := sha256.Sum256(content)
 		file := File{Content: content, Checksum: fmt.Sprintf("sha256:%x", sum)}
-		for _, pattern := range re.Metadata.IgnorePatterns {
-			if matched, err := filepath.Match(pattern, filename); err != nil {
-				return fmt.Errorf("bad ignore pattern %s: %w", pattern, err)
-			} else if matched {
-				// mark file as ignored
-				file.IgnoreUpgrade = true
-			}
-		}
 		re.Files[filename] = file
 		idx += 1
 		if idx > len(files) {

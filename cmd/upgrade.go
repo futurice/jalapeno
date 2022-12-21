@@ -2,6 +2,11 @@ package main
 
 import (
 	"bytes"
+	"errors"
+	"io/fs"
+	"os"
+	"path/filepath"
+	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/futurice/jalapeno/pkg/engine"
@@ -95,15 +100,35 @@ func upgradeFunc(cmd *cobra.Command, args []string) {
 		return
 	}
 
+	// read common ignore file if it exists
+	ignorePatterns := make([]string, 0)
+	if data, err := os.ReadFile(filepath.Join(target, recipe.IgnoreFileName)); err == nil {
+		ignorePatterns = append(ignorePatterns, strings.Split(string(data), "\n")...)
+	} else if !errors.Is(err, fs.ErrNotExist) {
+		// something else happened than trying to read an ignore file that does not exist
+		cmd.PrintErrln("failed to read ignore file", err)
+	}
+	ignorePatterns = append(ignorePatterns, re.IgnorePatterns...)
+
 	// Collect files which should be written to the destination directory
 	output := make(map[string]recipe.File, len(re.Files))
 	overrideNoticed := false
 
 	for path, file := range re.Files {
-		if file.IgnoreUpgrade {
-			// file was marked as ignored for upgrades
+		skip := false
+		for _, pattern := range ignorePatterns {
+			if matched, err := filepath.Match(pattern, path); err != nil {
+				cmd.PrintErrln("bad ignore pattern", pattern, err)
+			} else if matched {
+				// file was marked as ignored for upgrades
+				skip = true
+				break
+			}
+		}
+		if skip {
 			continue
 		}
+
 		if prevFile, exists := prevRe.Files[path]; exists {
 			// TODO: where do we check checksums?
 			if bytes.Equal(file.Content, prevFile.Content) {
