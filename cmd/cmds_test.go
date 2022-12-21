@@ -141,10 +141,16 @@ func executionOfTheRecipeHasFailedWithError(ctx context.Context, errorMessage st
 }
 
 func iChangeRecipeToVersion(ctx context.Context, recipeName, version string) (context.Context, error) {
-	dir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
+	recipesDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
+	recipeFile := filepath.Join(recipesDir, recipeName, "recipe.yml")
+	recipeData, err := os.ReadFile(recipeFile)
+	if err != nil {
+		return ctx, err
+	}
 
-	template := "apiVersion: v1\nname: %[1]s\nversion: %[2]s\ndescription: %[1]s"
-	if err := os.WriteFile(filepath.Join(dir, recipeName, "recipe.yml"), []byte(fmt.Sprintf(template, recipeName, version)), 0644); err != nil {
+	newData := strings.Replace(string(recipeData), "v0.0.1", version, 1)
+
+	if err := os.WriteFile(filepath.Join(recipesDir, recipeName, "recipe.yml"), []byte(newData), 0644); err != nil {
 		return ctx, err
 	}
 
