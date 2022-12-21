@@ -13,3 +13,15 @@ Feature: Jalapenoignore
 		And I upgrade recipe "foo"
 		Then the project directory should contain file "README.md" with "bar"
 		And no conflicts were reported
+
+	Scenario: Ignore with jalapenoignore file
+		Given a project directory
+		And a recipes directory
+		And a recipe "foo" that generates file "README.md"
+		When I execute recipe "foo"
+		And I change project file "README.md" to contain "bar"
+		And I change recipe "foo" to version "v0.0.2"
+		And I change project file ".jalapenoignore" to contain "*.md"
+		And I upgrade recipe "foo"
+		Then the project directory should contain file "README.md" with "bar"
+		And no conflicts were reported
