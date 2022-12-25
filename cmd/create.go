@@ -28,17 +28,7 @@ func newCreateCmd() *cobra.Command {
 
 func createFunc(cmd *cobra.Command, args []string) {
 	recipeName := args[0]
-	re := &recipe.Recipe{
-		Metadata: recipe.Metadata{
-			APIVersion:  "v1",
-			Name:        recipeName,
-			Version:     "0.0.0",
-			Description: "Description about what the recipe is used for and what it contains. For example tech stack, cloud environments, tools",
-		},
-		Variables: []recipe.Variable{
-			{Name: "MY_VAR", Default: "Hello World!"},
-		},
-	}
+	re := createExampleRecipe(recipeName)
 
 	path := filepath.Join(".", recipeName)
 
@@ -55,19 +45,36 @@ func createFunc(cmd *cobra.Command, args []string) {
 
 	err = re.Validate()
 	if err != nil {
+		// TODO: Clean up the already create directory if the command failed
 		cmd.PrintErrln("internal error: placeholder recipe is not valid")
 		return
 	}
 
 	err = re.Save(path)
 	if err != nil {
+		// TODO: Clean up the already create directory if the command failed
 		cmd.PrintErrf("can not save recipe to the directory: %v", err)
 		return
 	}
 
 	err = os.Mkdir(filepath.Join(path, recipe.RecipeTemplatesDirName), 0700)
 	if err != nil {
+		// TODO: Clean up the already create directory if the command failed
 		cmd.PrintErrf("can not save templates to the directory: %v", err)
 		return
+	}
+}
+
+func createExampleRecipe(name string) *recipe.Recipe {
+	return &recipe.Recipe{
+		Metadata: recipe.Metadata{
+			APIVersion:  "v1",
+			Name:        name,
+			Version:     "v0.0.0",
+			Description: "Description about what the recipe is used for and what it contains. For example tech stack, cloud environments, tools",
+		},
+		Variables: []recipe.Variable{
+			{Name: "MY_VAR", Default: "Hello World!"},
+		},
 	}
 }

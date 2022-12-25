@@ -213,3 +213,10 @@ func TestFeatures(t *testing.T) {
 		t.Fatal("non-zero status returned, failed to run feature tests")
 	}
 }
+
+func TestExampleRecipe(t *testing.T) {
+	recipe := createExampleRecipe("foo")
+	if err := recipe.Validate(); err != nil {
+		t.Errorf("failed to validate the example recipe: %s", err)
+	}
+}
