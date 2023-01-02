@@ -59,8 +59,7 @@ func (re *Recipe) Render(engine RenderEngine) error {
 	idx := 0
 	for filename, content := range files {
 		sum := sha256.Sum256(content)
-		file := File{Content: content, Checksum: fmt.Sprintf("sha256:%x", sum)}
-		re.Files[filename] = file
+		re.Files[filename] = File{Content: content, Checksum: fmt.Sprintf("sha256:%x", sum)}
 		idx += 1
 		if idx > len(files) {
 			return fmt.Errorf("Files array grew during execution")
