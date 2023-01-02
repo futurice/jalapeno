@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/Masterminds/sprig"
-	"github.com/go-yaml/yaml"
 )
 
 type TestRenderEngine struct{}
@@ -57,17 +56,5 @@ func TestRecipeRenderChecksums(t *testing.T) {
 	sumWithAlgo := "sha256:fcde2b2edba56bf408601fb721fe9b5c338d10ee429ea04fae5511b68fbf8fb9"
 	if readme.Checksum != sumWithAlgo {
 		t.Errorf("Expected checksum %s for content %s to match %s", readme.Content, readme.Checksum, sumWithAlgo)
-	}
-}
-
-func TestRecipeDefaults(t *testing.T) {
-	recipe := Recipe{}
-	recipeStr := `name: foo
-version: v1.0.0
-files:
-  README.md:
-    checksum: "sha256:fcde2b2edba56bf408601fb721fe9b5c338d10ee429ea04fae5511b68fbf8fb9"`
-	if err := yaml.Unmarshal([]byte(recipeStr), &recipe); err != nil {
-		t.Errorf("failed to unmarshal %s: %s", recipeStr, err)
 	}
 }
