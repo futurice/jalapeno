@@ -2,6 +2,7 @@ package recipe
 
 import (
 	"crypto/sha256"
+	"errors"
 	"fmt"
 )
 
@@ -14,8 +15,8 @@ type Recipe struct {
 	Metadata  `yaml:",inline"`
 	Variables []Variable        `yaml:"vars,omitempty"`
 	Values    VariableValues    `yaml:"values,omitempty"`
-	Templates map[string][]byte `yaml:"-"`
 	Files     map[string]File   `yaml:"files,omitempty"`
+	Templates map[string][]byte `yaml:"-"`
 }
 
 type RenderEngine interface {
@@ -62,7 +63,7 @@ func (re *Recipe) Render(engine RenderEngine) error {
 		re.Files[filename] = File{Content: content, Checksum: fmt.Sprintf("sha256:%x", sum)}
 		idx += 1
 		if idx > len(files) {
-			return fmt.Errorf("Files array grew during execution")
+			return errors.New("files array grew during execution")
 		}
 	}
 
