@@ -27,7 +27,10 @@ type Metadata struct {
 	// Can be used to guide the user what should be done next in the project directory.
 	InitHelp string `yaml:"initHelp,omitempty"`
 
-	// TODO: "exclude from upgrades" field
+	// Glob patterns for ignoring generated files from future recipe upgrades. Ignored
+	// files will not be regenerated even if their templates change in future versions
+	// of the recipe.
+	IgnorePatterns []string `yaml:"ignorePatterns,omitempty"`
 }
 
 func (m *Metadata) Validate() error {

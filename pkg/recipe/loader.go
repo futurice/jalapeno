@@ -16,6 +16,7 @@ const (
 	RecipeFileName         = "recipe.yml"
 	RecipeTemplatesDirName = "templates"
 	RenderedRecipeDirName  = ".jalapeno"
+	IgnoreFileName         = ".jalapenoignore"
 )
 
 // Load a recipe from its source.

@@ -141,10 +141,16 @@ func executionOfTheRecipeHasFailedWithError(ctx context.Context, errorMessage st
 }
 
 func iChangeRecipeToVersion(ctx context.Context, recipeName, version string) (context.Context, error) {
-	dir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
+	recipesDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
+	recipeFile := filepath.Join(recipesDir, recipeName, "recipe.yml")
+	recipeData, err := os.ReadFile(recipeFile)
+	if err != nil {
+		return ctx, err
+	}
 
-	template := "apiVersion: v1\nname: %[1]s\nversion: %[2]s\ndescription: %[1]s"
-	if err := os.WriteFile(filepath.Join(dir, recipeName, "recipe.yml"), []byte(fmt.Sprintf(template, recipeName, version)), 0644); err != nil {
+	newData := strings.Replace(string(recipeData), "v0.0.1", version, 1)
+
+	if err := os.WriteFile(filepath.Join(recipesDir, recipeName, "recipe.yml"), []byte(newData), 0644); err != nil {
 		return ctx, err
 	}
 
@@ -187,6 +193,37 @@ func theProjectDirectoryShouldContainFileWith(ctx context.Context, filename, sea
 	return nil
 }
 
+func recipeIgnoresPattern(ctx context.Context, recipeName, pattern string) (context.Context, error) {
+	recipesDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
+	recipeFile := filepath.Join(recipesDir, recipeName, "recipe.yml")
+	recipeData, err := os.ReadFile(recipeFile)
+	if err != nil {
+		return ctx, err
+	}
+	recipe := fmt.Sprintf("%s\nignorePatterns:\n  - %s\n", string(recipeData), pattern)
+	if err := os.WriteFile(recipeFile, []byte(recipe), 0644); err != nil {
+		return ctx, err
+	}
+	return ctx, nil
+}
+
+func iChangeProjectFileToContain(ctx context.Context, filename, content string) (context.Context, error) {
+	projectDir := ctx.Value(projectDirectoryPathCtxKey{}).(string)
+	if err := os.WriteFile(filepath.Join(projectDir, filename), []byte(content), 0644); err != nil {
+		return ctx, err
+	}
+	return ctx, nil
+}
+
+func noConflictsWereReported(ctx context.Context) (context.Context, error) {
+	recipeStdout := ctx.Value(recipeStdoutCtxKey{}).(string)
+	recipeStderr := ctx.Value(recipeStderrCtxKey{}).(string)
+	if matched, _ := regexp.Match("modified", []byte(recipeStdout)); matched {
+		return ctx, fmt.Errorf("Conflict in recipe\nstdout:\n%s\n\nstderr:\n%s\n", recipeStdout, recipeStderr)
+	}
+	return ctx, nil
+}
+
 func TestFeatures(t *testing.T) {
 	suite := godog.TestSuite{
 		ScenarioInitializer: func(s *godog.ScenarioContext) {
@@ -200,6 +237,9 @@ func TestFeatures(t *testing.T) {
 			s.Step(`^execution of the recipe has failed with error "([^"]*)"$`, executionOfTheRecipeHasFailedWithError)
 			s.Step(`^I change recipe "([^"]*)" to version "([^"]*)"$`, iChangeRecipeToVersion)
 			s.Step(`^I upgrade recipe "([^"]*)"$`, iUpgradeRecipe)
+			s.Step(`^recipe "([^"]*)" ignores pattern "([^"]*)"$`, recipeIgnoresPattern)
+			s.Step(`^I change project file "([^"]*)" to contain "([^"]*)"$`, iChangeProjectFileToContain)
+			s.Step(`^no conflicts were reported$`, noConflictsWereReported)
 			s.After(cleanTempDirs)
 		},
 		Options: &godog.Options{
