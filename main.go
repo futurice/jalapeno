@@ -20,12 +20,10 @@ func main() {
 	store := file.New("")
 	defer store.Close()
 
-	desc1, err := store.Add(ctx, "recipe.yml", "", "./examples/minimal/recipe.yml")
-	check(err)
-	desc2, err := store.Add(ctx, "templates/README.md", "", "./examples/minimal/templates/README.md")
+	desc, err := store.Add(ctx, "recipe", "", "./examples/minimal")
 	check(err)
 
-	root, err := oras.Pack(ctx, store, "", []v1.Descriptor{desc1, desc2}, oras.PackOptions{PackImageManifest: true})
+	root, err := oras.Pack(ctx, store, "", []v1.Descriptor{desc}, oras.PackOptions{PackImageManifest: true})
 	check(err)
 
 	err = store.Tag(ctx, root, recipeVersion)
