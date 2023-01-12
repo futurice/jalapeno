@@ -14,7 +14,7 @@ import (
 func newPushCmd() *cobra.Command {
 	var pushCmd = &cobra.Command{
 		Use:   "push",
-		Short: "",
+		Short: "Push a recipe to OCI repository",
 		Long:  "",
 		Run:   pushFunc,
 	}
@@ -24,6 +24,7 @@ func newPushCmd() *cobra.Command {
 
 func pushFunc(cmd *cobra.Command, args []string) {
 	path := args[0]
+	targetRef := args[1]
 	ctx := context.Background()
 
 	re, err := recipe.Load(path)
@@ -35,7 +36,7 @@ func pushFunc(cmd *cobra.Command, args []string) {
 	store := file.New("")
 	defer store.Close()
 
-	desc, err := store.Add(ctx, "recipe", "", path)
+	desc, err := store.Add(ctx, re.Name, "application/x.futurice.jalapeno.recipe.v1", path)
 	check(err)
 
 	root, err := oras.Pack(ctx, store, "", []v1.Descriptor{desc}, oras.PackOptions{PackImageManifest: true})
@@ -44,7 +45,7 @@ func pushFunc(cmd *cobra.Command, args []string) {
 	err = store.Tag(ctx, root, re.Version)
 	check(err)
 
-	repo, err := remote.NewRepository(args[1])
+	repo, err := remote.NewRepository(targetRef)
 	check(err)
 
 	repo.PlainHTTP = true

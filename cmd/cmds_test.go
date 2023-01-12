@@ -4,18 +4,26 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/cucumber/godog"
+	"github.com/futurice/jalapeno/pkg/recipe"
+	"github.com/ory/dockertest"
 	"github.com/spf13/cobra"
+	"oras.land/oras-go/v2"
+	"oras.land/oras-go/v2/content/file"
+	"oras.land/oras-go/v2/registry/remote"
 )
 
 type projectDirectoryPathCtxKey struct{}
 type recipesDirectoryPathCtxKey struct{}
+type ociRegistryHostCtxKey struct{}
 type cmdStdOutCtxKey struct{}
 type cmdStdErrCtxKey struct{}
 
@@ -69,6 +77,70 @@ func aRecipeThatGeneratesFile(ctx context.Context, recipe, filename string) (con
 	return context.WithValue(ctx, recipesDirectoryPathCtxKey{}, dir), nil
 }
 
+func aLocalOCIRegistry(ctx context.Context) (context.Context, error) {
+	pool, err := dockertest.NewPool("")
+	if err != nil {
+		log.Fatalf("Could not construct pool: %s", err)
+	}
+
+	// uses pool to try to connect to Docker
+	err = pool.Client.Ping()
+	if err != nil {
+		log.Fatalf("Could not connect to Docker: %s", err)
+	}
+
+	resource, err := pool.Run("registry", "2", []string{})
+	if err != nil {
+		log.Fatalf("Could not start resource: %s", err)
+	}
+
+	host := resource.GetHostPort("5000/tcp")
+
+	pool.MaxWait = 30 * time.Second
+	if err = pool.Retry(func() error {
+		_, err := pool.Client.HTTPClient.Get(fmt.Sprintf("http://%s", host))
+		return err
+	}); err != nil {
+		return ctx, fmt.Errorf("could not connect to docker: %s", err)
+	}
+
+	resource.Expire(60)
+
+	time.Sleep(1 * time.Second) // TODO
+
+	return context.WithValue(ctx, ociRegistryHostCtxKey{}, resource.GetHostPort("5000/tcp")), nil
+}
+
+func theRecipeExistsInTheOCIRepository(ctx context.Context, recipeName, repoName string) error {
+	ociHost := ctx.Value(ociRegistryHostCtxKey{}).(string)
+
+	repo, err := remote.NewRepository(fmt.Sprintf("%s/%s", ociHost, repoName))
+	check(err)
+
+	repo.PlainHTTP = true
+
+	dir, err := os.MkdirTemp("", "")
+	defer os.RemoveAll(dir)
+	if err != nil {
+		return err
+	}
+	dst := file.New(dir)
+	_, err = oras.Copy(ctx, repo, repo.Reference.Reference, dst, repo.Reference.Reference, oras.DefaultCopyOptions)
+	if err != nil {
+		return err
+	}
+
+	re, err := recipe.Load(filepath.Join(dir, recipeName))
+	if err != nil {
+		return err
+	}
+
+	if re.Name != recipeName {
+		return fmt.Errorf("recipe name was \"%s\", expected \"%s\"", re.Name, recipeName)
+	}
+	return nil
+}
+
 func iExecuteRecipe(ctx context.Context, recipe string) (context.Context, error) {
 	projectDir := ctx.Value(projectDirectoryPathCtxKey{}).(string)
 	recipesDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
@@ -88,6 +160,83 @@ func iExecuteRecipe(ctx context.Context, recipe string) (context.Context, error)
 	ctx = context.WithValue(ctx, cmdStdErrCtxKey{}, cmdStdErr.String())
 
 	return ctx, nil
+}
+
+func pushRecipe(ctx context.Context, recipeName, repoName string) (context.Context, error) {
+	recipesDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
+	ociRegistryHost := ctx.Value(ociRegistryHostCtxKey{}).(string)
+	cmdStdout := ""
+	cmdStderr := ""
+	cmd := newOutputCapturingCmd(newPushCmd, &cmdStdout, &cmdStderr)
+
+	pushFunc(cmd, []string{filepath.Join(recipesDir, recipeName), filepath.Join(ociRegistryHost, repoName)})
+	return context.WithValue(
+		context.WithValue(ctx, cmdStdoutCtxKey{}, cmdStdout),
+		cmdStderrCtxKey{},
+		cmdStderr,
+	), nil
+}
+
+func iPullRecipe(ctx context.Context, recipeName, repoName string) (context.Context, error) {
+	recipesDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
+	ociRegistryHost := ctx.Value(ociRegistryHostCtxKey{}).(string)
+	cmdStdout := ""
+	cmdStderr := ""
+	cmd := newOutputCapturingCmd(newPullCmd, &cmdStdout, &cmdStderr)
+	if err := cmd.Flags().Set("output", recipesDir); err != nil {
+		return ctx, err
+	}
+
+	pullFunc(cmd, []string{filepath.Join(ociRegistryHost, repoName)})
+	return context.WithValue(
+		context.WithValue(ctx, cmdStdoutCtxKey{}, cmdStdout),
+		cmdStderrCtxKey{},
+		cmdStderr,
+	), nil
+}
+
+func theRecipeExistsInTheLocalOCIRepository(ctx context.Context, recipeName, repoName string) error {
+	ociHost := ctx.Value(ociRegistryHostCtxKey{}).(string)
+
+	repo, err := remote.NewRepository(fmt.Sprintf("%s/%s", ociHost, repoName))
+	check(err)
+
+	repo.PlainHTTP = true
+
+	dir, err := os.MkdirTemp("", "")
+	defer os.RemoveAll(dir)
+	if err != nil {
+		return err
+	}
+	dst := file.New(dir)
+	_, err = oras.Copy(ctx, repo, repo.Reference.Reference, dst, repo.Reference.Reference, oras.DefaultCopyOptions)
+	if err != nil {
+		return err
+	}
+
+	re, err := recipe.Load(filepath.Join(dir, recipeName))
+	if err != nil {
+		return err
+	}
+
+	if re.Name != recipeName {
+		return fmt.Errorf("recipe name was \"%s\", expected \"%s\"", re.Name, recipeName)
+	}
+	return nil
+}
+
+func theRecipesDirectoryShouldContainRecipe(ctx context.Context, recipeName string) error {
+	recipesDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
+	re, err := recipe.Load(filepath.Join(recipesDir, recipeName))
+	if err != nil {
+		return err
+	}
+
+	if re.Name != recipeName {
+		return fmt.Errorf("recipe name was \"%s\", expected \"%s\"", re.Name, recipeName)
+	}
+
+	return nil
 }
 
 func theProjectDirectoryShouldContainFile(ctx context.Context, filename string) error {
@@ -260,6 +409,13 @@ func TestFeatures(t *testing.T) {
 			s.Step(`^conflicts are reported$`, conflictsAreReported)
 			s.Step(`^I change recipe "([^"]*)" template "([^"]*)" to render "([^"]*)"$`, iChangeRecipeTemplateToRender)
 			s.Step(`^no errors were printed$`, noErrorsWerePrinted)
+			s.Step(`^a local OCI registry$`, aLocalOCIRegistry)
+			s.Step(`^I push the recipe "([^"]*)" to the local OCI repository "([^"]*)"$`, pushRecipe)
+			s.Step(`^I pull the recipe "([^"]*)" to the local OCI repository "([^"]*)"$`, iPullRecipe)
+			s.Step(`^the recipe "([^"]*)" is pushed to the local OCI repository "([^"]*)"$`, pushRecipe)
+			s.Step(`^the recipe "([^"]*)" should exist in the local OCI repository "([^"]*)"$`, theRecipeExistsInTheOCIRepository)
+			s.Step(`^the recipe "([^"]*)" exists in the local OCI repository "([^"]*)"$`, theRecipeExistsInTheLocalOCIRepository)
+			s.Step(`^the recipes directory should contain recipe "([^"]*)"$`, theRecipesDirectoryShouldContainRecipe)
 			s.After(cleanTempDirs)
 		},
 		Options: &godog.Options{

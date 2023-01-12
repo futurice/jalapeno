@@ -12,10 +12,12 @@ import (
 func newPullCmd() *cobra.Command {
 	var pullCmd = &cobra.Command{
 		Use:   "pull",
-		Short: "",
+		Short: "Pull a recipe from OCI repository",
 		Long:  "",
 		Run:   pullFunc,
 	}
+
+	pullCmd.Flags().StringVarP(&outputBasePath, "output", "o", ".", "Path where the recipe files should be saved")
 
 	return pullCmd
 }
@@ -28,8 +30,7 @@ func pullFunc(cmd *cobra.Command, args []string) {
 
 	repo.PlainHTTP = true
 
-	// Download the artifact from local registry
-	dst := file.New("./output")
+	dst := file.New(outputBasePath)
 	_, err = oras.Copy(ctx, repo, repo.Reference.Reference, dst, repo.Reference.Reference, oras.DefaultCopyOptions)
 	check(err)
 }
