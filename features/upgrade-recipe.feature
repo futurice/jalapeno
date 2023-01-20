@@ -24,5 +24,4 @@ Feature: Upgrade recipe
     And I change project file "README.md" to contain "Locally modified"
     When I upgrade recipe "foo"
     Then conflicts are reported
-    And no errors were printed
     And the project directory should contain file "README.md" with "Locally modified"

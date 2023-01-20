@@ -131,7 +131,7 @@ func upgradeFunc(cmd *cobra.Command, args []string) {
 		if prevFile, exists := prevRe.Files[path]; exists {
 			// Check if file was modified after rendering
 			if modified, err := recipeutil.IsFileModified(target, path, prevFile); err != nil {
-				cmd.Println(err)
+				cmd.PrintErrln(err)
 			} else if modified {
 				// The file contents has been modified
 				if !overrideNoticed {
@@ -147,7 +147,7 @@ func upgradeFunc(cmd *cobra.Command, args []string) {
 				}
 				err = survey.AskOne(prompt, &override)
 				if err != nil {
-					cmd.Println(err)
+					cmd.PrintErrln(err)
 					return
 				}
 
