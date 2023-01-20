@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"errors"
 	"io/fs"
 	"os"
@@ -114,7 +113,7 @@ func upgradeFunc(cmd *cobra.Command, args []string) {
 	output := make(map[string]recipe.File, len(re.Files))
 	overrideNoticed := false
 
-	for path, file := range re.Files {
+	for path := range re.Files {
 		skip := false
 		for _, pattern := range ignorePatterns {
 			if matched, err := filepath.Match(pattern, path); err != nil {
@@ -130,35 +129,33 @@ func upgradeFunc(cmd *cobra.Command, args []string) {
 		}
 
 		if prevFile, exists := prevRe.Files[path]; exists {
-
-			if bytes.Equal(file.Content, prevFile.Content) {
-				// A file with exactly same path and content already exists, skip
-				continue
-			}
-
-			// The file contents has been modified
-
-			if !overrideNoticed {
-				cmd.Println("Some of the files has been manually modified. Do you want to override the following files:")
-				overrideNoticed = true
-			}
-
-			// TODO: We could do better in terms of merge conflict management. Like show the diff or something
-			var override bool
-			prompt := &survey.Confirm{
-				Message: path,
-				Default: true,
-			}
-			err = survey.AskOne(prompt, &override)
-			if err != nil {
+			// Check if file was modified after rendering
+			if modified, err := recipeutil.IsFileModified(target, path, prevFile); err != nil {
 				cmd.Println(err)
-				return
-			}
+			} else if modified {
+				// The file contents has been modified
+				if !overrideNoticed {
+					cmd.Println("Some of the files has been manually modified. Do you want to override the following files:")
+					overrideNoticed = true
+				}
 
-			if !override {
-				// User decided not to override the file with manual changes, remove from
-				// list of changes to write
-				continue
+				// TODO: We could do better in terms of merge conflict management. Like show the diff or something
+				var override bool
+				prompt := &survey.Confirm{
+					Message: path,
+					Default: true,
+				}
+				err = survey.AskOne(prompt, &override)
+				if err != nil {
+					cmd.Println(err)
+					return
+				}
+
+				if !override {
+					// User decided not to override the file with manual changes, remove from
+					// list of changes to write
+					continue
+				}
 			}
 		}
 
