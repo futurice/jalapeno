@@ -130,7 +130,7 @@ func upgradeFunc(cmd *cobra.Command, args []string) {
 		}
 
 		if prevFile, exists := prevRe.Files[path]; exists {
-			// TODO: where do we check checksums?
+
 			if bytes.Equal(file.Content, prevFile.Content) {
 				// A file with exactly same path and content already exists, skip
 				continue

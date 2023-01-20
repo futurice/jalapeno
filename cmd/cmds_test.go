@@ -224,6 +224,24 @@ func noConflictsWereReported(ctx context.Context) (context.Context, error) {
 	return ctx, nil
 }
 
+func conflictsAreReported(ctx context.Context) (context.Context, error) {
+	recipeStdout := ctx.Value(recipeStdoutCtxKey{}).(string)
+	recipeStderr := ctx.Value(recipeStderrCtxKey{}).(string)
+	if matched, _ := regexp.Match("modified", []byte(recipeStdout)); matched {
+		return ctx, nil
+	}
+	return ctx, fmt.Errorf("Expecting conflicts in recipe but none reported\nstdout:\n%s\n\nstderr:\n%s\n", recipeStdout, recipeStderr)
+}
+
+func iChangeRecipeTemplateToRender(ctx context.Context, recipeName, filename, content string) (context.Context, error) {
+	recipesDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
+	templateFilePath := filepath.Join(recipesDir, recipeName, "templates", filename)
+	if err := os.WriteFile(templateFilePath, []byte(content), 0644); err != nil {
+		return ctx, err
+	}
+	return ctx, nil
+}
+
 func TestFeatures(t *testing.T) {
 	suite := godog.TestSuite{
 		ScenarioInitializer: func(s *godog.ScenarioContext) {
@@ -240,6 +258,8 @@ func TestFeatures(t *testing.T) {
 			s.Step(`^recipe "([^"]*)" ignores pattern "([^"]*)"$`, recipeIgnoresPattern)
 			s.Step(`^I change project file "([^"]*)" to contain "([^"]*)"$`, iChangeProjectFileToContain)
 			s.Step(`^no conflicts were reported$`, noConflictsWereReported)
+			s.Step(`^conflicts are reported$`, conflictsAreReported)
+			s.Step(`^I change recipe "([^"]*)" template "([^"]*)" to render "([^"]*)"$`, iChangeRecipeTemplateToRender)
 			s.After(cleanTempDirs)
 		},
 		Options: &godog.Options{
