@@ -125,7 +125,7 @@ func cleanTempDirs(ctx context.Context, sc *godog.Scenario, err error) (context.
 func executionOfTheRecipeHasSucceeded(ctx context.Context) (context.Context, error) {
 	recipeStdout := ctx.Value(recipeStdoutCtxKey{}).(string)
 	recipeStderr := ctx.Value(recipeStderrCtxKey{}).(string)
-	if matched, _ := regexp.Match("Recipe executed successfully", []byte(recipeStdout)); !matched {
+	if matched, _ := regexp.MatchString("Recipe executed successfully", recipeStdout); !matched {
 		return ctx, fmt.Errorf("Recipe failed to execute!\nstdout:\n%s\n\nstderr:\n%s\n", recipeStdout, recipeStderr)
 	}
 	return ctx, nil
@@ -134,7 +134,7 @@ func executionOfTheRecipeHasSucceeded(ctx context.Context) (context.Context, err
 func executionOfTheRecipeHasFailedWithError(ctx context.Context, errorMessage string) (context.Context, error) {
 	recipeStdout := ctx.Value(recipeStdoutCtxKey{}).(string)
 	recipeStderr := ctx.Value(recipeStderrCtxKey{}).(string)
-	if matched, _ := regexp.Match(errorMessage, []byte(recipeStderr)); !matched {
+	if matched, _ := regexp.MatchString(errorMessage, recipeStderr); !matched {
 		return ctx, fmt.Errorf("'%s' not found in stderr.\nstdout:\n%s\n\nstderr:\n%s\n", errorMessage, recipeStdout, recipeStderr)
 	}
 	return ctx, nil
@@ -218,8 +218,34 @@ func iChangeProjectFileToContain(ctx context.Context, filename, content string) 
 func noConflictsWereReported(ctx context.Context) (context.Context, error) {
 	recipeStdout := ctx.Value(recipeStdoutCtxKey{}).(string)
 	recipeStderr := ctx.Value(recipeStderrCtxKey{}).(string)
-	if matched, _ := regexp.Match("modified", []byte(recipeStdout)); matched {
+	if matched, _ := regexp.MatchString("modified", recipeStdout); matched {
 		return ctx, fmt.Errorf("Conflict in recipe\nstdout:\n%s\n\nstderr:\n%s\n", recipeStdout, recipeStderr)
+	}
+	return ctx, nil
+}
+
+func conflictsAreReported(ctx context.Context) (context.Context, error) {
+	recipeStdout := ctx.Value(recipeStdoutCtxKey{}).(string)
+	recipeStderr := ctx.Value(recipeStderrCtxKey{}).(string)
+	if matched, _ := regexp.MatchString("modified", recipeStdout); matched {
+		return ctx, nil
+	}
+	return ctx, fmt.Errorf("Expecting conflicts in recipe but none reported\nstdout:\n%s\n\nstderr:\n%s\n", recipeStdout, recipeStderr)
+}
+
+func iChangeRecipeTemplateToRender(ctx context.Context, recipeName, filename, content string) (context.Context, error) {
+	recipesDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
+	templateFilePath := filepath.Join(recipesDir, recipeName, "templates", filename)
+	if err := os.WriteFile(templateFilePath, []byte(content), 0644); err != nil {
+		return ctx, err
+	}
+	return ctx, nil
+}
+
+func noErrorsWerePrinted(ctx context.Context) (context.Context, error) {
+	recipeStderr := ctx.Value(recipeStderrCtxKey{}).(string)
+	if len(recipeStderr) != 0 {
+		return ctx, fmt.Errorf("Expected stderr to be empty but was %s", recipeStderr)
 	}
 	return ctx, nil
 }
@@ -240,6 +266,9 @@ func TestFeatures(t *testing.T) {
 			s.Step(`^recipe "([^"]*)" ignores pattern "([^"]*)"$`, recipeIgnoresPattern)
 			s.Step(`^I change project file "([^"]*)" to contain "([^"]*)"$`, iChangeProjectFileToContain)
 			s.Step(`^no conflicts were reported$`, noConflictsWereReported)
+			s.Step(`^conflicts are reported$`, conflictsAreReported)
+			s.Step(`^I change recipe "([^"]*)" template "([^"]*)" to render "([^"]*)"$`, iChangeRecipeTemplateToRender)
+			s.Step(`^no errors were printed$`, noErrorsWerePrinted)
 			s.After(cleanTempDirs)
 		},
 		Options: &godog.Options{

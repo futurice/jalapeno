@@ -8,7 +8,6 @@ require (
 	github.com/cucumber/godog v0.12.5
 	github.com/go-yaml/yaml v2.1.0+incompatible
 	github.com/spf13/cobra v1.5.0
-	golang.org/x/exp v0.0.0-20221114191408-850992195362
 	golang.org/x/mod v0.6.0
 )
 
