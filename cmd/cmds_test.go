@@ -242,6 +242,14 @@ func iChangeRecipeTemplateToRender(ctx context.Context, recipeName, filename, co
 	return ctx, nil
 }
 
+func noErrorsWerePrinted(ctx context.Context) (context.Context, error) {
+	recipeStderr := ctx.Value(recipeStderrCtxKey{}).(string)
+	if len(recipeStderr) != 0 {
+		return ctx, fmt.Errorf("Expected stderr to be empty but was %s", recipeStderr)
+	}
+	return ctx, nil
+}
+
 func TestFeatures(t *testing.T) {
 	suite := godog.TestSuite{
 		ScenarioInitializer: func(s *godog.ScenarioContext) {
@@ -260,6 +268,7 @@ func TestFeatures(t *testing.T) {
 			s.Step(`^no conflicts were reported$`, noConflictsWereReported)
 			s.Step(`^conflicts are reported$`, conflictsAreReported)
 			s.Step(`^I change recipe "([^"]*)" template "([^"]*)" to render "([^"]*)"$`, iChangeRecipeTemplateToRender)
+			s.Step(`^no errors were printed$`, noErrorsWerePrinted)
 			s.After(cleanTempDirs)
 		},
 		Options: &godog.Options{

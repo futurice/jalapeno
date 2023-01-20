@@ -19,6 +19,7 @@ Feature: Execute recipes
     Then execution of the recipe has succeeded
     When I execute recipe "bar"
     Then execution of the recipe has succeeded
+    And no errors were printed
     And the project directory should contain file "README.md"
     And the project directory should contain file "Taskfile.yml"
     And the project directory should contain file ".jalapeno/recipe.yml" with "name: foo"
@@ -31,8 +32,10 @@ Feature: Execute recipes
     And a recipe "bar" that generates file "Taskfile.yml"
     And a recipe "quux" that generates file "Taskfile.yml"
     When I execute recipe "foo"
+    And no errors were printed
     Then execution of the recipe has succeeded
     When I execute recipe "bar"
+    And no errors were printed
     Then execution of the recipe has succeeded
     When I execute recipe "quux"
     Then execution of the recipe has failed with error "Taskfile.yml was already created by recipe bar"

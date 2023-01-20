@@ -10,6 +10,7 @@ Feature: Upgrade recipe
     And I change recipe "foo" template "README.md" to render "New version"
     When I upgrade recipe "foo"
     Then the project directory should contain file ".jalapeno/recipe.yml" with "version: v0.0.2"
+    And no errors were printed
     And the project directory should contain file "README.md" with "New version"
     And no conflicts were reported
 
@@ -23,4 +24,5 @@ Feature: Upgrade recipe
     And I change project file "README.md" to contain "Locally modified"
     When I upgrade recipe "foo"
     Then conflicts are reported
+    And no errors were printed
     And the project directory should contain file "README.md" with "Locally modified"
