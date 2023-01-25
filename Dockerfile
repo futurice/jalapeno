@@ -28,3 +28,6 @@ LABEL org.opencontainers.image.source="https://github.com/futurice/jalapeno"
 LABEL org.opencontainers.image.documentation="https://futurice.github.io/jalapeno/"
 
 COPY --from=build /work/bin/jalapeno /usr/local/bin/
+
+ENTRYPOINT [ "/usr/local/bin/jalapeno" ]
+CMD [ "check-updates" ]
