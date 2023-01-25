@@ -23,6 +23,7 @@ LABEL org.opencontainers.image.authors="Jalapeno contributors <github.com/futuri
 LABEL org.opencontainers.image.licenses="Apache-2.0"
 LABEL org.opencontainers.image.vendor="Futurice"
 LABEL org.opencontainers.image.title="Jalapeno"
+LABEL org.opencontainers.image.description="Jalapeno is a CLI for creating, managing and sharing spiced up project templates."
 LABEL org.opencontainers.image.url="https://github.com/futurice/jalapeno"
 LABEL org.opencontainers.image.source="https://github.com/futurice/jalapeno"
 LABEL org.opencontainers.image.documentation="https://futurice.github.io/jalapeno/"
