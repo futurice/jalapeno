@@ -22,7 +22,11 @@
 				"go.toolsManagement.checkForUpdates": "local",
 				"go.useLanguageServer": true,
 				"go.gopath": "/go"
-			}
+			},
+			"extensions": [
+				"GitHub.vscode-pull-request-github",
+				"golang.go"
+			]
 		}
 	}
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
