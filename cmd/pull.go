@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"strings"
 
 	"github.com/spf13/cobra"
 	"oras.land/oras-go/v2"
@@ -14,6 +15,7 @@ func newPullCmd() *cobra.Command {
 		Use:   "pull",
 		Short: "Pull a recipe from OCI repository",
 		Long:  "",
+		Args:  cobra.ExactArgs(1),
 		Run:   pullFunc,
 	}
 
@@ -24,13 +26,22 @@ func newPullCmd() *cobra.Command {
 
 func pullFunc(cmd *cobra.Command, args []string) {
 	ctx := context.Background()
+	targetRef := args[0]
 
-	repo, err := remote.NewRepository(args[0])
-	check(err)
+	repo, err := remote.NewRepository(targetRef)
+	if err != nil {
+		cmd.PrintErr(err)
+		return
+	}
 
-	repo.PlainHTTP = true
+	if strings.Contains(targetRef, "localhost") {
+		repo.PlainHTTP = true
+	}
 
 	dst := file.New(outputBasePath)
 	_, err = oras.Copy(ctx, repo, repo.Reference.Reference, dst, repo.Reference.Reference, oras.DefaultCopyOptions)
-	check(err)
+	if err != nil {
+		cmd.PrintErr(err)
+		return
+	}
 }

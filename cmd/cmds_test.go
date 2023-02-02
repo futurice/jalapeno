@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -26,6 +25,7 @@ type recipesDirectoryPathCtxKey struct{}
 type ociRegistryHostCtxKey struct{}
 type cmdStdOutCtxKey struct{}
 type cmdStdErrCtxKey struct{}
+type dockerResourcesCtxKey struct{}
 
 /*
  * UTILITIES
@@ -78,44 +78,39 @@ func aRecipeThatGeneratesFile(ctx context.Context, recipe, filename string) (con
 }
 
 func aLocalOCIRegistry(ctx context.Context) (context.Context, error) {
-	pool, err := dockertest.NewPool("")
+	resource, err := createLocalRegistry([]string{})
 	if err != nil {
-		log.Fatalf("Could not construct pool: %s", err)
+		return ctx, err
 	}
 
-	// uses pool to try to connect to Docker
-	err = pool.Client.Ping()
+	ctx = context.WithValue(ctx, ociRegistryHostCtxKey{}, resource.GetHostPort("5000/tcp"))
+	ctx = addDockerResourceToContext(ctx, resource)
+
+	return ctx, nil
+}
+
+func aLocalOCIRegistryWithAuth(ctx context.Context) (context.Context, error) {
+	resource, err := createLocalRegistry([]string{
+		"REGISTRY_AUTH_SILLY_REALM=test-realm",
+		"REGISTRY_AUTH_SILLY_SERVICE=test-service",
+	})
 	if err != nil {
-		log.Fatalf("Could not connect to Docker: %s", err)
+		return ctx, err
 	}
 
-	resource, err := pool.Run("registry", "2", []string{})
-	if err != nil {
-		log.Fatalf("Could not start resource: %s", err)
-	}
+	ctx = context.WithValue(ctx, ociRegistryHostCtxKey{}, resource.GetHostPort("5000/tcp"))
+	ctx = addDockerResourceToContext(ctx, resource)
 
-	host := resource.GetHostPort("5000/tcp")
-
-	pool.MaxWait = 30 * time.Second
-	if err = pool.Retry(func() error {
-		_, err := pool.Client.HTTPClient.Get(fmt.Sprintf("http://%s", host))
-		return err
-	}); err != nil {
-		return ctx, fmt.Errorf("could not connect to docker: %s", err)
-	}
-
-	resource.Expire(60)
-
-	time.Sleep(1 * time.Second) // TODO
-
-	return context.WithValue(ctx, ociRegistryHostCtxKey{}, resource.GetHostPort("5000/tcp")), nil
+	return ctx, nil
 }
 
 func theRecipeExistsInTheOCIRepository(ctx context.Context, recipeName, repoName string) error {
 	ociHost := ctx.Value(ociRegistryHostCtxKey{}).(string)
 
 	repo, err := remote.NewRepository(fmt.Sprintf("%s/%s", ociHost, repoName))
-	check(err)
+	if err != nil {
+		return err
+	}
 
 	repo.PlainHTTP = true
 
@@ -195,11 +190,35 @@ func iPullRecipe(ctx context.Context, recipeName, repoName string) (context.Cont
 	), nil
 }
 
+func pushOfTheRecipeWasSuccessful(ctx context.Context) (context.Context, error) {
+	// pushStdout := ctx.Value(cmdStdoutCtxKey{}).(string) // TODO: Check stdout when we have proper message from CMD
+	pushStderr := ctx.Value(cmdStderrCtxKey{}).(string)
+
+	if pushStderr != "" {
+		return ctx, fmt.Errorf("stderr was not empty: %s", pushStderr)
+	}
+
+	return ctx, nil
+}
+
+func pullOfTheRecipeWasSuccessful(ctx context.Context) (context.Context, error) {
+	// pullStdout := ctx.Value(cmdStdoutCtxKey{}).(string) // TODO: Check stdout when we have proper message from CMD
+	pullStderr := ctx.Value(cmdStderrCtxKey{}).(string)
+
+	if pullStderr != "" {
+		return ctx, fmt.Errorf("stderr was not empty: %s", pullStderr)
+	}
+
+	return ctx, nil
+}
+
 func theRecipeExistsInTheLocalOCIRepository(ctx context.Context, recipeName, repoName string) error {
 	ociHost := ctx.Value(ociRegistryHostCtxKey{}).(string)
 
 	repo, err := remote.NewRepository(fmt.Sprintf("%s/%s", ociHost, repoName))
-	check(err)
+	if err != nil {
+		return err
+	}
 
 	repo.PlainHTTP = true
 
@@ -254,6 +273,23 @@ func cleanTempDirs(ctx context.Context, sc *godog.Scenario, err error) (context.
 	}
 	if dir := ctx.Value(recipesDirectoryPathCtxKey{}); dir != nil {
 		os.RemoveAll(dir.(string))
+	}
+	return ctx, err
+}
+
+func cleanDockerResources(ctx context.Context, sc *godog.Scenario, err error) (context.Context, error) {
+	resources, ok := ctx.Value(dockerResourcesCtxKey{}).([]*dockertest.Resource)
+
+	// Resource list was probably empty, skip
+	if !ok {
+		return ctx, err
+	}
+
+	for _, resource := range resources {
+		err := resource.Close()
+		if err != nil {
+			return ctx, err
+		}
 	}
 	return ctx, err
 }
@@ -410,12 +446,16 @@ func TestFeatures(t *testing.T) {
 			s.Step(`^I change recipe "([^"]*)" template "([^"]*)" to render "([^"]*)"$`, iChangeRecipeTemplateToRender)
 			s.Step(`^no errors were printed$`, noErrorsWerePrinted)
 			s.Step(`^a local OCI registry$`, aLocalOCIRegistry)
+			s.Step(`^a local OCI registry with authentication$`, aLocalOCIRegistryWithAuth)
 			s.Step(`^I push the recipe "([^"]*)" to the local OCI repository "([^"]*)"$`, pushRecipe)
 			s.Step(`^I pull the recipe "([^"]*)" to the local OCI repository "([^"]*)"$`, iPullRecipe)
 			s.Step(`^the recipe "([^"]*)" is pushed to the local OCI repository "([^"]*)"$`, pushRecipe)
 			s.Step(`^the recipe "([^"]*)" should exist in the local OCI repository "([^"]*)"$`, theRecipeExistsInTheOCIRepository)
 			s.Step(`^the recipe "([^"]*)" exists in the local OCI repository "([^"]*)"$`, theRecipeExistsInTheLocalOCIRepository)
+			s.Step(`^push of the recipe was successful$`, pushOfTheRecipeWasSuccessful)
+			s.Step(`^pull of the recipe was successful$`, pullOfTheRecipeWasSuccessful)
 			s.Step(`^the recipes directory should contain recipe "([^"]*)"$`, theRecipesDirectoryShouldContainRecipe)
+			s.After(cleanDockerResources)
 			s.After(cleanTempDirs)
 		},
 		Options: &godog.Options{
@@ -435,4 +475,46 @@ func TestExampleRecipe(t *testing.T) {
 	if err := recipe.Validate(); err != nil {
 		t.Errorf("failed to validate the example recipe: %s", err)
 	}
+}
+
+func createLocalRegistry(args []string) (*dockertest.Resource, error) {
+	pool, err := dockertest.NewPool("")
+	if err != nil {
+		return nil, fmt.Errorf("could not construct pool: %w", err)
+	}
+
+	// uses pool to try to connect to Docker
+	err = pool.Client.Ping()
+	if err != nil {
+		return nil, fmt.Errorf("could not connect to Docker: %s", err)
+	}
+
+	resource, err := pool.Run("registry", "2", args)
+	if err != nil {
+		return nil, fmt.Errorf("could not start resource: %s", err)
+	}
+
+	host := resource.GetHostPort("5000/tcp")
+
+	pool.MaxWait = 30 * time.Second
+	if err = pool.Retry(func() error {
+		_, err := pool.Client.HTTPClient.Get(fmt.Sprintf("http://%s", host))
+		return err
+	}); err != nil {
+		return nil, fmt.Errorf("could not connect to docker: %s", err)
+	}
+
+	resource.Expire(60)         // If the cleanup fails, this will stop the container eventually
+	time.Sleep(1 * time.Second) // Wait a bit to registry to boot up
+
+	return resource, nil
+}
+
+func addDockerResourceToContext(ctx context.Context, resource *dockertest.Resource) context.Context {
+	resources, ok := ctx.Value(dockerResourcesCtxKey{}).([]*dockertest.Resource)
+	if !ok {
+		resources = make([]*dockertest.Resource, 0)
+	}
+
+	return context.WithValue(ctx, dockerResourcesCtxKey{}, append(resources, resource))
 }
