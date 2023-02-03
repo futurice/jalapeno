@@ -119,7 +119,11 @@ func theRecipeExistsInTheOCIRepository(ctx context.Context, recipeName, repoName
 	if err != nil {
 		return err
 	}
-	dst := file.New(dir)
+	dst, err := file.New(dir)
+	if err != nil {
+		return err
+	}
+
 	_, err = oras.Copy(ctx, repo, repo.Reference.Reference, dst, repo.Reference.Reference, oras.DefaultCopyOptions)
 	if err != nil {
 		return err
@@ -227,7 +231,12 @@ func theRecipeExistsInTheLocalOCIRepository(ctx context.Context, recipeName, rep
 	if err != nil {
 		return err
 	}
-	dst := file.New(dir)
+
+	dst, err := file.New(dir)
+	if err != nil {
+		return err
+	}
+
 	_, err = oras.Copy(ctx, repo, repo.Reference.Reference, dst, repo.Reference.Reference, oras.DefaultCopyOptions)
 	if err != nil {
 		return err
@@ -498,14 +507,17 @@ func createLocalRegistry(args []string) (*dockertest.Resource, error) {
 
 	pool.MaxWait = 30 * time.Second
 	if err = pool.Retry(func() error {
-		_, err := pool.Client.HTTPClient.Get(fmt.Sprintf("http://%s", host))
+		_, err := pool.Client.HTTPClient.Get(fmt.Sprintf("http://%s/v2/", host))
 		return err
 	}); err != nil {
 		return nil, fmt.Errorf("could not connect to docker: %s", err)
 	}
 
-	resource.Expire(60)         // If the cleanup fails, this will stop the container eventually
-	time.Sleep(1 * time.Second) // Wait a bit to registry to boot up
+	// Even though we check if the registry is ready, running tests immediately causes EOF errors to happen.
+	// So we need to wait a bit more to registry to be ready.
+	time.Sleep(100 * time.Millisecond)
+
+	resource.Expire(60) // If the cleanup fails, this will stop the container eventually
 
 	return resource, nil
 }

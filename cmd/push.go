@@ -17,6 +17,7 @@ func newPushCmd() *cobra.Command {
 		Use:   "push",
 		Short: "Push a recipe to OCI repository",
 		Long:  "",
+		Args:  cobra.ExactArgs(2),
 		Run:   pushFunc,
 	}
 
@@ -34,7 +35,12 @@ func pushFunc(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	store := file.New("")
+	store, err := file.New("")
+	if err != nil {
+		cmd.PrintErr(err)
+		return
+	}
+
 	defer store.Close()
 
 	desc, err := store.Add(ctx, re.Name, "application/x.futurice.jalapeno.recipe.v1", path)

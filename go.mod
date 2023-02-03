@@ -10,7 +10,7 @@ require (
 	github.com/opencontainers/image-spec v1.1.0-rc2
 	github.com/spf13/cobra v1.6.1
 	golang.org/x/mod v0.7.0
-	oras.land/oras-go/v2 v2.0.0-rc.6
+	oras.land/oras-go/v2 v2.0.0
 )
 
 require (

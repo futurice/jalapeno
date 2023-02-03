@@ -38,7 +38,12 @@ func pullFunc(cmd *cobra.Command, args []string) {
 		repo.PlainHTTP = true
 	}
 
-	dst := file.New(outputBasePath)
+	dst, err := file.New(outputBasePath)
+	if err != nil {
+		cmd.PrintErr(err)
+		return
+	}
+
 	_, err = oras.Copy(ctx, repo, repo.Reference.Reference, dst, repo.Reference.Reference, oras.DefaultCopyOptions)
 	if err != nil {
 		cmd.PrintErr(err)

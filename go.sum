@@ -464,4 +464,6 @@ honnef.co/go/tools v0.0.0-20190418001031-e561f6794a2a/go.mod h1:rf3lG4BRIbNafJWh
 honnef.co/go/tools v0.0.1-2019.2.3/go.mod h1:a3bituU0lyd329TUQxRnasdCoJDkEUEAqEt0JzvZhAg=
 oras.land/oras-go/v2 v2.0.0-rc.6 h1:jGWysqm8flq+X0Vj8bZ6rkASAqTab5k18Mx9hEjFc8g=
 oras.land/oras-go/v2 v2.0.0-rc.6/go.mod h1:iVExH1NxrccIxjsiq17L91WCZ4KIw6jVQyCLsZsu1gc=
+oras.land/oras-go/v2 v2.0.0 h1:+LRAz92WF7AvYQsQjPEAIw3Xb2zPPhuydjpi4pIHmc0=
+oras.land/oras-go/v2 v2.0.0/go.mod h1:iVExH1NxrccIxjsiq17L91WCZ4KIw6jVQyCLsZsu1gc=
 rsc.io/binaryregexp v0.2.0/go.mod h1:qTv7/COck+e2FymRvadv62gMdZztPaShugOCi3I+8D8=
