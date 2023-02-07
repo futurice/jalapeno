@@ -11,12 +11,26 @@ import (
 	"testing"
 
 	"github.com/cucumber/godog"
+	"github.com/spf13/cobra"
 )
 
 type projectDirectoryPathCtxKey struct{}
 type recipesDirectoryPathCtxKey struct{}
 type cmdStdOutCtxKey struct{}
 type cmdStdErrCtxKey struct{}
+
+/*
+ * UTILITIES
+ */
+
+func WrapCmdOutputs(cmdFactory func() *cobra.Command) (*cobra.Command, *bytes.Buffer, *bytes.Buffer) {
+	cmd := cmdFactory()
+	cmdStdOut, cmdStdErr := new(bytes.Buffer), new(bytes.Buffer)
+	cmd.SetOut(cmdStdOut)
+	cmd.SetErr(cmdStdErr)
+
+	return cmd, cmdStdOut, cmdStdErr
+}
 
 /*
  * STEP DEFINITIONS
@@ -59,11 +73,7 @@ func iExecuteRecipe(ctx context.Context, recipe string) (context.Context, error)
 	projectDir := ctx.Value(projectDirectoryPathCtxKey{}).(string)
 	recipesDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
 
-	cmd := newExecuteCmd()
-
-	cmdStdOut, cmdStdErr := new(bytes.Buffer), new(bytes.Buffer)
-	cmd.SetOut(cmdStdOut)
-	cmd.SetErr(cmdStdErr)
+	cmd, cmdStdOut, cmdStdErr := WrapCmdOutputs(newExecuteCmd)
 
 	cmd.SetArgs([]string{filepath.Join(recipesDir, recipe)})
 	if err := cmd.Flags().Set("output", projectDir); err != nil {
@@ -136,14 +146,9 @@ func iUpgradeRecipe(ctx context.Context, recipe string) (context.Context, error)
 	recipesDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
 	projectDir := ctx.Value(projectDirectoryPathCtxKey{}).(string)
 
-	cmd := newUpgradeCmd()
-
-	cmdStdOut, cmdStdErr := new(bytes.Buffer), new(bytes.Buffer)
-	cmd.SetOut(cmdStdOut)
-	cmd.SetErr(cmdStdErr)
+	cmd, cmdStdOut, cmdStdErr := WrapCmdOutputs(newUpgradeCmd)
 
 	cmd.SetArgs([]string{projectDir, filepath.Join(recipesDir, recipe)})
-
 	cmd.Execute()
 
 	ctx = context.WithValue(ctx, cmdStdOutCtxKey{}, cmdStdOut.String())
