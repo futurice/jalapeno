@@ -4,13 +4,20 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/futurice/jalapeno/internal/option"
 	"github.com/futurice/jalapeno/pkg/recipe"
 	"github.com/spf13/cobra"
 )
 
+type createOptions struct {
+	RecipeName string
+	option.Common
+}
+
 func newCreateCmd() *cobra.Command {
+	var opts createOptions
 	// createCmd represents the create command
-	var createCmd = &cobra.Command{
+	var cmd = &cobra.Command{
 		Use:   "create NAME",
 		Short: "Create a new recipe",
 		Long: `
@@ -20,26 +27,33 @@ func newCreateCmd() *cobra.Command {
 	├── templates/
 `, // TODO
 		Args: cobra.ExactArgs(1),
-		Run:  createFunc,
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			opts.RecipeName = args[0]
+			return option.Parse(&opts)
+		},
+		Run: func(cmd *cobra.Command, args []string) {
+			runCreate(cmd, opts)
+		},
 	}
 
-	return createCmd
+	option.ApplyFlags(&opts, cmd.Flags())
+
+	return cmd
 }
 
-func createFunc(cmd *cobra.Command, args []string) {
-	recipeName := args[0]
-	re := createExampleRecipe(recipeName)
+func runCreate(cmd *cobra.Command, opts createOptions) {
+	re := createExampleRecipe(opts.RecipeName)
 
-	path := filepath.Join(".", recipeName)
+	path := filepath.Join(".", opts.RecipeName)
 
 	if _, err := os.Stat(path); !os.IsNotExist(err) {
-		cmd.PrintErrf("directory '%s' already exists", recipeName)
+		cmd.PrintErrf("directory '%s' already exists\n", opts.RecipeName)
 		return
 	}
 
 	err := os.Mkdir(path, 0700)
 	if err != nil {
-		cmd.PrintErrf("can not create directory %s: %v", path, err)
+		cmd.PrintErrf("can not create directory %s: %v\n", path, err)
 		return
 	}
 
@@ -53,14 +67,14 @@ func createFunc(cmd *cobra.Command, args []string) {
 	err = re.Save(path)
 	if err != nil {
 		// TODO: Clean up the already create directory if the command failed
-		cmd.PrintErrf("can not save recipe to the directory: %v", err)
+		cmd.PrintErrf("can not save recipe to the directory: %v\n", err)
 		return
 	}
 
 	err = os.Mkdir(filepath.Join(path, recipe.RecipeTemplatesDirName), 0700)
 	if err != nil {
 		// TODO: Clean up the already create directory if the command failed
-		cmd.PrintErrf("can not save templates to the directory: %v", err)
+		cmd.PrintErrf("can not save templates to the directory: %v\n", err)
 		return
 	}
 }

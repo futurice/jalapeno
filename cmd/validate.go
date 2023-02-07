@@ -1,33 +1,46 @@
 package main
 
 import (
+	"github.com/futurice/jalapeno/internal/option"
 	"github.com/futurice/jalapeno/pkg/recipe"
 	"github.com/spf13/cobra"
 )
 
+type validateOptions struct {
+	TargetPath string
+	option.Common
+}
+
 func newValidateCmd() *cobra.Command {
-	var validateCmd = &cobra.Command{
+	var opts validateOptions
+	var cmd = &cobra.Command{
 		Use:   "validate RECIPE",
 		Short: "Validate a recipe",
 		Long:  "", // TODO
-		Run:   validateFunc,
-		Args:  cobra.ExactArgs(1),
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			opts.TargetPath = args[0]
+			return option.Parse(&opts)
+		},
+		Run: func(cmd *cobra.Command, args []string) {
+			runValidate(cmd, opts)
+		},
+		Args: cobra.ExactArgs(1),
 	}
 
-	return validateCmd
+	option.ApplyFlags(&opts, cmd.Flags())
+
+	return cmd
 }
 
-func validateFunc(cmd *cobra.Command, args []string) {
-	r, err := recipe.Load(args[0])
+func runValidate(cmd *cobra.Command, opts validateOptions) {
+	r, err := recipe.Load(opts.TargetPath)
 	if err != nil {
-		cmd.PrintErrf("could not load the recipe: %s\n", err)
-		return
+		cmd.PrintErrf("could not load the recipe: %v\n", err)
 	}
 
 	err = r.Validate()
 	if err != nil {
-		cmd.PrintErrf("validation failed: %s\n", err)
-		return
+		cmd.PrintErrf("validation failed: %v\n", err)
 	}
 
 	cmd.Println("Validation ok")

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"os"
@@ -10,44 +11,12 @@ import (
 	"testing"
 
 	"github.com/cucumber/godog"
-	"github.com/spf13/cobra"
 )
 
 type projectDirectoryPathCtxKey struct{}
 type recipesDirectoryPathCtxKey struct{}
-type recipeStdoutCtxKey struct{}
-type recipeStderrCtxKey struct{}
-
-/*
- * UTILITIES
- */
-
-type outputCapturingWriter struct {
-	output *string
-}
-
-func (o outputCapturingWriter) Write(p []byte) (int, error) {
-	*(o.output) = fmt.Sprint(*(o.output), string(p))
-	return len(p), nil
-}
-
-func newOutputCapturingExecuteCmd(stdout, stderr *string) *cobra.Command {
-	w_out := outputCapturingWriter{output: stdout}
-	w_err := outputCapturingWriter{output: stderr}
-	cmd := newExecuteCmd()
-	cmd.SetOut(w_out)
-	cmd.SetErr(w_err)
-	return cmd
-}
-
-func newOutputCapturingUpgradeCmd(stdout, stderr *string) *cobra.Command {
-	w_out := outputCapturingWriter{output: stdout}
-	w_err := outputCapturingWriter{output: stderr}
-	cmd := newUpgradeCmd()
-	cmd.SetOut(w_out)
-	cmd.SetErr(w_err)
-	return cmd
-}
+type cmdStdOutCtxKey struct{}
+type cmdStdErrCtxKey struct{}
 
 /*
  * STEP DEFINITIONS
@@ -89,18 +58,24 @@ func aRecipeThatGeneratesFile(ctx context.Context, recipe, filename string) (con
 func iExecuteRecipe(ctx context.Context, recipe string) (context.Context, error) {
 	projectDir := ctx.Value(projectDirectoryPathCtxKey{}).(string)
 	recipesDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
-	recipeStdout := ""
-	recipeStderr := ""
-	cmd := newOutputCapturingExecuteCmd(&recipeStdout, &recipeStderr)
+
+	cmd := newExecuteCmd()
+
+	cmdStdOut, cmdStdErr := new(bytes.Buffer), new(bytes.Buffer)
+	cmd.SetOut(cmdStdOut)
+	cmd.SetErr(cmdStdErr)
+
+	cmd.SetArgs([]string{filepath.Join(recipesDir, recipe)})
 	if err := cmd.Flags().Set("output", projectDir); err != nil {
 		return ctx, err
 	}
-	executeFunc(cmd, []string{filepath.Join(recipesDir, recipe)})
-	return context.WithValue(
-		context.WithValue(ctx, recipeStdoutCtxKey{}, recipeStdout),
-		recipeStderrCtxKey{},
-		recipeStderr,
-	), nil
+
+	cmd.Execute()
+
+	ctx = context.WithValue(ctx, cmdStdOutCtxKey{}, cmdStdOut.String())
+	ctx = context.WithValue(ctx, cmdStdErrCtxKey{}, cmdStdErr.String())
+
+	return ctx, nil
 }
 
 func theProjectDirectoryShouldContainFile(ctx context.Context, filename string) error {
@@ -123,19 +98,19 @@ func cleanTempDirs(ctx context.Context, sc *godog.Scenario, err error) (context.
 }
 
 func executionOfTheRecipeHasSucceeded(ctx context.Context) (context.Context, error) {
-	recipeStdout := ctx.Value(recipeStdoutCtxKey{}).(string)
-	recipeStderr := ctx.Value(recipeStderrCtxKey{}).(string)
-	if matched, _ := regexp.MatchString("Recipe executed successfully", recipeStdout); !matched {
-		return ctx, fmt.Errorf("Recipe failed to execute!\nstdout:\n%s\n\nstderr:\n%s\n", recipeStdout, recipeStderr)
+	cmdStdOut := ctx.Value(cmdStdOutCtxKey{}).(string)
+	cmdStdErr := ctx.Value(cmdStdErrCtxKey{}).(string)
+	if matched, _ := regexp.MatchString("Recipe executed successfully", cmdStdOut); !matched {
+		return ctx, fmt.Errorf("Recipe failed to execute!\nstdout:\n%s\n\nstderr:\n%s\n", cmdStdOut, cmdStdErr)
 	}
 	return ctx, nil
 }
 
 func executionOfTheRecipeHasFailedWithError(ctx context.Context, errorMessage string) (context.Context, error) {
-	recipeStdout := ctx.Value(recipeStdoutCtxKey{}).(string)
-	recipeStderr := ctx.Value(recipeStderrCtxKey{}).(string)
-	if matched, _ := regexp.MatchString(errorMessage, recipeStderr); !matched {
-		return ctx, fmt.Errorf("'%s' not found in stderr.\nstdout:\n%s\n\nstderr:\n%s\n", errorMessage, recipeStdout, recipeStderr)
+	cmdStdOut := ctx.Value(cmdStdOutCtxKey{}).(string)
+	cmdStdErr := ctx.Value(cmdStdErrCtxKey{}).(string)
+	if matched, _ := regexp.MatchString(errorMessage, cmdStdErr); !matched {
+		return ctx, fmt.Errorf("'%s' not found in stderr.\nstdout:\n%s\n\nstderr:\n%s\n", errorMessage, cmdStdOut, cmdStdErr)
 	}
 	return ctx, nil
 }
@@ -161,34 +136,40 @@ func iUpgradeRecipe(ctx context.Context, recipe string) (context.Context, error)
 	recipesDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
 	projectDir := ctx.Value(projectDirectoryPathCtxKey{}).(string)
 
-	recipeStdout := ""
-	recipeStderr := ""
-	cmd := newOutputCapturingUpgradeCmd(&recipeStdout, &recipeStderr)
-	upgradeFunc(cmd, []string{projectDir, filepath.Join(recipesDir, recipe)})
-	return context.WithValue(
-		context.WithValue(ctx, recipeStdoutCtxKey{}, recipeStdout),
-		recipeStderrCtxKey{},
-		recipeStderr,
-	), nil
+	cmd := newUpgradeCmd()
+
+	cmdStdOut, cmdStdErr := new(bytes.Buffer), new(bytes.Buffer)
+	cmd.SetOut(cmdStdOut)
+	cmd.SetErr(cmdStdErr)
+
+	cmd.SetArgs([]string{projectDir, filepath.Join(recipesDir, recipe)})
+
+	cmd.Execute()
+
+	ctx = context.WithValue(ctx, cmdStdOutCtxKey{}, cmdStdOut.String())
+	ctx = context.WithValue(ctx, cmdStdErrCtxKey{}, cmdStdErr.String())
+
+	return ctx, nil
 }
 
 func theProjectDirectoryShouldContainFileWith(ctx context.Context, filename, searchTerm string) error {
-	recipeStdout := ctx.Value(recipeStdoutCtxKey{}).(string)
-	recipeStderr := ctx.Value(recipeStderrCtxKey{}).(string)
+	cmdStdOut := ctx.Value(cmdStdOutCtxKey{}).(string)
+	cmdStdErr := ctx.Value(cmdStdErrCtxKey{}).(string)
 	dir := ctx.Value(projectDirectoryPathCtxKey{}).(string)
+
 	path := filepath.Join(dir, filename)
 	info, err := os.Stat(path)
 	if err != nil {
 		return err
 	} else if !info.Mode().IsRegular() {
-		return fmt.Errorf("%s is not a regular file.\nstdout:\n%s\n\nstderr:\n%s\n", filename, recipeStdout, recipeStderr)
+		return fmt.Errorf("%s is not a regular file.\nstdout:\n%s\n\nstderr:\n%s\n", filename, cmdStdOut, cmdStdErr)
 	}
 	bytes, err := os.ReadFile(path)
 	if err != nil {
 		return err
 	}
 	if !strings.Contains(string(bytes), searchTerm) {
-		return fmt.Errorf("substring %s not found in %s.\nstdout:\n%s\n\nstderr:\n%s\n", searchTerm, filename, recipeStdout, recipeStderr)
+		return fmt.Errorf("substring %s not found in %s.\nstdout:\n%s\n\nstderr:\n%s\n", searchTerm, filename, cmdStdOut, cmdStdErr)
 	}
 	return nil
 }
@@ -216,21 +197,21 @@ func iChangeProjectFileToContain(ctx context.Context, filename, content string) 
 }
 
 func noConflictsWereReported(ctx context.Context) (context.Context, error) {
-	recipeStdout := ctx.Value(recipeStdoutCtxKey{}).(string)
-	recipeStderr := ctx.Value(recipeStderrCtxKey{}).(string)
-	if matched, _ := regexp.MatchString("modified", recipeStdout); matched {
-		return ctx, fmt.Errorf("Conflict in recipe\nstdout:\n%s\n\nstderr:\n%s\n", recipeStdout, recipeStderr)
+	cmdStdOut := ctx.Value(cmdStdOutCtxKey{}).(string)
+	cmdStdErr := ctx.Value(cmdStdErrCtxKey{}).(string)
+	if matched, _ := regexp.MatchString("modified", cmdStdOut); matched {
+		return ctx, fmt.Errorf("Conflict in recipe\nstdout:\n%s\n\nstderr:\n%s\n", cmdStdOut, cmdStdErr)
 	}
 	return ctx, nil
 }
 
 func conflictsAreReported(ctx context.Context) (context.Context, error) {
-	recipeStdout := ctx.Value(recipeStdoutCtxKey{}).(string)
-	recipeStderr := ctx.Value(recipeStderrCtxKey{}).(string)
-	if matched, _ := regexp.MatchString("modified", recipeStdout); matched {
+	cmdStdOut := ctx.Value(cmdStdOutCtxKey{}).(string)
+	cmdStdErr := ctx.Value(cmdStdErrCtxKey{}).(string)
+	if matched, _ := regexp.MatchString("modified", cmdStdOut); matched {
 		return ctx, nil
 	}
-	return ctx, fmt.Errorf("Expecting conflicts in recipe but none reported\nstdout:\n%s\n\nstderr:\n%s\n", recipeStdout, recipeStderr)
+	return ctx, fmt.Errorf("Expecting conflicts in recipe but none reported\nstdout:\n%s\n\nstderr:\n%s\n", cmdStdOut, cmdStdErr)
 }
 
 func iChangeRecipeTemplateToRender(ctx context.Context, recipeName, filename, content string) (context.Context, error) {
@@ -243,9 +224,9 @@ func iChangeRecipeTemplateToRender(ctx context.Context, recipeName, filename, co
 }
 
 func noErrorsWerePrinted(ctx context.Context) (context.Context, error) {
-	recipeStderr := ctx.Value(recipeStderrCtxKey{}).(string)
-	if len(recipeStderr) != 0 {
-		return ctx, fmt.Errorf("Expected stderr to be empty but was %s", recipeStderr)
+	cmdStdErr := ctx.Value(cmdStdErrCtxKey{}).(string)
+	if len(cmdStdErr) != 0 {
+		return ctx, fmt.Errorf("Expected stderr to be empty but was %s", cmdStdErr)
 	}
 	return ctx, nil
 }

@@ -1,51 +1,62 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 
+	"github.com/futurice/jalapeno/internal/option"
 	"github.com/futurice/jalapeno/pkg/recipe"
 	"github.com/spf13/cobra"
 )
 
-var (
-	targetPath = ""
-)
-
-func newEjectCmd() *cobra.Command {
-	var ejectCmd = &cobra.Command{
-		Use:   "eject",
-		Short: "Remove all Jalapeno-specific files",
-		Long:  "Remove all the files and directories that are for Jalapeno internal use, and leave only the rendered project files.",
-		Args:  cobra.ExactArgs(0),
-		Run:   ejectFunc,
-	}
-
-	ejectCmd.Flags().StringVarP(&targetPath, "path", "p", ".", "Location of project to eject")
-
-	return ejectCmd
+type ejectOptions struct {
+	ProjectPath string
 }
 
-func ejectFunc(cmd *cobra.Command, args []string) {
-	if _, err := os.Stat(targetPath); os.IsNotExist(err) {
-		fmt.Println("Project path does not exist")
+func newEjectCmd() *cobra.Command {
+	var opts ejectOptions
+	var cmd = &cobra.Command{
+		Use:   "eject (PATH)",
+		Short: "Remove all Jalapeno-specific files",
+		Long:  "Remove all the files and directories that are for Jalapeno internal use, and leave only the rendered project files.",
+		Args:  cobra.MaximumNArgs(1),
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) >= 0 {
+				opts.ProjectPath = args[0]
+			} else {
+				opts.ProjectPath = "."
+			}
+			return option.Parse(&opts)
+		},
+		Run: func(cmd *cobra.Command, args []string) {
+			runEject(cmd, opts)
+		},
+	}
+
+	option.ApplyFlags(&opts, cmd.Flags())
+
+	return cmd
+}
+
+func runEject(cmd *cobra.Command, opts ejectOptions) {
+	if _, err := os.Stat(opts.ProjectPath); os.IsNotExist(err) {
+		cmd.PrintErrln("project path does not exist")
 		return
 	}
 
-	jalapenoPath := filepath.Join(targetPath, recipe.RenderedRecipeDirName)
+	jalapenoPath := filepath.Join(opts.ProjectPath, recipe.RenderedRecipeDirName)
 
 	if stat, err := os.Stat(jalapenoPath); os.IsNotExist(err) || !stat.IsDir() {
-		fmt.Printf("'%s' is not a Jalapeno project\n", targetPath)
+		cmd.PrintErrf("'%s' is not a Jalapeno project\n", opts.ProjectPath)
 		return
 	}
 
-	fmt.Printf("Deleting %s...", jalapenoPath)
+	cmd.Printf("Deleting %s...", jalapenoPath)
 	err := os.RemoveAll(jalapenoPath)
 	if err != nil {
-		fmt.Println(err)
+		cmd.PrintErrln(err)
 		return
 	}
 
-	fmt.Println("\nEjected successfully!")
+	cmd.Println("\nEjected successfully!")
 }
