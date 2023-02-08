@@ -33,7 +33,9 @@ func newEjectCmd() *cobra.Command {
 		},
 	}
 
-	option.ApplyFlags(&opts, cmd.Flags())
+	if err := option.ApplyFlags(&opts, cmd.Flags()); err != nil {
+		return nil
+	}
 
 	return cmd
 }

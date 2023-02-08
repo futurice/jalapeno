@@ -27,7 +27,9 @@ func newValidateCmd() *cobra.Command {
 		Args: cobra.ExactArgs(1),
 	}
 
-	option.ApplyFlags(&opts, cmd.Flags())
+	if err := option.ApplyFlags(&opts, cmd.Flags()); err != nil {
+		return nil
+	}
 
 	return cmd
 }

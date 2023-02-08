@@ -80,7 +80,9 @@ func iExecuteRecipe(ctx context.Context, recipe string) (context.Context, error)
 		return ctx, err
 	}
 
-	cmd.Execute()
+	if err := cmd.Execute(); err != nil {
+		return ctx, err
+	}
 
 	ctx = context.WithValue(ctx, cmdStdOutCtxKey{}, cmdStdOut.String())
 	ctx = context.WithValue(ctx, cmdStdErrCtxKey{}, cmdStdErr.String())
@@ -149,7 +151,10 @@ func iUpgradeRecipe(ctx context.Context, recipe string) (context.Context, error)
 	cmd, cmdStdOut, cmdStdErr := WrapCmdOutputs(newUpgradeCmd)
 
 	cmd.SetArgs([]string{projectDir, filepath.Join(recipesDir, recipe)})
-	cmd.Execute()
+
+	if err := cmd.Execute(); err != nil {
+		return ctx, err
+	}
 
 	ctx = context.WithValue(ctx, cmdStdOutCtxKey{}, cmdStdOut.String())
 	ctx = context.WithValue(ctx, cmdStdErrCtxKey{}, cmdStdErr.String())
