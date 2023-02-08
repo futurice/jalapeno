@@ -164,39 +164,45 @@ func iExecuteRecipe(ctx context.Context, recipe string) (context.Context, error)
 func pushRecipe(ctx context.Context, recipeName, repoName string) (context.Context, error) {
 	recipesDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
 	ociRegistryHost := ctx.Value(ociRegistryHostCtxKey{}).(string)
-	cmdStdout := ""
-	cmdStderr := ""
-	cmd := newOutputCapturingCmd(newPushCmd, &cmdStdout, &cmdStderr)
 
-	pushFunc(cmd, []string{filepath.Join(recipesDir, recipeName), filepath.Join(ociRegistryHost, repoName)})
-	return context.WithValue(
-		context.WithValue(ctx, cmdStdoutCtxKey{}, cmdStdout),
-		cmdStderrCtxKey{},
-		cmdStderr,
-	), nil
+	cmd, cmdStdOut, cmdStdErr := WrapCmdOutputs(newPushCmd)
+
+	cmd.SetArgs([]string{filepath.Join(recipesDir, recipeName), filepath.Join(ociRegistryHost, repoName)})
+
+	if err := cmd.Execute(); err != nil {
+		return ctx, err
+	}
+
+	ctx = context.WithValue(ctx, cmdStdOutCtxKey{}, cmdStdOut.String())
+	ctx = context.WithValue(ctx, cmdStdErrCtxKey{}, cmdStdErr.String())
+
+	return ctx, nil
 }
 
 func iPullRecipe(ctx context.Context, recipeName, repoName string) (context.Context, error) {
 	recipesDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
 	ociRegistryHost := ctx.Value(ociRegistryHostCtxKey{}).(string)
-	cmdStdout := ""
-	cmdStderr := ""
-	cmd := newOutputCapturingCmd(newPullCmd, &cmdStdout, &cmdStderr)
+
+	cmd, cmdStdOut, cmdStdErr := WrapCmdOutputs(newPullCmd)
+
+	cmd.SetArgs([]string{filepath.Join(ociRegistryHost, repoName)})
 	if err := cmd.Flags().Set("output", recipesDir); err != nil {
 		return ctx, err
 	}
 
-	pullFunc(cmd, []string{filepath.Join(ociRegistryHost, repoName)})
-	return context.WithValue(
-		context.WithValue(ctx, cmdStdoutCtxKey{}, cmdStdout),
-		cmdStderrCtxKey{},
-		cmdStderr,
-	), nil
+	if err := cmd.Execute(); err != nil {
+		return ctx, err
+	}
+
+	ctx = context.WithValue(ctx, cmdStdOutCtxKey{}, cmdStdOut.String())
+	ctx = context.WithValue(ctx, cmdStdErrCtxKey{}, cmdStdErr.String())
+
+	return ctx, nil
 }
 
 func pushOfTheRecipeWasSuccessful(ctx context.Context) (context.Context, error) {
 	// pushStdout := ctx.Value(cmdStdoutCtxKey{}).(string) // TODO: Check stdout when we have proper message from CMD
-	pushStderr := ctx.Value(cmdStderrCtxKey{}).(string)
+	pushStderr := ctx.Value(cmdStdErrCtxKey{}).(string)
 
 	if pushStderr != "" {
 		return ctx, fmt.Errorf("stderr was not empty: %s", pushStderr)
@@ -207,7 +213,7 @@ func pushOfTheRecipeWasSuccessful(ctx context.Context) (context.Context, error) 
 
 func pullOfTheRecipeWasSuccessful(ctx context.Context) (context.Context, error) {
 	// pullStdout := ctx.Value(cmdStdoutCtxKey{}).(string) // TODO: Check stdout when we have proper message from CMD
-	pullStderr := ctx.Value(cmdStderrCtxKey{}).(string)
+	pullStderr := ctx.Value(cmdStdErrCtxKey{}).(string)
 
 	if pullStderr != "" {
 		return ctx, fmt.Errorf("stderr was not empty: %s", pullStderr)
