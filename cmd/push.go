@@ -94,4 +94,6 @@ func runPush(cmd *cobra.Command, opts pushOptions) {
 		cmd.PrintErrln(err)
 		return
 	}
+
+	cmd.Println("Recipe pushed successfully!")
 }

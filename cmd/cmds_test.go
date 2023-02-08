@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -201,22 +202,30 @@ func iPullRecipe(ctx context.Context, recipeName, repoName string) (context.Cont
 }
 
 func pushOfTheRecipeWasSuccessful(ctx context.Context) (context.Context, error) {
-	// pushStdout := ctx.Value(cmdStdoutCtxKey{}).(string) // TODO: Check stdout when we have proper message from CMD
-	pushStderr := ctx.Value(cmdStdErrCtxKey{}).(string)
+	cmdStdOut := ctx.Value(cmdStdOutCtxKey{}).(string)
+	cmdStdErr := ctx.Value(cmdStdErrCtxKey{}).(string)
 
-	if pushStderr != "" {
-		return ctx, fmt.Errorf("stderr was not empty: %s", pushStderr)
+	if cmdStdErr != "" {
+		return ctx, fmt.Errorf("stderr was not empty: %s", cmdStdErr)
+	}
+
+	if cmdStdOut == "" { // TODO: Check stdout when we have proper message from CMD
+		return ctx, errors.New("stdout was empty")
 	}
 
 	return ctx, nil
 }
 
 func pullOfTheRecipeWasSuccessful(ctx context.Context) (context.Context, error) {
-	// pullStdout := ctx.Value(cmdStdoutCtxKey{}).(string) // TODO: Check stdout when we have proper message from CMD
-	pullStderr := ctx.Value(cmdStdErrCtxKey{}).(string)
+	cmdStdOut := ctx.Value(cmdStdOutCtxKey{}).(string)
+	cmdStdErr := ctx.Value(cmdStdErrCtxKey{}).(string)
 
-	if pullStderr != "" {
-		return ctx, fmt.Errorf("stderr was not empty: %s", pullStderr)
+	if cmdStdErr != "" {
+		return ctx, fmt.Errorf("stderr was not empty: %s", cmdStdErr)
+	}
+
+	if cmdStdOut == "" { // TODO: Check stdout when we have proper message from CMD
+		return ctx, errors.New("stdout was empty")
 	}
 
 	return ctx, nil
