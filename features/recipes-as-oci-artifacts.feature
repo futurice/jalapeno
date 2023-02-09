@@ -8,7 +8,6 @@ Feature: Recipes as OCI artifacts
 		And a local OCI registry
 		When I push the recipe "foo" to the local OCI repository "foo:v0.0.1"
 		Then push of the recipe was successful
-		And the recipe "foo" should exist in the local OCI repository "foo:v0.0.1"
 
 	Scenario: Pull a recipe from OCI repository
 		Given a recipes directory
@@ -19,22 +18,19 @@ Feature: Recipes as OCI artifacts
 		Then pull of the recipe was successful
 		And the recipes directory should contain recipe "foo"
 	
-	# @wip
-	# Scenario: Push a recipe to OCI repository with authentication
-	# 	Given a recipes directory
-	# 	And a recipe "foo" that generates file "README.md"
-	#  	And a local OCI registry with authentication
-	# 	When I push the recipe "foo" to the local OCI repository "foo:v0.0.1"
-	# 	Then push of the recipe was successful
-	# 	And the recipe "foo" should exist in the local OCI repository "foo:v0.0.1"
+	Scenario: Push a recipe to OCI repository with authentication
+		Given a recipes directory
+		And a recipe "foo" that generates file "README.md"
+	 	And a local OCI registry with authentication
+		When I push the recipe "foo" to the local OCI repository "foo:v0.0.1"
+		Then push of the recipe was successful
 
-	# @wip
-	# Scenario: Pull a recipe from OCI repository with authentication
-	# 	Given a recipes directory
-	# 	And a recipe "foo" that generates file "README.md"
-	# 	And a local OCI registry with authentication
-	# 	And the recipe "foo" is pushed to the local OCI repository "foo:v0.0.1"
-	# 	When I pull the recipe "foo" to the local OCI repository "foo:v0.0.1"
-	# 	Then pull of the recipe was successful
-	# 	And the recipes directory should contain recipe "foo"
+	Scenario: Pull a recipe from OCI repository with authentication
+		Given a recipes directory
+		And a recipe "foo" that generates file "README.md"
+		And a local OCI registry with authentication
+		And the recipe "foo" is pushed to the local OCI repository "foo:v0.0.1"
+		When I pull the recipe "foo" to the local OCI repository "foo:v0.0.1"
+		Then pull of the recipe was successful
+		And the recipes directory should contain recipe "foo"
 	

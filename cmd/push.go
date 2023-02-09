@@ -2,21 +2,20 @@ package main
 
 import (
 	"context"
-	"strings"
 
-	"github.com/futurice/jalapeno/internal/option"
+	"github.com/futurice/jalapeno/cmd/internal/option"
 	"github.com/futurice/jalapeno/pkg/recipe"
 	v1 "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
 	"oras.land/oras-go/v2"
 	"oras.land/oras-go/v2/content/file"
-	"oras.land/oras-go/v2/registry/remote"
 )
 
 type pushOptions struct {
 	RecipePath string
 	TargetRef  string
-	option.Remote
+	option.Repository
+	option.Common
 }
 
 func newPushCmd() *cobra.Command {
@@ -78,15 +77,10 @@ func runPush(cmd *cobra.Command, opts pushOptions) {
 		return
 	}
 
-	repo, err := remote.NewRepository(opts.TargetRef)
+	repo, err := opts.NewRepository(opts.TargetRef, opts.Common)
 	if err != nil {
 		cmd.PrintErrln(err)
 		return
-	}
-
-	// https://github.com/oras-project/oras/blob/a98931bc68a0e7a5de6c51df8e5aa09aadad3057/cmd/oras/internal/option/remote.go#L181
-	if strings.Contains(opts.TargetRef, "localhost") {
-		repo.PlainHTTP = true
 	}
 
 	_, err = oras.Copy(ctx, store, re.Version, repo, repo.Reference.Reference, oras.DefaultCopyOptions)

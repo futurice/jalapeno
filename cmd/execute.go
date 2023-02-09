@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"github.com/futurice/jalapeno/internal/option"
+	"github.com/futurice/jalapeno/cmd/internal/option"
 	"github.com/futurice/jalapeno/pkg/engine"
 	"github.com/futurice/jalapeno/pkg/recipe"
 	"github.com/futurice/jalapeno/pkg/recipeutil"

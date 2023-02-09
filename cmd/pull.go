@@ -2,20 +2,19 @@ package main
 
 import (
 	"context"
-	"strings"
 
-	"github.com/futurice/jalapeno/internal/option"
+	"github.com/futurice/jalapeno/cmd/internal/option"
 	"github.com/spf13/cobra"
 	"oras.land/oras-go/v2"
 	"oras.land/oras-go/v2/content/file"
-	"oras.land/oras-go/v2/registry/remote"
 )
 
 type pullOptions struct {
 	TargetRef string
 
 	option.Output
-	option.Remote
+	option.Repository
+	option.Common
 }
 
 func newPullCmd() *cobra.Command {
@@ -44,14 +43,10 @@ func newPullCmd() *cobra.Command {
 func runPull(cmd *cobra.Command, opts pullOptions) {
 	ctx := context.Background()
 
-	repo, err := remote.NewRepository(opts.TargetRef)
+	repo, err := opts.NewRepository(opts.TargetRef, opts.Common)
 	if err != nil {
 		cmd.PrintErrln(err)
 		return
-	}
-
-	if strings.Contains(opts.TargetRef, "localhost") {
-		repo.PlainHTTP = true
 	}
 
 	dst, err := file.New(opts.OutputPath)

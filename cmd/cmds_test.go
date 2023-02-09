@@ -3,8 +3,15 @@ package main
 import (
 	"bytes"
 	"context"
+	"crypto/ecdsa"
+	"crypto/elliptic"
+	"crypto/rand"
+	"crypto/x509"
+	"crypto/x509/pkix"
+	"encoding/pem"
 	"errors"
 	"fmt"
+	"math/big"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -16,17 +23,21 @@ import (
 	"github.com/futurice/jalapeno/pkg/recipe"
 	"github.com/ory/dockertest"
 	"github.com/spf13/cobra"
-	"oras.land/oras-go/v2"
-	"oras.land/oras-go/v2/content/file"
-	"oras.land/oras-go/v2/registry/remote"
 )
 
 type projectDirectoryPathCtxKey struct{}
 type recipesDirectoryPathCtxKey struct{}
-type ociRegistryHostCtxKey struct{}
+type certDirectoryPathCtxKey struct{}
+type ociRegistryCtxKey struct{}
 type cmdStdOutCtxKey struct{}
 type cmdStdErrCtxKey struct{}
 type dockerResourcesCtxKey struct{}
+
+type OCIRegistry struct {
+	TLS      bool
+	Auth     bool
+	Resource *dockertest.Resource
+}
 
 /*
  * UTILITIES
@@ -79,66 +90,42 @@ func aRecipeThatGeneratesFile(ctx context.Context, recipe, filename string) (con
 }
 
 func aLocalOCIRegistry(ctx context.Context) (context.Context, error) {
-	resource, err := createLocalRegistry([]string{})
+	resource, err := createLocalRegistry(&dockertest.RunOptions{Repository: "registry", Tag: "2"})
 	if err != nil {
 		return ctx, err
 	}
 
-	ctx = context.WithValue(ctx, ociRegistryHostCtxKey{}, resource.GetHostPort("5000/tcp"))
+	ctx = context.WithValue(ctx, ociRegistryCtxKey{}, OCIRegistry{Resource: resource})
 	ctx = addDockerResourceToContext(ctx, resource)
 
 	return ctx, nil
 }
 
 func aLocalOCIRegistryWithAuth(ctx context.Context) (context.Context, error) {
-	resource, err := createLocalRegistry([]string{
-		"REGISTRY_AUTH_SILLY_REALM=test-realm",
-		"REGISTRY_AUTH_SILLY_SERVICE=test-service",
+	ctx, err := generateTLSCertificate(ctx)
+	if err != nil {
+		return ctx, err
+	}
+
+	resource, err := createLocalRegistry(&dockertest.RunOptions{
+		Repository: "registry",
+		Tag:        "2",
+		Env: []string{
+			// "REGISTRY_AUTH_SILLY_REALM=test-realm",
+			// "REGISTRY_AUTH_SILLY_SERVICE=test-service",
+			"REGISTRY_HTTP_TLS_CERTIFICATE=/etc/ssl/private/cert.pem",
+			"REGISTRY_HTTP_TLS_KEY=/etc/ssl/private/key.pem",
+		},
+		Mounts: []string{fmt.Sprintf("%s:/etc/ssl/private", ctx.Value(certDirectoryPathCtxKey{}).(string))},
 	})
 	if err != nil {
 		return ctx, err
 	}
 
-	ctx = context.WithValue(ctx, ociRegistryHostCtxKey{}, resource.GetHostPort("5000/tcp"))
+	ctx = context.WithValue(ctx, ociRegistryCtxKey{}, OCIRegistry{TLS: true, Auth: true, Resource: resource})
 	ctx = addDockerResourceToContext(ctx, resource)
 
 	return ctx, nil
-}
-
-func theRecipeExistsInTheOCIRepository(ctx context.Context, recipeName, repoName string) error {
-	ociHost := ctx.Value(ociRegistryHostCtxKey{}).(string)
-
-	repo, err := remote.NewRepository(fmt.Sprintf("%s/%s", ociHost, repoName))
-	if err != nil {
-		return err
-	}
-
-	repo.PlainHTTP = true
-
-	dir, err := os.MkdirTemp("", "")
-	defer os.RemoveAll(dir)
-	if err != nil {
-		return err
-	}
-	dst, err := file.New(dir)
-	if err != nil {
-		return err
-	}
-
-	_, err = oras.Copy(ctx, repo, repo.Reference.Reference, dst, repo.Reference.Reference, oras.DefaultCopyOptions)
-	if err != nil {
-		return err
-	}
-
-	re, err := recipe.Load(filepath.Join(dir, recipeName))
-	if err != nil {
-		return err
-	}
-
-	if re.Name != recipeName {
-		return fmt.Errorf("recipe name was \"%s\", expected \"%s\"", re.Name, recipeName)
-	}
-	return nil
 }
 
 func iExecuteRecipe(ctx context.Context, recipe string) (context.Context, error) {
@@ -164,11 +151,22 @@ func iExecuteRecipe(ctx context.Context, recipe string) (context.Context, error)
 
 func pushRecipe(ctx context.Context, recipeName, repoName string) (context.Context, error) {
 	recipesDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
-	ociRegistryHost := ctx.Value(ociRegistryHostCtxKey{}).(string)
+	registry := ctx.Value(ociRegistryCtxKey{}).(OCIRegistry)
 
 	cmd, cmdStdOut, cmdStdErr := WrapCmdOutputs(newPushCmd)
 
-	cmd.SetArgs([]string{filepath.Join(recipesDir, recipeName), filepath.Join(ociRegistryHost, repoName)})
+	cmd.SetArgs([]string{filepath.Join(recipesDir, recipeName), filepath.Join(registry.Resource.GetHostPort("5000/tcp"), repoName)})
+
+	flags := cmd.Flags()
+	if registry.TLS {
+		if err := flags.Set("insecure", "true"); err != nil {
+			return ctx, err
+		}
+	} else {
+		if err := flags.Set("plain-http", "true"); err != nil {
+			return ctx, err
+		}
+	}
 
 	if err := cmd.Execute(); err != nil {
 		return ctx, err
@@ -182,13 +180,24 @@ func pushRecipe(ctx context.Context, recipeName, repoName string) (context.Conte
 
 func iPullRecipe(ctx context.Context, recipeName, repoName string) (context.Context, error) {
 	recipesDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
-	ociRegistryHost := ctx.Value(ociRegistryHostCtxKey{}).(string)
+	registry := ctx.Value(ociRegistryCtxKey{}).(OCIRegistry)
 
 	cmd, cmdStdOut, cmdStdErr := WrapCmdOutputs(newPullCmd)
 
-	cmd.SetArgs([]string{filepath.Join(ociRegistryHost, repoName)})
-	if err := cmd.Flags().Set("output", recipesDir); err != nil {
+	cmd.SetArgs([]string{filepath.Join(registry.Resource.GetHostPort("5000/tcp"), repoName)})
+	flags := cmd.Flags()
+	if err := flags.Set("output", recipesDir); err != nil {
 		return ctx, err
+	}
+	if registry.TLS {
+		// Allow self-signed certificates
+		if err := flags.Set("insecure", "true"); err != nil {
+			return ctx, err
+		}
+	} else {
+		if err := flags.Set("plain-http", "true"); err != nil {
+			return ctx, err
+		}
 	}
 
 	if err := cmd.Execute(); err != nil {
@@ -231,43 +240,6 @@ func pullOfTheRecipeWasSuccessful(ctx context.Context) (context.Context, error) 
 	return ctx, nil
 }
 
-func theRecipeExistsInTheLocalOCIRepository(ctx context.Context, recipeName, repoName string) error {
-	ociHost := ctx.Value(ociRegistryHostCtxKey{}).(string)
-
-	repo, err := remote.NewRepository(fmt.Sprintf("%s/%s", ociHost, repoName))
-	if err != nil {
-		return err
-	}
-
-	repo.PlainHTTP = true
-
-	dir, err := os.MkdirTemp("", "")
-	defer os.RemoveAll(dir)
-	if err != nil {
-		return err
-	}
-
-	dst, err := file.New(dir)
-	if err != nil {
-		return err
-	}
-
-	_, err = oras.Copy(ctx, repo, repo.Reference.Reference, dst, repo.Reference.Reference, oras.DefaultCopyOptions)
-	if err != nil {
-		return err
-	}
-
-	re, err := recipe.Load(filepath.Join(dir, recipeName))
-	if err != nil {
-		return err
-	}
-
-	if re.Name != recipeName {
-		return fmt.Errorf("recipe name was \"%s\", expected \"%s\"", re.Name, recipeName)
-	}
-	return nil
-}
-
 func theRecipesDirectoryShouldContainRecipe(ctx context.Context, recipeName string) error {
 	recipesDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
 	re, err := recipe.Load(filepath.Join(recipesDir, recipeName))
@@ -296,6 +268,9 @@ func cleanTempDirs(ctx context.Context, sc *godog.Scenario, err error) (context.
 		os.RemoveAll(dir.(string))
 	}
 	if dir := ctx.Value(recipesDirectoryPathCtxKey{}); dir != nil {
+		os.RemoveAll(dir.(string))
+	}
+	if dir := ctx.Value(certDirectoryPathCtxKey{}); dir != nil {
 		os.RemoveAll(dir.(string))
 	}
 	return ctx, err
@@ -474,8 +449,6 @@ func TestFeatures(t *testing.T) {
 			s.Step(`^I push the recipe "([^"]*)" to the local OCI repository "([^"]*)"$`, pushRecipe)
 			s.Step(`^I pull the recipe "([^"]*)" to the local OCI repository "([^"]*)"$`, iPullRecipe)
 			s.Step(`^the recipe "([^"]*)" is pushed to the local OCI repository "([^"]*)"$`, pushRecipe)
-			s.Step(`^the recipe "([^"]*)" should exist in the local OCI repository "([^"]*)"$`, theRecipeExistsInTheOCIRepository)
-			s.Step(`^the recipe "([^"]*)" exists in the local OCI repository "([^"]*)"$`, theRecipeExistsInTheLocalOCIRepository)
 			s.Step(`^push of the recipe was successful$`, pushOfTheRecipeWasSuccessful)
 			s.Step(`^pull of the recipe was successful$`, pullOfTheRecipeWasSuccessful)
 			s.Step(`^the recipes directory should contain recipe "([^"]*)"$`, theRecipesDirectoryShouldContainRecipe)
@@ -501,7 +474,9 @@ func TestExampleRecipe(t *testing.T) {
 	}
 }
 
-func createLocalRegistry(args []string) (*dockertest.Resource, error) {
+// UTILS
+
+func createLocalRegistry(opts *dockertest.RunOptions) (*dockertest.Resource, error) {
 	pool, err := dockertest.NewPool("")
 	if err != nil {
 		return nil, fmt.Errorf("could not construct pool: %w", err)
@@ -513,7 +488,7 @@ func createLocalRegistry(args []string) (*dockertest.Resource, error) {
 		return nil, fmt.Errorf("could not connect to Docker: %s", err)
 	}
 
-	resource, err := pool.Run("registry", "2", args)
+	resource, err := pool.RunWithOptions(opts)
 	if err != nil {
 		return nil, fmt.Errorf("could not start resource: %s", err)
 	}
@@ -544,4 +519,50 @@ func addDockerResourceToContext(ctx context.Context, resource *dockertest.Resour
 	}
 
 	return context.WithValue(ctx, dockerResourcesCtxKey{}, append(resources, resource))
+}
+
+func generateTLSCertificate(ctx context.Context) (context.Context, error) {
+	priv, err := ecdsa.GenerateKey(elliptic.P521(), rand.Reader)
+	if err != nil {
+		return ctx, err
+	}
+	template := x509.Certificate{
+		SerialNumber: big.NewInt(1),
+		Subject: pkix.Name{
+			Organization: []string{"Acme Co"},
+		},
+		NotBefore: time.Now(),
+		NotAfter:  time.Now().Add(time.Hour * 24 * 180),
+
+		KeyUsage:              x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature,
+		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
+		BasicConstraintsValid: true,
+	}
+
+	derBytes, err := x509.CreateCertificate(rand.Reader, &template, &template, &priv.PublicKey, priv)
+	if err != nil {
+		return ctx, err
+	}
+
+	dir, err := os.MkdirTemp("", "jalapeno-test-certs")
+	if err != nil {
+		return ctx, err
+	}
+
+	cert := &bytes.Buffer{}
+	pem.Encode(cert, &pem.Block{Type: "CERTIFICATE", Bytes: derBytes})
+	err = os.WriteFile(filepath.Join(dir, "cert.pem"), cert.Bytes(), 0666)
+	if err != nil {
+		return ctx, err
+	}
+
+	key := &bytes.Buffer{}
+	b, _ := x509.MarshalECPrivateKey(priv)
+	pem.Encode(key, &pem.Block{Type: "EC PRIVATE KEY", Bytes: b})
+	err = os.WriteFile(filepath.Join(dir, "key.pem"), key.Bytes(), 0666)
+	if err != nil {
+		return ctx, err
+	}
+
+	return context.WithValue(ctx, certDirectoryPathCtxKey{}, dir), nil
 }

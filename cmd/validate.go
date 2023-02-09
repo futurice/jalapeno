@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/futurice/jalapeno/internal/option"
+	"github.com/futurice/jalapeno/cmd/internal/option"
 	"github.com/futurice/jalapeno/pkg/recipe"
 	"github.com/spf13/cobra"
 )

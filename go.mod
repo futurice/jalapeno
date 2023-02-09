@@ -16,12 +16,16 @@ require (
 require (
 	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
 	github.com/creack/pty v1.1.18 // indirect
+	github.com/docker/cli v23.0.0+incompatible // indirect
+	github.com/docker/docker v23.0.0+incompatible // indirect
+	github.com/docker/docker-credential-helpers v0.7.0 // indirect
 	github.com/gotestyourself/gotestyourself v2.2.0+incompatible // indirect
 	github.com/lib/pq v0.0.0-20180327071824-d34b9ff171c2 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/stretchr/testify v1.8.1 // indirect
 	golang.org/x/sync v0.1.0 // indirect
 	gotest.tools v2.2.0+incompatible // indirect
+	oras.land/oras v0.16.0 // indirect
 )
 
 require (
