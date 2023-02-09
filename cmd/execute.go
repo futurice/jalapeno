@@ -3,40 +3,52 @@ package main
 import (
 	"os"
 
+	"github.com/futurice/jalapeno/internal/option"
 	"github.com/futurice/jalapeno/pkg/engine"
 	"github.com/futurice/jalapeno/pkg/recipe"
 	"github.com/futurice/jalapeno/pkg/recipeutil"
 	"github.com/spf13/cobra"
 )
 
-var (
-	outputBasePath = ""
-)
+type executeOptions struct {
+	RecipePath string
+	option.Output
+	option.Common
+}
 
 func newExecuteCmd() *cobra.Command {
-	var execCmd = &cobra.Command{
+	var opts executeOptions
+	var cmd = &cobra.Command{
 		Use:     "execute RECIPE",
 		Aliases: []string{"exec", "e"},
 		Short:   "Execute a given recipe and save output to path",
 		Long:    "", // TODO
 		Args:    cobra.ExactArgs(1),
-		Run:     executeFunc,
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			opts.RecipePath = args[0]
+			return option.Parse(&opts)
+		},
+		Run: func(cmd *cobra.Command, args []string) {
+			runExecute(cmd, opts)
+		},
 	}
 
-	execCmd.Flags().StringVarP(&outputBasePath, "output", "o", ".", "Path where the output files should be created")
+	if err := option.ApplyFlags(&opts, cmd.Flags()); err != nil {
+		return nil
+	}
 
-	return execCmd
+	return cmd
 }
 
-func executeFunc(cmd *cobra.Command, args []string) {
-	if _, err := os.Stat(outputBasePath); os.IsNotExist(err) {
-		cmd.PrintErrln("Error: output path does not exist")
+func runExecute(cmd *cobra.Command, opts executeOptions) {
+	if _, err := os.Stat(opts.OutputPath); os.IsNotExist(err) {
+		cmd.PrintErrln("output path does not exist")
 		return
 	}
 
-	re, err := recipe.Load(args[0])
+	re, err := recipe.Load(opts.RecipePath)
 	if err != nil {
-		cmd.PrintErrf("Error: can't load the recipe: %s\n", err)
+		cmd.PrintErrf("can't load the recipe: %v\n", err)
 		return
 	}
 
@@ -48,12 +60,12 @@ func executeFunc(cmd *cobra.Command, args []string) {
 
 	err = re.Validate()
 	if err != nil {
-		cmd.PrintErrf("Error: the provided recipe was invalid: %s\n", err)
+		cmd.PrintErrf("the provided recipe was invalid: %v\n", err)
 		return
 	}
 
 	if len(re.Templates) == 0 {
-		cmd.PrintErrf("Error: the recipe does not contain any templates")
+		cmd.PrintErrf("the recipe does not contain any templates\n")
 		return
 	}
 
@@ -61,7 +73,7 @@ func executeFunc(cmd *cobra.Command, args []string) {
 
 	err = recipeutil.PromptUserForValues(re)
 	if err != nil {
-		cmd.PrintErrf("Error when prompting for values: %s\n", err)
+		cmd.PrintErrf("error when prompting for values: %v\n", err)
 		return
 	}
 
@@ -72,7 +84,7 @@ func executeFunc(cmd *cobra.Command, args []string) {
 	}
 
 	// Load all rendered recipes
-	rendered, err := recipe.LoadRendered(outputBasePath)
+	rendered, err := recipe.LoadRendered(opts.OutputPath)
 	if err != nil {
 		cmd.PrintErrln(err)
 		return
@@ -87,13 +99,13 @@ func executeFunc(cmd *cobra.Command, args []string) {
 		}
 	}
 
-	err = re.Save(outputBasePath)
+	err = re.Save(opts.OutputPath)
 	if err != nil {
 		cmd.PrintErrln(err)
 		return
 	}
 
-	err = recipeutil.SaveFiles(re.Files, outputBasePath)
+	err = recipeutil.SaveFiles(re.Files, opts.OutputPath)
 	if err != nil {
 		cmd.PrintErrln(err)
 		return

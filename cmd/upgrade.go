@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
+	"github.com/futurice/jalapeno/internal/option"
 	"github.com/futurice/jalapeno/pkg/engine"
 	"github.com/futurice/jalapeno/pkg/recipe"
 	"github.com/futurice/jalapeno/pkg/recipeutil"
@@ -15,30 +16,44 @@ import (
 	"golang.org/x/mod/semver"
 )
 
+type upgradeOptions struct {
+	TargetPath string
+	SourcePath string
+	option.Common
+}
+
 func newUpgradeCmd() *cobra.Command {
-	// upgradeCmd represents the upgrade command
-	var upgradeCmd = &cobra.Command{
+	var opts upgradeOptions
+	var cmd = &cobra.Command{
 		Use:   "upgrade PROJECT RECIPE",
 		Short: "Upgrade recipe in a project",
 		Long:  "", // TODO
-		Run:   upgradeFunc,
 		Args:  cobra.ExactArgs(2),
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			opts.TargetPath = args[0]
+			opts.SourcePath = args[1]
+			return option.Parse(&opts)
+		},
+		Run: func(cmd *cobra.Command, args []string) {
+			runUpgrade(cmd, opts)
+		},
 	}
 
-	return upgradeCmd
+	if err := option.ApplyFlags(&opts, cmd.Flags()); err != nil {
+		return nil
+	}
+
+	return cmd
 }
 
-func upgradeFunc(cmd *cobra.Command, args []string) {
-	target := args[0]
-	source := args[1]
-
-	re, err := recipe.Load(source)
+func runUpgrade(cmd *cobra.Command, opts upgradeOptions) {
+	re, err := recipe.Load(opts.SourcePath)
 	if err != nil {
 		cmd.PrintErrln(err)
 		return
 	}
 
-	rendered, err := recipe.LoadRendered(target)
+	rendered, err := recipe.LoadRendered(opts.TargetPath)
 	if err != nil {
 		cmd.PrintErrln(err)
 		return
@@ -51,7 +66,7 @@ func upgradeFunc(cmd *cobra.Command, args []string) {
 		}
 	}
 	if prevRe == nil {
-		cmd.PrintErrf("directory %s does not contain recipe %s\n", target, re.Name)
+		cmd.PrintErrf("directory %s does not contain recipe %s\n", opts.TargetPath, re.Name)
 		return
 	}
 
@@ -90,22 +105,21 @@ func upgradeFunc(cmd *cobra.Command, args []string) {
 	err = recipeutil.PromptUserForValues(re)
 	if err != nil {
 		cmd.PrintErrln(err)
-		return
 	}
 
 	err = re.Render(engine.Engine{})
 	if err != nil {
-		cmd.PrintErrln(err)
 		return
 	}
 
 	// read common ignore file if it exists
 	ignorePatterns := make([]string, 0)
-	if data, err := os.ReadFile(filepath.Join(target, recipe.IgnoreFileName)); err == nil {
+	if data, err := os.ReadFile(filepath.Join(opts.TargetPath, recipe.IgnoreFileName)); err == nil {
 		ignorePatterns = append(ignorePatterns, strings.Split(string(data), "\n")...)
 	} else if !errors.Is(err, fs.ErrNotExist) {
 		// something else happened than trying to read an ignore file that does not exist
-		cmd.PrintErrln("failed to read ignore file", err)
+		cmd.PrintErrf("failed to read ignore file: %v\n", err)
+		return
 	}
 	ignorePatterns = append(ignorePatterns, re.IgnorePatterns...)
 
@@ -117,7 +131,8 @@ func upgradeFunc(cmd *cobra.Command, args []string) {
 		skip := false
 		for _, pattern := range ignorePatterns {
 			if matched, err := filepath.Match(pattern, path); err != nil {
-				cmd.PrintErrln("bad ignore pattern", pattern, err)
+				cmd.PrintErrf("bad ignore pattern '%s': %v\n", pattern, err)
+				return
 			} else if matched {
 				// file was marked as ignored for upgrades
 				skip = true
@@ -130,8 +145,9 @@ func upgradeFunc(cmd *cobra.Command, args []string) {
 
 		if prevFile, exists := prevRe.Files[path]; exists {
 			// Check if file was modified after rendering
-			if modified, err := recipeutil.IsFileModified(target, path, prevFile); err != nil {
+			if modified, err := recipeutil.IsFileModified(opts.TargetPath, path, prevFile); err != nil {
 				cmd.PrintErrln(err)
+				return
 			} else if modified {
 				// The file contents has been modified
 				if !overrideNoticed {
@@ -163,13 +179,13 @@ func upgradeFunc(cmd *cobra.Command, args []string) {
 		output[path] = re.Files[path]
 	}
 
-	err = recipeutil.SaveFiles(output, target)
+	err = recipeutil.SaveFiles(output, opts.TargetPath)
 	if err != nil {
 		cmd.PrintErrln(err)
 		return
 	}
 
-	err = re.Save(target)
+	err = re.Save(opts.TargetPath)
 	if err != nil {
 		cmd.PrintErrln(err)
 		return
