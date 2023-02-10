@@ -5,8 +5,11 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"errors"
+	"fmt"
+	"io"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/futurice/jalapeno/cmd/internal/credential"
@@ -16,16 +19,43 @@ import (
 )
 
 type Repository struct {
-	CACertFilePath string
-	PlainHTTP      bool
-	Insecure       bool
-	Configs        []string
+	CACertFilePath    string
+	PlainHTTP         bool
+	Insecure          bool
+	Configs           []string
+	Username          string
+	PasswordFromStdin bool
+	Password          string
 }
 
 func (opts *Repository) ApplyFlags(fs *pflag.FlagSet) {
+	fs.StringVarP(&opts.Username, "username", "u", "", "registry username")
+	fs.StringVarP(&opts.Password, "password", "p", "", "registry password or identity token")
 	fs.BoolVarP(&opts.Insecure, "insecure", "", false, "allow connections to SSL registry without certs")
 	fs.BoolVarP(&opts.PlainHTTP, "plain-http", "", false, "allow insecure connections to registry without SSL check")
 	fs.StringVarP(&opts.CACertFilePath, "ca-file", "", "", "server certificate authority file for the remote registry")
+	fs.StringArrayVarP(&opts.Configs, "registry-config", "", nil, "`path` of the authentication file")
+}
+
+// Parse tries to read password with optional cmd prompt.
+func (opts *Repository) Parse() error {
+	return opts.readPassword()
+}
+
+// readPassword tries to read password with optional cmd prompt.
+func (opts *Repository) readPassword() (err error) {
+	if opts.Password != "" {
+		fmt.Fprintln(os.Stderr, "WARNING! Using --password via the CLI is insecure. Use --password-stdin.")
+	} else if opts.PasswordFromStdin {
+		// Prompt for credential
+		password, err := io.ReadAll(os.Stdin)
+		if err != nil {
+			return err
+		}
+		opts.Password = strings.TrimSuffix(string(password), "\n")
+		opts.Password = strings.TrimSuffix(opts.Password, "\r")
+	}
+	return nil
 }
 
 // NewRegistry assembles a oras remote registry.
@@ -105,24 +135,37 @@ func (opts *Repository) authClient(registry string, debug bool) (client *auth.Cl
 		},
 		Cache: auth.NewCache(),
 	}
+	client.SetUserAgent("jalapeno/0.0.1") // TODO: Get real version number
 
-	store, err := credential.NewStore(opts.Configs...)
-	if err != nil {
-		return nil, err
-	}
-	// For a user case with a registry from 'docker.io', the hostname is "registry-1.docker.io"
-	// According to the the behavior of Docker CLI,
-	// credential under key "https://index.docker.io/v1/" should be provided
-	if registry == "docker.io" {
-		client.Credential = func(ctx context.Context, hostname string) (auth.Credential, error) {
-			if hostname == "registry-1.docker.io" {
-				hostname = "https://index.docker.io/v1/"
-			}
-			return store.Credential(ctx, hostname)
+	cred := opts.Credential()
+	if cred != auth.EmptyCredential {
+		client.Credential = func(ctx context.Context, s string) (auth.Credential, error) {
+			return cred, nil
 		}
 	} else {
-		client.Credential = store.Credential
+		store, err := credential.NewStore(opts.Configs...)
+		if err != nil {
+			return nil, err
+		}
+		// For a user case with a registry from 'docker.io', the hostname is "registry-1.docker.io"
+		// According to the the behavior of Docker CLI,
+		// credential under key "https://index.docker.io/v1/" should be provided
+		if registry == "docker.io" {
+			client.Credential = func(ctx context.Context, hostname string) (auth.Credential, error) {
+				if hostname == "registry-1.docker.io" {
+					hostname = "https://index.docker.io/v1/"
+				}
+				return store.Credential(ctx, hostname)
+			}
+		} else {
+			client.Credential = store.Credential
+		}
 	}
 
 	return
+}
+
+// Credential returns a credential based on the remote options.
+func (opts *Repository) Credential() auth.Credential {
+	return credential.Credential(opts.Username, opts.Password)
 }
