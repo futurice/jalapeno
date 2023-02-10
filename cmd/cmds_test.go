@@ -9,12 +9,10 @@ import (
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/pem"
-	"errors"
 	"fmt"
 	"math/big"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strings"
 	"testing"
 	"time"
@@ -39,6 +37,11 @@ type OCIRegistry struct {
 	Resource *dockertest.Resource
 }
 
+const (
+	TLS_KEY_FILENAME         = "key.pem"
+	TLS_CERTIFICATE_FILENAME = "cert.pem"
+)
+
 /*
  * UTILITIES
  */
@@ -55,6 +58,78 @@ func WrapCmdOutputs(cmdFactory func() *cobra.Command) (*cobra.Command, *bytes.Bu
 /*
  * STEP DEFINITIONS
  */
+
+func TestFeatures(t *testing.T) {
+	suite := godog.TestSuite{
+		ScenarioInitializer: func(s *godog.ScenarioContext) {
+			s.Step(`^a project directory$`, aProjectDirectory)
+			s.Step(`^a recipes directory$`, aRecipesDirectory)
+			s.Step(`^a recipe "([^"]*)" that generates file "([^"]*)"$`, aRecipeThatGeneratesFile)
+			s.Step(`^I execute recipe "([^"]*)"$`, iExecuteRecipe)
+			s.Step(`^the project directory should contain file "([^"]*)"$`, theProjectDirectoryShouldContainFile)
+			s.Step(`^the project directory should contain file "([^"]*)" with "([^"]*)"$`, theProjectDirectoryShouldContainFileWith)
+			s.Step(`^execution of the recipe has succeeded$`, executionOfTheRecipeHasSucceeded)
+			s.Step(`^execution of the recipe has failed with error "([^"]*)"$`, executionOfTheRecipeHasFailedWithError)
+			s.Step(`^I change recipe "([^"]*)" to version "([^"]*)"$`, iChangeRecipeToVersion)
+			s.Step(`^I upgrade recipe "([^"]*)"$`, iUpgradeRecipe)
+			s.Step(`^recipe "([^"]*)" ignores pattern "([^"]*)"$`, recipeIgnoresPattern)
+			s.Step(`^I change project file "([^"]*)" to contain "([^"]*)"$`, iChangeProjectFileToContain)
+			s.Step(`^no conflicts were reported$`, noConflictsWereReported)
+			s.Step(`^conflicts are reported$`, conflictsAreReported)
+			s.Step(`^I change recipe "([^"]*)" template "([^"]*)" to render "([^"]*)"$`, iChangeRecipeTemplateToRender)
+			s.Step(`^no errors were printed$`, noErrorsWerePrinted)
+			s.Step(`^a local OCI registry$`, aLocalOCIRegistry)
+			s.Step(`^a local OCI registry with authentication$`, aLocalOCIRegistryWithAuth)
+			s.Step(`^I push the recipe "([^"]*)" to the local OCI repository "([^"]*)"$`, iPushRecipe)
+			s.Step(`^I pull the recipe "([^"]*)" to the local OCI repository "([^"]*)"$`, iPullRecipe)
+			s.Step(`^the recipe "([^"]*)" is pushed to the local OCI repository "([^"]*)"$`, pushRecipe)
+			s.Step(`^push of the recipe was successful$`, pushOfTheRecipeWasSuccessful)
+			s.Step(`^pull of the recipe was successful$`, pullOfTheRecipeWasSuccessful)
+			s.Step(`^the recipes directory should contain recipe "([^"]*)"$`, theRecipesDirectoryShouldContainRecipe)
+			s.After(cleanDockerResources)
+			s.After(cleanTempDirs)
+		},
+		Options: &godog.Options{
+			Format:   "pretty",
+			Paths:    []string{"../features"},
+			TestingT: t, // Testing instance that will run subtests.
+		},
+	}
+
+	if suite.Run() != 0 {
+		t.Fatal("non-zero status returned, failed to run feature tests")
+	}
+}
+
+func cleanTempDirs(ctx context.Context, sc *godog.Scenario, err error) (context.Context, error) {
+	if dir := ctx.Value(projectDirectoryPathCtxKey{}); dir != nil {
+		os.RemoveAll(dir.(string))
+	}
+	if dir := ctx.Value(recipesDirectoryPathCtxKey{}); dir != nil {
+		os.RemoveAll(dir.(string))
+	}
+	if dir := ctx.Value(certDirectoryPathCtxKey{}); dir != nil {
+		os.RemoveAll(dir.(string))
+	}
+	return ctx, err
+}
+
+func cleanDockerResources(ctx context.Context, sc *godog.Scenario, err error) (context.Context, error) {
+	resources, ok := ctx.Value(dockerResourcesCtxKey{}).([]*dockertest.Resource)
+
+	// Resource list was probably empty, skip
+	if !ok {
+		return ctx, err
+	}
+
+	for _, resource := range resources {
+		err := resource.Close()
+		if err != nil {
+			return ctx, err
+		}
+	}
+	return ctx, err
+}
 
 func aProjectDirectory(ctx context.Context) (context.Context, error) {
 	dir, err := os.MkdirTemp("", "jalapeno-test-project")
@@ -113,10 +188,12 @@ func aLocalOCIRegistryWithAuth(ctx context.Context) (context.Context, error) {
 		Env: []string{
 			// "REGISTRY_AUTH_SILLY_REALM=test-realm",
 			// "REGISTRY_AUTH_SILLY_SERVICE=test-service",
-			"REGISTRY_HTTP_TLS_CERTIFICATE=/etc/ssl/private/cert.pem",
-			"REGISTRY_HTTP_TLS_KEY=/etc/ssl/private/key.pem",
+			fmt.Sprintf("REGISTRY_HTTP_TLS_CERTIFICATE=/etc/ssl/private/%s", TLS_CERTIFICATE_FILENAME),
+			fmt.Sprintf("REGISTRY_HTTP_TLS_KEY=/etc/ssl/private/%s", TLS_KEY_FILENAME),
 		},
-		Mounts: []string{fmt.Sprintf("%s:/etc/ssl/private", ctx.Value(certDirectoryPathCtxKey{}).(string))},
+		Mounts: []string{
+			fmt.Sprintf("%s:/etc/ssl/private", ctx.Value(certDirectoryPathCtxKey{}).(string)),
+		},
 	})
 	if err != nil {
 		return ctx, err
@@ -124,118 +201,6 @@ func aLocalOCIRegistryWithAuth(ctx context.Context) (context.Context, error) {
 
 	ctx = context.WithValue(ctx, ociRegistryCtxKey{}, OCIRegistry{TLS: true, Auth: true, Resource: resource})
 	ctx = addDockerResourceToContext(ctx, resource)
-
-	return ctx, nil
-}
-
-func iExecuteRecipe(ctx context.Context, recipe string) (context.Context, error) {
-	projectDir := ctx.Value(projectDirectoryPathCtxKey{}).(string)
-	recipesDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
-
-	cmd, cmdStdOut, cmdStdErr := WrapCmdOutputs(newExecuteCmd)
-
-	cmd.SetArgs([]string{filepath.Join(recipesDir, recipe)})
-	if err := cmd.Flags().Set("output", projectDir); err != nil {
-		return ctx, err
-	}
-
-	if err := cmd.Execute(); err != nil {
-		return ctx, err
-	}
-
-	ctx = context.WithValue(ctx, cmdStdOutCtxKey{}, cmdStdOut.String())
-	ctx = context.WithValue(ctx, cmdStdErrCtxKey{}, cmdStdErr.String())
-
-	return ctx, nil
-}
-
-func pushRecipe(ctx context.Context, recipeName, repoName string) (context.Context, error) {
-	recipesDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
-	registry := ctx.Value(ociRegistryCtxKey{}).(OCIRegistry)
-
-	cmd, cmdStdOut, cmdStdErr := WrapCmdOutputs(newPushCmd)
-
-	cmd.SetArgs([]string{filepath.Join(recipesDir, recipeName), filepath.Join(registry.Resource.GetHostPort("5000/tcp"), repoName)})
-
-	flags := cmd.Flags()
-	if registry.TLS {
-		if err := flags.Set("insecure", "true"); err != nil {
-			return ctx, err
-		}
-	} else {
-		if err := flags.Set("plain-http", "true"); err != nil {
-			return ctx, err
-		}
-	}
-
-	if err := cmd.Execute(); err != nil {
-		return ctx, err
-	}
-
-	ctx = context.WithValue(ctx, cmdStdOutCtxKey{}, cmdStdOut.String())
-	ctx = context.WithValue(ctx, cmdStdErrCtxKey{}, cmdStdErr.String())
-
-	return ctx, nil
-}
-
-func iPullRecipe(ctx context.Context, recipeName, repoName string) (context.Context, error) {
-	recipesDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
-	registry := ctx.Value(ociRegistryCtxKey{}).(OCIRegistry)
-
-	cmd, cmdStdOut, cmdStdErr := WrapCmdOutputs(newPullCmd)
-
-	cmd.SetArgs([]string{filepath.Join(registry.Resource.GetHostPort("5000/tcp"), repoName)})
-	flags := cmd.Flags()
-	if err := flags.Set("output", recipesDir); err != nil {
-		return ctx, err
-	}
-	if registry.TLS {
-		// Allow self-signed certificates
-		if err := flags.Set("insecure", "true"); err != nil {
-			return ctx, err
-		}
-	} else {
-		if err := flags.Set("plain-http", "true"); err != nil {
-			return ctx, err
-		}
-	}
-
-	if err := cmd.Execute(); err != nil {
-		return ctx, err
-	}
-
-	ctx = context.WithValue(ctx, cmdStdOutCtxKey{}, cmdStdOut.String())
-	ctx = context.WithValue(ctx, cmdStdErrCtxKey{}, cmdStdErr.String())
-
-	return ctx, nil
-}
-
-func pushOfTheRecipeWasSuccessful(ctx context.Context) (context.Context, error) {
-	cmdStdOut := ctx.Value(cmdStdOutCtxKey{}).(string)
-	cmdStdErr := ctx.Value(cmdStdErrCtxKey{}).(string)
-
-	if cmdStdErr != "" {
-		return ctx, fmt.Errorf("stderr was not empty: %s", cmdStdErr)
-	}
-
-	if cmdStdOut == "" { // TODO: Check stdout when we have proper message from CMD
-		return ctx, errors.New("stdout was empty")
-	}
-
-	return ctx, nil
-}
-
-func pullOfTheRecipeWasSuccessful(ctx context.Context) (context.Context, error) {
-	cmdStdOut := ctx.Value(cmdStdOutCtxKey{}).(string)
-	cmdStdErr := ctx.Value(cmdStdErrCtxKey{}).(string)
-
-	if cmdStdErr != "" {
-		return ctx, fmt.Errorf("stderr was not empty: %s", cmdStdErr)
-	}
-
-	if cmdStdOut == "" { // TODO: Check stdout when we have proper message from CMD
-		return ctx, errors.New("stdout was empty")
-	}
 
 	return ctx, nil
 }
@@ -261,89 +226,6 @@ func theProjectDirectoryShouldContainFile(ctx context.Context, filename string) 
 		return fmt.Errorf("%s is not a regular file", filename)
 	}
 	return err
-}
-
-func cleanTempDirs(ctx context.Context, sc *godog.Scenario, err error) (context.Context, error) {
-	if dir := ctx.Value(projectDirectoryPathCtxKey{}); dir != nil {
-		os.RemoveAll(dir.(string))
-	}
-	if dir := ctx.Value(recipesDirectoryPathCtxKey{}); dir != nil {
-		os.RemoveAll(dir.(string))
-	}
-	if dir := ctx.Value(certDirectoryPathCtxKey{}); dir != nil {
-		os.RemoveAll(dir.(string))
-	}
-	return ctx, err
-}
-
-func cleanDockerResources(ctx context.Context, sc *godog.Scenario, err error) (context.Context, error) {
-	resources, ok := ctx.Value(dockerResourcesCtxKey{}).([]*dockertest.Resource)
-
-	// Resource list was probably empty, skip
-	if !ok {
-		return ctx, err
-	}
-
-	for _, resource := range resources {
-		err := resource.Close()
-		if err != nil {
-			return ctx, err
-		}
-	}
-	return ctx, err
-}
-
-func executionOfTheRecipeHasSucceeded(ctx context.Context) (context.Context, error) {
-	cmdStdOut := ctx.Value(cmdStdOutCtxKey{}).(string)
-	cmdStdErr := ctx.Value(cmdStdErrCtxKey{}).(string)
-	if matched, _ := regexp.MatchString("Recipe executed successfully", cmdStdOut); !matched {
-		return ctx, fmt.Errorf("Recipe failed to execute!\nstdout:\n%s\n\nstderr:\n%s\n", cmdStdOut, cmdStdErr)
-	}
-	return ctx, nil
-}
-
-func executionOfTheRecipeHasFailedWithError(ctx context.Context, errorMessage string) (context.Context, error) {
-	cmdStdOut := ctx.Value(cmdStdOutCtxKey{}).(string)
-	cmdStdErr := ctx.Value(cmdStdErrCtxKey{}).(string)
-	if matched, _ := regexp.MatchString(errorMessage, cmdStdErr); !matched {
-		return ctx, fmt.Errorf("'%s' not found in stderr.\nstdout:\n%s\n\nstderr:\n%s\n", errorMessage, cmdStdOut, cmdStdErr)
-	}
-	return ctx, nil
-}
-
-func iChangeRecipeToVersion(ctx context.Context, recipeName, version string) (context.Context, error) {
-	recipesDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
-	recipeFile := filepath.Join(recipesDir, recipeName, "recipe.yml")
-	recipeData, err := os.ReadFile(recipeFile)
-	if err != nil {
-		return ctx, err
-	}
-
-	newData := strings.Replace(string(recipeData), "v0.0.1", version, 1)
-
-	if err := os.WriteFile(filepath.Join(recipesDir, recipeName, "recipe.yml"), []byte(newData), 0644); err != nil {
-		return ctx, err
-	}
-
-	return ctx, nil
-}
-
-func iUpgradeRecipe(ctx context.Context, recipe string) (context.Context, error) {
-	recipesDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
-	projectDir := ctx.Value(projectDirectoryPathCtxKey{}).(string)
-
-	cmd, cmdStdOut, cmdStdErr := WrapCmdOutputs(newUpgradeCmd)
-
-	cmd.SetArgs([]string{projectDir, filepath.Join(recipesDir, recipe)})
-
-	if err := cmd.Execute(); err != nil {
-		return ctx, err
-	}
-
-	ctx = context.WithValue(ctx, cmdStdOutCtxKey{}, cmdStdOut.String())
-	ctx = context.WithValue(ctx, cmdStdErrCtxKey{}, cmdStdErr.String())
-
-	return ctx, nil
 }
 
 func theProjectDirectoryShouldContainFileWith(ctx context.Context, filename, searchTerm string) error {
@@ -382,96 +264,12 @@ func recipeIgnoresPattern(ctx context.Context, recipeName, pattern string) (cont
 	return ctx, nil
 }
 
-func iChangeProjectFileToContain(ctx context.Context, filename, content string) (context.Context, error) {
-	projectDir := ctx.Value(projectDirectoryPathCtxKey{}).(string)
-	if err := os.WriteFile(filepath.Join(projectDir, filename), []byte(content), 0644); err != nil {
-		return ctx, err
-	}
-	return ctx, nil
-}
-
-func noConflictsWereReported(ctx context.Context) (context.Context, error) {
-	cmdStdOut := ctx.Value(cmdStdOutCtxKey{}).(string)
-	cmdStdErr := ctx.Value(cmdStdErrCtxKey{}).(string)
-	if matched, _ := regexp.MatchString("modified", cmdStdOut); matched {
-		return ctx, fmt.Errorf("Conflict in recipe\nstdout:\n%s\n\nstderr:\n%s\n", cmdStdOut, cmdStdErr)
-	}
-	return ctx, nil
-}
-
-func conflictsAreReported(ctx context.Context) (context.Context, error) {
-	cmdStdOut := ctx.Value(cmdStdOutCtxKey{}).(string)
-	cmdStdErr := ctx.Value(cmdStdErrCtxKey{}).(string)
-	if matched, _ := regexp.MatchString("modified", cmdStdOut); matched {
-		return ctx, nil
-	}
-	return ctx, fmt.Errorf("Expecting conflicts in recipe but none reported\nstdout:\n%s\n\nstderr:\n%s\n", cmdStdOut, cmdStdErr)
-}
-
-func iChangeRecipeTemplateToRender(ctx context.Context, recipeName, filename, content string) (context.Context, error) {
-	recipesDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
-	templateFilePath := filepath.Join(recipesDir, recipeName, "templates", filename)
-	if err := os.WriteFile(templateFilePath, []byte(content), 0644); err != nil {
-		return ctx, err
-	}
-	return ctx, nil
-}
-
 func noErrorsWerePrinted(ctx context.Context) (context.Context, error) {
 	cmdStdErr := ctx.Value(cmdStdErrCtxKey{}).(string)
 	if len(cmdStdErr) != 0 {
 		return ctx, fmt.Errorf("Expected stderr to be empty but was %s", cmdStdErr)
 	}
 	return ctx, nil
-}
-
-func TestFeatures(t *testing.T) {
-	suite := godog.TestSuite{
-		ScenarioInitializer: func(s *godog.ScenarioContext) {
-			s.Step(`^a project directory$`, aProjectDirectory)
-			s.Step(`^a recipes directory$`, aRecipesDirectory)
-			s.Step(`^a recipe "([^"]*)" that generates file "([^"]*)"$`, aRecipeThatGeneratesFile)
-			s.Step(`^I execute recipe "([^"]*)"$`, iExecuteRecipe)
-			s.Step(`^the project directory should contain file "([^"]*)"$`, theProjectDirectoryShouldContainFile)
-			s.Step(`^the project directory should contain file "([^"]*)" with "([^"]*)"$`, theProjectDirectoryShouldContainFileWith)
-			s.Step(`^execution of the recipe has succeeded$`, executionOfTheRecipeHasSucceeded)
-			s.Step(`^execution of the recipe has failed with error "([^"]*)"$`, executionOfTheRecipeHasFailedWithError)
-			s.Step(`^I change recipe "([^"]*)" to version "([^"]*)"$`, iChangeRecipeToVersion)
-			s.Step(`^I upgrade recipe "([^"]*)"$`, iUpgradeRecipe)
-			s.Step(`^recipe "([^"]*)" ignores pattern "([^"]*)"$`, recipeIgnoresPattern)
-			s.Step(`^I change project file "([^"]*)" to contain "([^"]*)"$`, iChangeProjectFileToContain)
-			s.Step(`^no conflicts were reported$`, noConflictsWereReported)
-			s.Step(`^conflicts are reported$`, conflictsAreReported)
-			s.Step(`^I change recipe "([^"]*)" template "([^"]*)" to render "([^"]*)"$`, iChangeRecipeTemplateToRender)
-			s.Step(`^no errors were printed$`, noErrorsWerePrinted)
-			s.Step(`^a local OCI registry$`, aLocalOCIRegistry)
-			s.Step(`^a local OCI registry with authentication$`, aLocalOCIRegistryWithAuth)
-			s.Step(`^I push the recipe "([^"]*)" to the local OCI repository "([^"]*)"$`, pushRecipe)
-			s.Step(`^I pull the recipe "([^"]*)" to the local OCI repository "([^"]*)"$`, iPullRecipe)
-			s.Step(`^the recipe "([^"]*)" is pushed to the local OCI repository "([^"]*)"$`, pushRecipe)
-			s.Step(`^push of the recipe was successful$`, pushOfTheRecipeWasSuccessful)
-			s.Step(`^pull of the recipe was successful$`, pullOfTheRecipeWasSuccessful)
-			s.Step(`^the recipes directory should contain recipe "([^"]*)"$`, theRecipesDirectoryShouldContainRecipe)
-			s.After(cleanDockerResources)
-			s.After(cleanTempDirs)
-		},
-		Options: &godog.Options{
-			Format:   "pretty",
-			Paths:    []string{"../features"},
-			TestingT: t, // Testing instance that will run subtests.
-		},
-	}
-
-	if suite.Run() != 0 {
-		t.Fatal("non-zero status returned, failed to run feature tests")
-	}
-}
-
-func TestExampleRecipe(t *testing.T) {
-	recipe := createExampleRecipe("foo")
-	if err := recipe.Validate(); err != nil {
-		t.Errorf("failed to validate the example recipe: %s", err)
-	}
 }
 
 // UTILS
@@ -551,7 +349,7 @@ func generateTLSCertificate(ctx context.Context) (context.Context, error) {
 
 	cert := &bytes.Buffer{}
 	pem.Encode(cert, &pem.Block{Type: "CERTIFICATE", Bytes: derBytes})
-	err = os.WriteFile(filepath.Join(dir, "cert.pem"), cert.Bytes(), 0666)
+	err = os.WriteFile(filepath.Join(dir, TLS_CERTIFICATE_FILENAME), cert.Bytes(), 0666)
 	if err != nil {
 		return ctx, err
 	}
@@ -559,7 +357,7 @@ func generateTLSCertificate(ctx context.Context) (context.Context, error) {
 	key := &bytes.Buffer{}
 	b, _ := x509.MarshalECPrivateKey(priv)
 	pem.Encode(key, &pem.Block{Type: "EC PRIVATE KEY", Bytes: b})
-	err = os.WriteFile(filepath.Join(dir, "key.pem"), key.Bytes(), 0666)
+	err = os.WriteFile(filepath.Join(dir, TLS_KEY_FILENAME), key.Bytes(), 0666)
 	if err != nil {
 		return ctx, err
 	}

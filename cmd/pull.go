@@ -20,7 +20,7 @@ type pullOptions struct {
 func newPullCmd() *cobra.Command {
 	var opts pullOptions
 	var cmd = &cobra.Command{
-		Use:   "pull",
+		Use:   "pull URL",
 		Short: "Pull a recipe from OCI repository",
 		Long:  "",
 		Args:  cobra.ExactArgs(1),
