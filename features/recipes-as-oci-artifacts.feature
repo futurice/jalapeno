@@ -14,7 +14,7 @@ Feature: Recipes as OCI artifacts
 		And a recipe "foo" that generates file "README.md"
 		And a local OCI registry
 		And the recipe "foo" is pushed to the local OCI repository "foo:v0.0.1"
-		When I pull the recipe "foo" to the local OCI repository "foo:v0.0.1"
+		When I pull the recipe "foo" from the local OCI repository "foo:v0.0.1"
 		Then pull of the recipe was successful
 		And the recipes directory should contain recipe "foo"
 	
@@ -30,7 +30,20 @@ Feature: Recipes as OCI artifacts
 		And a recipe "foo" that generates file "README.md"
 		And a local OCI registry with authentication
 		And the recipe "foo" is pushed to the local OCI repository "foo:v0.0.1"
-		When I pull the recipe "foo" to the local OCI repository "foo:v0.0.1"
+		When I pull the recipe "foo" from the local OCI repository "foo:v0.0.1"
 		Then pull of the recipe was successful
 		And the recipes directory should contain recipe "foo"
 	
+	Scenario: Try to push a recipe to OCI repository without authentication
+		Given a recipes directory
+		And a recipe "foo" that generates file "README.md"
+	 	And a local OCI registry with authentication
+	 	And authentication is disabled on client
+		When I push the recipe "foo" to the local OCI repository "foo:v0.0.1"
+		Then push of the recipe has failed with error "failed to authorize: 401 Unauthorized"
+
+	Scenario: Try to pull a recipe from OCI repository which not exist
+		Given a recipes directory
+	 	And a local OCI registry with authentication
+		When I pull the recipe "foo" from the local OCI repository "foo:v0.0.1"
+		Then pull of the recipe has failed with error "recipe not found"

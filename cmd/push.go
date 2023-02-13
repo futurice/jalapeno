@@ -2,6 +2,9 @@ package main
 
 import (
 	"context"
+	"errors"
+	"fmt"
+	"strings"
 
 	"github.com/futurice/jalapeno/cmd/internal/option"
 	"github.com/futurice/jalapeno/pkg/recipe"
@@ -85,7 +88,11 @@ func runPush(cmd *cobra.Command, opts pushOptions) {
 
 	_, err = oras.Copy(ctx, store, re.Version, repo, repo.Reference.Reference, oras.DefaultCopyOptions)
 	if err != nil {
-		cmd.PrintErrln(err)
+		if strings.Contains(err.Error(), "credential required") {
+			cmd.PrintErrln(errors.New("failed to authorize: 401 Unauthorized"))
+		} else {
+			cmd.PrintErrln(fmt.Errorf("unexpected error happened: %w", err))
+		}
 		return
 	}
 

@@ -69,11 +69,14 @@ func TestFeatures(t *testing.T) {
 			s.Step(`^no errors were printed$`, noErrorsWerePrinted)
 			s.Step(`^a local OCI registry$`, aLocalOCIRegistry)
 			s.Step(`^a local OCI registry with authentication$`, aLocalOCIRegistryWithAuth)
+			s.Step(`^authentication is disabled on client$`, authenticationIsDisabledOnClient)
 			s.Step(`^I push the recipe "([^"]*)" to the local OCI repository "([^"]*)"$`, iPushRecipe)
-			s.Step(`^I pull the recipe "([^"]*)" to the local OCI repository "([^"]*)"$`, iPullRecipe)
+			s.Step(`^I pull the recipe "([^"]*)" from the local OCI repository "([^"]*)"$`, iPullRecipe)
 			s.Step(`^the recipe "([^"]*)" is pushed to the local OCI repository "([^"]*)"$`, pushRecipe)
 			s.Step(`^push of the recipe was successful$`, pushOfTheRecipeWasSuccessful)
+			s.Step(`^push of the recipe has failed with error "([^"]*)"$`, pushOfTheRecipeHasFailedWithError)
 			s.Step(`^pull of the recipe was successful$`, pullOfTheRecipeWasSuccessful)
+			s.Step(`^pull of the recipe has failed with error "([^"]*)"$`, pullOfTheRecipeHasFailedWithError)
 			s.Step(`^the recipes directory should contain recipe "([^"]*)"$`, theRecipesDirectoryShouldContainRecipe)
 			s.After(cleanDockerResources)
 			s.After(cleanTempDirs)
@@ -214,6 +217,13 @@ func aLocalOCIRegistryWithAuth(ctx context.Context) (context.Context, error) {
 	ctx = addDockerResourceToContext(ctx, resource)
 
 	return ctx, nil
+}
+
+func authenticationIsDisabledOnClient(ctx context.Context) (context.Context, error) {
+	registry := ctx.Value(ociRegistryCtxKey{}).(OCIRegistry)
+	registry.AuthEnabled = false
+
+	return context.WithValue(ctx, ociRegistryCtxKey{}, registry), nil
 }
 
 func theRecipesDirectoryShouldContainRecipe(ctx context.Context, recipeName string) error {

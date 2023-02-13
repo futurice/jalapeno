@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"path/filepath"
+	"strings"
 )
 
 func iPushRecipe(ctx context.Context, recipeName, repoName string) (context.Context, error) {
@@ -59,6 +60,25 @@ func pushOfTheRecipeWasSuccessful(ctx context.Context) (context.Context, error) 
 
 	if cmdStdOut == "" { // TODO: Check stdout when we have proper message from CMD
 		return ctx, errors.New("stdout was empty")
+	}
+
+	return ctx, nil
+}
+
+func pushOfTheRecipeHasFailedWithError(ctx context.Context, errorMessage string) (context.Context, error) {
+	cmdStdOut := ctx.Value(cmdStdOutCtxKey{}).(string)
+	cmdStdErr := ctx.Value(cmdStdErrCtxKey{}).(string)
+
+	if cmdStdOut != "" {
+		return ctx, fmt.Errorf("stdout was not empty: %s", cmdStdErr)
+	}
+
+	if cmdStdErr == "" {
+		return ctx, errors.New("stderr was empty")
+	}
+
+	if strings.TrimSpace(cmdStdErr) != errorMessage {
+		return ctx, fmt.Errorf("error message did not match: expected '%s', found '%s", errorMessage, cmdStdErr)
 	}
 
 	return ctx, nil
