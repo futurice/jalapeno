@@ -15,7 +15,7 @@ func pushRecipe(ctx context.Context, recipeName, repoName string) (context.Conte
 	recipesDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
 	registry := ctx.Value(ociRegistryCtxKey{}).(OCIRegistry)
 
-	cmd, cmdStdOut, cmdStdErr := WrapCmdOutputs(newPushCmd)
+	cmd, cmdStdOut, cmdStdErr := wrapCmdOutputs(newPushCmd)
 
 	cmd.SetArgs([]string{filepath.Join(recipesDir, recipeName), filepath.Join(registry.Resource.GetHostPort("5000/tcp"), repoName)})
 

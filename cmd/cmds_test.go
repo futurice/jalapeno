@@ -45,19 +45,6 @@ const (
 )
 
 /*
- * UTILITIES
- */
-
-func WrapCmdOutputs(cmdFactory func() *cobra.Command) (*cobra.Command, *bytes.Buffer, *bytes.Buffer) {
-	cmd := cmdFactory()
-	cmdStdOut, cmdStdErr := new(bytes.Buffer), new(bytes.Buffer)
-	cmd.SetOut(cmdStdOut)
-	cmd.SetErr(cmdStdErr)
-
-	return cmd, cmdStdOut, cmdStdErr
-}
-
-/*
  * STEP DEFINITIONS
  */
 
@@ -101,6 +88,19 @@ func TestFeatures(t *testing.T) {
 	if suite.Run() != 0 {
 		t.Fatal("non-zero status returned, failed to run feature tests")
 	}
+}
+
+/*
+ * UTILITIES
+ */
+
+func wrapCmdOutputs(cmdFactory func() *cobra.Command) (*cobra.Command, *bytes.Buffer, *bytes.Buffer) {
+	cmd := cmdFactory()
+	cmdStdOut, cmdStdErr := new(bytes.Buffer), new(bytes.Buffer)
+	cmd.SetOut(cmdStdOut)
+	cmd.SetErr(cmdStdErr)
+
+	return cmd, cmdStdOut, cmdStdErr
 }
 
 func cleanTempDirs(ctx context.Context, sc *godog.Scenario, err error) (context.Context, error) {
@@ -382,8 +382,8 @@ func generateHtpasswdFile(ctx context.Context) (context.Context, error) {
 		return ctx, err
 	}
 
-	// Username foo, password bar
-	contents := "foo:$2y$05$fHux.x9qjOuYmARV5AXPpuNnph95rssj5tsIeMynjL1O7jj43YMrW\n"
+	// Created with `docker run --entrypoint htpasswd httpd:2 -Bbn foo bar`
+	contents := "foo:$2y$05$fHux.x9qjOuYmARV5AXPpuNnph95rssj5tsIeMynjL1O7jj43YMrW\n" // foo:bar
 	err = os.WriteFile(filepath.Join(dir, HTPASSWD_FILENAME), []byte(contents), 0666)
 	if err != nil {
 		return ctx, err

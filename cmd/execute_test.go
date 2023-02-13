@@ -29,7 +29,7 @@ func iExecuteRecipe(ctx context.Context, recipe string) (context.Context, error)
 	projectDir := ctx.Value(projectDirectoryPathCtxKey{}).(string)
 	recipesDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
 
-	cmd, cmdStdOut, cmdStdErr := WrapCmdOutputs(newExecuteCmd)
+	cmd, cmdStdOut, cmdStdErr := wrapCmdOutputs(newExecuteCmd)
 
 	cmd.SetArgs([]string{filepath.Join(recipesDir, recipe)})
 	if err := cmd.Flags().Set("output", projectDir); err != nil {

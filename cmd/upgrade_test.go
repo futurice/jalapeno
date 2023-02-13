@@ -13,7 +13,7 @@ func iUpgradeRecipe(ctx context.Context, recipe string) (context.Context, error)
 	recipesDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
 	projectDir := ctx.Value(projectDirectoryPathCtxKey{}).(string)
 
-	cmd, cmdStdOut, cmdStdErr := WrapCmdOutputs(newUpgradeCmd)
+	cmd, cmdStdOut, cmdStdErr := wrapCmdOutputs(newUpgradeCmd)
 
 	cmd.SetArgs([]string{projectDir, filepath.Join(recipesDir, recipe)})
 

@@ -11,7 +11,7 @@ func iPullRecipe(ctx context.Context, recipeName, repoName string) (context.Cont
 	recipesDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
 	registry := ctx.Value(ociRegistryCtxKey{}).(OCIRegistry)
 
-	cmd, cmdStdOut, cmdStdErr := WrapCmdOutputs(newPullCmd)
+	cmd, cmdStdOut, cmdStdErr := wrapCmdOutputs(newPullCmd)
 
 	cmd.SetArgs([]string{filepath.Join(registry.Resource.GetHostPort("5000/tcp"), repoName)})
 	flags := cmd.Flags()
