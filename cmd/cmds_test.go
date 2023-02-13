@@ -316,7 +316,10 @@ func createLocalRegistry(opts *dockertest.RunOptions) (*dockertest.Resource, err
 	// So we need to wait a bit more to registry to be ready.
 	time.Sleep(100 * time.Millisecond)
 
-	resource.Expire(60) // If the cleanup fails, this will stop the container eventually
+	err = resource.Expire(60) // If the cleanup fails, this will stop the container eventually
+	if err != nil {
+		return nil, err
+	}
 
 	return resource, nil
 }
@@ -359,7 +362,11 @@ func generateTLSCertificate(ctx context.Context) (context.Context, error) {
 	}
 
 	cert := &bytes.Buffer{}
-	pem.Encode(cert, &pem.Block{Type: "CERTIFICATE", Bytes: derBytes})
+	err = pem.Encode(cert, &pem.Block{Type: "CERTIFICATE", Bytes: derBytes})
+	if err != nil {
+		return ctx, err
+	}
+
 	err = os.WriteFile(filepath.Join(dir, TLS_CERTIFICATE_FILENAME), cert.Bytes(), 0666)
 	if err != nil {
 		return ctx, err
@@ -367,7 +374,11 @@ func generateTLSCertificate(ctx context.Context) (context.Context, error) {
 
 	key := &bytes.Buffer{}
 	b, _ := x509.MarshalECPrivateKey(priv)
-	pem.Encode(key, &pem.Block{Type: "EC PRIVATE KEY", Bytes: b})
+	err = pem.Encode(key, &pem.Block{Type: "EC PRIVATE KEY", Bytes: b})
+	if err != nil {
+		return ctx, err
+	}
+
 	err = os.WriteFile(filepath.Join(dir, TLS_KEY_FILENAME), key.Bytes(), 0666)
 	if err != nil {
 		return ctx, err
