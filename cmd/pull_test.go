@@ -18,13 +18,22 @@ func iPullRecipe(ctx context.Context, recipeName, repoName string) (context.Cont
 	if err := flags.Set("output", recipesDir); err != nil {
 		return ctx, err
 	}
-	if registry.TLS {
+	if registry.TLSEnabled {
 		// Allow self-signed certificates
 		if err := flags.Set("insecure", "true"); err != nil {
 			return ctx, err
 		}
 	} else {
 		if err := flags.Set("plain-http", "true"); err != nil {
+			return ctx, err
+		}
+	}
+
+	if registry.AuthEnabled {
+		if err := flags.Set("username", "foo"); err != nil {
+			return ctx, err
+		}
+		if err := flags.Set("password", "bar"); err != nil {
 			return ctx, err
 		}
 	}

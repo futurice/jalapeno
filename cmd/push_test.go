@@ -20,7 +20,7 @@ func pushRecipe(ctx context.Context, recipeName, repoName string) (context.Conte
 	cmd.SetArgs([]string{filepath.Join(recipesDir, recipeName), filepath.Join(registry.Resource.GetHostPort("5000/tcp"), repoName)})
 
 	flags := cmd.Flags()
-	if registry.TLS {
+	if registry.TLSEnabled {
 		if err := flags.Set("insecure", "true"); err != nil {
 			return ctx, err
 		}
@@ -30,7 +30,7 @@ func pushRecipe(ctx context.Context, recipeName, repoName string) (context.Conte
 		}
 	}
 
-	if registry.Auth {
+	if registry.AuthEnabled {
 		if err := flags.Set("username", "foo"); err != nil {
 			return ctx, err
 		}

@@ -26,20 +26,22 @@ import (
 type projectDirectoryPathCtxKey struct{}
 type recipesDirectoryPathCtxKey struct{}
 type certDirectoryPathCtxKey struct{}
+type htpasswdDirectoryPathCtxKey struct{}
 type ociRegistryCtxKey struct{}
 type cmdStdOutCtxKey struct{}
 type cmdStdErrCtxKey struct{}
 type dockerResourcesCtxKey struct{}
 
 type OCIRegistry struct {
-	TLS      bool
-	Auth     bool
-	Resource *dockertest.Resource
+	TLSEnabled  bool
+	AuthEnabled bool
+	Resource    *dockertest.Resource
 }
 
 const (
 	TLS_KEY_FILENAME         = "key.pem"
 	TLS_CERTIFICATE_FILENAME = "cert.pem"
+	HTPASSWD_FILENAME        = "htpasswd"
 )
 
 /*
@@ -109,6 +111,9 @@ func cleanTempDirs(ctx context.Context, sc *godog.Scenario, err error) (context.
 		os.RemoveAll(dir.(string))
 	}
 	if dir := ctx.Value(certDirectoryPathCtxKey{}); dir != nil {
+		os.RemoveAll(dir.(string))
+	}
+	if dir := ctx.Value(htpasswdDirectoryPathCtxKey{}); dir != nil {
 		os.RemoveAll(dir.(string))
 	}
 	return ctx, err
@@ -182,24 +187,30 @@ func aLocalOCIRegistryWithAuth(ctx context.Context) (context.Context, error) {
 		return ctx, err
 	}
 
+	ctx, err = generateHtpasswdFile(ctx)
+	if err != nil {
+		return ctx, err
+	}
+
 	resource, err := createLocalRegistry(&dockertest.RunOptions{
 		Repository: "registry",
 		Tag:        "2",
 		Env: []string{
-			// "REGISTRY_AUTH_SILLY_REALM=test-realm",
-			// "REGISTRY_AUTH_SILLY_SERVICE=test-service",
+			"REGISTRY_AUTH_HTPASSWD_REALM=jalapeno-test-realm",
+			fmt.Sprintf("REGISTRY_AUTH_HTPASSWD_PATH=/auth/%s", HTPASSWD_FILENAME),
 			fmt.Sprintf("REGISTRY_HTTP_TLS_CERTIFICATE=/etc/ssl/private/%s", TLS_CERTIFICATE_FILENAME),
 			fmt.Sprintf("REGISTRY_HTTP_TLS_KEY=/etc/ssl/private/%s", TLS_KEY_FILENAME),
 		},
 		Mounts: []string{
 			fmt.Sprintf("%s:/etc/ssl/private", ctx.Value(certDirectoryPathCtxKey{}).(string)),
+			fmt.Sprintf("%s:/auth", ctx.Value(htpasswdDirectoryPathCtxKey{}).(string)),
 		},
 	})
 	if err != nil {
 		return ctx, err
 	}
 
-	ctx = context.WithValue(ctx, ociRegistryCtxKey{}, OCIRegistry{TLS: true, Auth: true, Resource: resource})
+	ctx = context.WithValue(ctx, ociRegistryCtxKey{}, OCIRegistry{TLSEnabled: true, AuthEnabled: true, Resource: resource})
 	ctx = addDockerResourceToContext(ctx, resource)
 
 	return ctx, nil
@@ -363,4 +374,20 @@ func generateTLSCertificate(ctx context.Context) (context.Context, error) {
 	}
 
 	return context.WithValue(ctx, certDirectoryPathCtxKey{}, dir), nil
+}
+
+func generateHtpasswdFile(ctx context.Context) (context.Context, error) {
+	dir, err := os.MkdirTemp("", "jalapeno-test-htpasswd")
+	if err != nil {
+		return ctx, err
+	}
+
+	// Username foo, password bar
+	contents := "foo:$2y$05$fHux.x9qjOuYmARV5AXPpuNnph95rssj5tsIeMynjL1O7jj43YMrW\n"
+	err = os.WriteFile(filepath.Join(dir, HTPASSWD_FILENAME), []byte(contents), 0666)
+	if err != nil {
+		return ctx, err
+	}
+
+	return context.WithValue(ctx, htpasswdDirectoryPathCtxKey{}, dir), nil
 }
