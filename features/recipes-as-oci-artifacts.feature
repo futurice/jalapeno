@@ -38,12 +38,21 @@ Feature: Recipes as OCI artifacts
 		Given a recipes directory
 		And a recipe "foo" that generates file "README.md"
 	 	And a local OCI registry with authentication
-	 	And authentication is disabled on client
+	 	And registry credentials are not provided by the command
 		When I push the recipe "foo" to the local OCI repository "foo:v0.0.1"
-		Then push of the recipe has failed with error "failed to authorize: 401 Unauthorized"
+		Then push of the recipe has failed with error "Error: failed to authorize: 401 Unauthorized"
 
 	Scenario: Try to pull a recipe from OCI repository which not exist
 		Given a recipes directory
 	 	And a local OCI registry with authentication
 		When I pull the recipe "foo" from the local OCI repository "foo:v0.0.1"
-		Then pull of the recipe has failed with error "recipe not found"
+		Then pull of the recipe has failed with error "Error: recipe not found"
+
+	Scenario: Pull a recipe from OCI repository using credentials from config file
+		Given a recipes directory
+		And a recipe "foo" that generates file "README.md"
+	 	And a local OCI registry with authentication
+		And registry credentials are provided by config file
+		And registry credentials are not provided by the command
+		When I push the recipe "foo" to the local OCI repository "foo:v0.0.1"
+		Then push of the recipe was successful

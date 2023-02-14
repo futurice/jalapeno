@@ -27,6 +27,7 @@ type projectDirectoryPathCtxKey struct{}
 type recipesDirectoryPathCtxKey struct{}
 type certDirectoryPathCtxKey struct{}
 type htpasswdDirectoryPathCtxKey struct{}
+type dockerConfigDirectoryPathCtxKey struct{}
 type ociRegistryCtxKey struct{}
 type cmdStdOutCtxKey struct{}
 type cmdStdErrCtxKey struct{}
@@ -42,6 +43,7 @@ const (
 	TLS_KEY_FILENAME         = "key.pem"
 	TLS_CERTIFICATE_FILENAME = "cert.pem"
 	HTPASSWD_FILENAME        = "htpasswd"
+	DOCKER_CONFIG_FILENAME   = "config.json"
 )
 
 /*
@@ -69,7 +71,8 @@ func TestFeatures(t *testing.T) {
 			s.Step(`^no errors were printed$`, noErrorsWerePrinted)
 			s.Step(`^a local OCI registry$`, aLocalOCIRegistry)
 			s.Step(`^a local OCI registry with authentication$`, aLocalOCIRegistryWithAuth)
-			s.Step(`^authentication is disabled on client$`, authenticationIsDisabledOnClient)
+			s.Step(`^registry credentials are not provided by the command$`, credentialsAreNotProvidedByTheCommand)
+			s.Step(`^registry credentials are provided by config file$`, generateDockerConfigFile)
 			s.Step(`^I push the recipe "([^"]*)" to the local OCI repository "([^"]*)"$`, iPushRecipe)
 			s.Step(`^I pull the recipe "([^"]*)" from the local OCI repository "([^"]*)"$`, iPullRecipe)
 			s.Step(`^the recipe "([^"]*)" is pushed to the local OCI repository "([^"]*)"$`, pushRecipe)
@@ -117,6 +120,9 @@ func cleanTempDirs(ctx context.Context, sc *godog.Scenario, err error) (context.
 		os.RemoveAll(dir.(string))
 	}
 	if dir := ctx.Value(htpasswdDirectoryPathCtxKey{}); dir != nil {
+		os.RemoveAll(dir.(string))
+	}
+	if dir := ctx.Value(dockerConfigDirectoryPathCtxKey{}); dir != nil {
 		os.RemoveAll(dir.(string))
 	}
 	return ctx, err
@@ -219,7 +225,7 @@ func aLocalOCIRegistryWithAuth(ctx context.Context) (context.Context, error) {
 	return ctx, nil
 }
 
-func authenticationIsDisabledOnClient(ctx context.Context) (context.Context, error) {
+func credentialsAreNotProvidedByTheCommand(ctx context.Context) (context.Context, error) {
 	registry := ctx.Value(ociRegistryCtxKey{}).(OCIRegistry)
 	registry.AuthEnabled = false
 
@@ -411,4 +417,20 @@ func generateHtpasswdFile(ctx context.Context) (context.Context, error) {
 	}
 
 	return context.WithValue(ctx, htpasswdDirectoryPathCtxKey{}, dir), nil
+}
+
+func generateDockerConfigFile(ctx context.Context) (context.Context, error) {
+	registry := ctx.Value(ociRegistryCtxKey{}).(OCIRegistry)
+	dir, err := os.MkdirTemp("", "jalapeno-test-docker-config")
+	if err != nil {
+		return ctx, err
+	}
+
+	contents := fmt.Sprintf(`{"auths":{"https://%s/v2/":{"auth":"Zm9vOmJhcg=="}}}`, registry.Resource.GetHostPort("5000/tcp"))
+	err = os.WriteFile(filepath.Join(dir, DOCKER_CONFIG_FILENAME), []byte(contents), 0666)
+	if err != nil {
+		return ctx, err
+	}
+
+	return context.WithValue(ctx, dockerConfigDirectoryPathCtxKey{}, dir), nil
 }

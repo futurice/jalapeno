@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strings"
 
@@ -61,9 +60,9 @@ func runPull(cmd *cobra.Command, opts pullOptions) {
 	_, err = oras.Copy(ctx, repo, repo.Reference.Reference, dst, repo.Reference.Reference, oras.DefaultCopyOptions)
 	if err != nil {
 		if strings.Contains(err.Error(), "not found") {
-			cmd.PrintErrln(errors.New("recipe not found")) // TODO: Give more descriptive error message
+			cmd.PrintErrln("Error: recipe not found") // TODO: Give more descriptive error message
 		} else {
-			cmd.PrintErrln(fmt.Errorf("unexpected error happened: %w", err))
+			cmd.PrintErrln(fmt.Errorf("Error: unexpected error happened: %w", err))
 		}
 		return
 	}

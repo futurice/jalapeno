@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strings"
 
@@ -89,9 +88,9 @@ func runPush(cmd *cobra.Command, opts pushOptions) {
 	_, err = oras.Copy(ctx, store, re.Version, repo, repo.Reference.Reference, oras.DefaultCopyOptions)
 	if err != nil {
 		if strings.Contains(err.Error(), "credential required") {
-			cmd.PrintErrln(errors.New("failed to authorize: 401 Unauthorized"))
+			cmd.PrintErrln("Error: failed to authorize: 401 Unauthorized")
 		} else {
-			cmd.PrintErrln(fmt.Errorf("unexpected error happened: %w", err))
+			cmd.PrintErrln(fmt.Errorf("Error: unexpected error happened: %w", err))
 		}
 		return
 	}

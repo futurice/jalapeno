@@ -11,6 +11,7 @@ import (
 func iPullRecipe(ctx context.Context, recipeName, repoName string) (context.Context, error) {
 	recipesDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
 	registry := ctx.Value(ociRegistryCtxKey{}).(OCIRegistry)
+	configDir, configFileExists := ctx.Value(dockerConfigDirectoryPathCtxKey{}).(string)
 
 	cmd, cmdStdOut, cmdStdErr := wrapCmdOutputs(newPullCmd)
 
@@ -35,6 +36,12 @@ func iPullRecipe(ctx context.Context, recipeName, repoName string) (context.Cont
 			return ctx, err
 		}
 		if err := flags.Set("password", "bar"); err != nil {
+			return ctx, err
+		}
+	}
+
+	if configFileExists {
+		if err := flags.Set("registry-config", filepath.Join(configDir, DOCKER_CONFIG_FILENAME)); err != nil {
 			return ctx, err
 		}
 	}
