@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
 	"github.com/futurice/jalapeno/cmd/internal/option"
@@ -62,7 +61,7 @@ func runPull(cmd *cobra.Command, opts pullOptions) {
 		if strings.Contains(err.Error(), "not found") {
 			cmd.PrintErrln("Error: recipe not found") // TODO: Give more descriptive error message
 		} else {
-			cmd.PrintErrln(fmt.Errorf("Error: unexpected error happened: %w", err))
+			cmd.PrintErrf("Error: unexpected error happened: %s", err)
 		}
 		return
 	}

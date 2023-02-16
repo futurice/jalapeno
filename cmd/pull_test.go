@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
 )
@@ -40,7 +41,7 @@ func iPullRecipe(ctx context.Context, recipeName, repoName string) (context.Cont
 		}
 	}
 
-	if configFileExists {
+	if configFileExists && os.Getenv("DOCKER_CONFIG") == "" {
 		if err := flags.Set("registry-config", filepath.Join(configDir, DOCKER_CONFIG_FILENAME)); err != nil {
 			return ctx, err
 		}

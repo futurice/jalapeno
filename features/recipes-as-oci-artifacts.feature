@@ -56,3 +56,12 @@ Feature: Recipes as OCI artifacts
 		And registry credentials are not provided by the command
 		When I push the recipe "foo" to the local OCI repository "foo:v0.0.1"
 		Then push of the recipe was successful
+
+	Scenario: Pull a recipe from OCI repository using credentials from default config file
+		Given a recipes directory
+		And a recipe "foo" that generates file "README.md"
+	 	And a local OCI registry with authentication
+		And registry credentials are provided by default config file
+		And registry credentials are not provided by the command
+		When I push the recipe "foo" to the local OCI repository "foo:v0.0.1"
+		Then push of the recipe was successful

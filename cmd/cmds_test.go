@@ -73,6 +73,7 @@ func TestFeatures(t *testing.T) {
 			s.Step(`^a local OCI registry with authentication$`, aLocalOCIRegistryWithAuth)
 			s.Step(`^registry credentials are not provided by the command$`, credentialsAreNotProvidedByTheCommand)
 			s.Step(`^registry credentials are provided by config file$`, generateDockerConfigFile)
+			s.Step(`^registry credentials are provided by default config file$`, generateDockerConfigFileAndSetDefaultConfig)
 			s.Step(`^I push the recipe "([^"]*)" to the local OCI repository "([^"]*)"$`, iPushRecipe)
 			s.Step(`^I pull the recipe "([^"]*)" from the local OCI repository "([^"]*)"$`, iPullRecipe)
 			s.Step(`^the recipe "([^"]*)" is pushed to the local OCI repository "([^"]*)"$`, pushRecipe)
@@ -433,4 +434,18 @@ func generateDockerConfigFile(ctx context.Context) (context.Context, error) {
 	}
 
 	return context.WithValue(ctx, dockerConfigDirectoryPathCtxKey{}, dir), nil
+}
+
+func generateDockerConfigFileAndSetDefaultConfig(ctx context.Context) (context.Context, error) {
+	ctx, err := generateDockerConfigFile(ctx)
+	if err != nil {
+		return ctx, err
+	}
+
+	err = os.Setenv("DOCKER_CONFIG", ctx.Value(dockerConfigDirectoryPathCtxKey{}).(string))
+	if err != nil {
+		return ctx, err
+	}
+
+	return ctx, nil
 }

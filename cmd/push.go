@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
 	"github.com/futurice/jalapeno/cmd/internal/option"
@@ -90,7 +89,7 @@ func runPush(cmd *cobra.Command, opts pushOptions) {
 		if strings.Contains(err.Error(), "credential required") {
 			cmd.PrintErrln("Error: failed to authorize: 401 Unauthorized")
 		} else {
-			cmd.PrintErrln(fmt.Errorf("Error: unexpected error happened: %w", err))
+			cmd.PrintErrf("Error: unexpected error happened: %s\n", err)
 		}
 		return
 	}
