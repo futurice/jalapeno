@@ -1,5 +1,5 @@
 Feature: Recipes as OCI artifacts
-	By pushing recipes as artifacts to OCI compatible repositories, we can improve
+	By pushing and pulling recipes as artifacts to OCI compatible repositories, we can improve
 	recipe availability and discoverability
 
 	Scenario: Push a recipe to OCI repository
