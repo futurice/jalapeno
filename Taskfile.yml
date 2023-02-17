@@ -27,6 +27,8 @@ tasks:
     desc: Build the CLI
     sources:
       - "./**/*.go"
+    generates:
+      - "bin/jalapeno"
     cmds:
       - go build -o bin/jalapeno {{.ENTRYPOINT}}
   debug:
