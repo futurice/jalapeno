@@ -2,7 +2,7 @@ apiVersion: v1
 name: terraform-bootstrap
 version: v0.0.1
 description: Set up Terraform basics like state file bootstrapping
-initHelp: Install Task from https://taskfile.dev and run `task tf-state-init dev` in the 'terraform' subdirectory of the project directory to set up terraform.
+initHelp: Install Task from https://taskfile.dev and run `task tf-state-init -- dev` in the 'terraform' subdirectory of the project directory to set up terraform.
 vars:
   - name: SERVICE_NAME
     description: Service name
