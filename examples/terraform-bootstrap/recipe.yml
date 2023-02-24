@@ -8,3 +8,6 @@ vars:
     description: Service name
   - name: RESOURCE_GROUP_NAME
     description: Azure Resource Group name
+    regexp:
+      pattern: "^[a-zA-Z0-9_.()-]{0,89}[a-zA-Z0-9_()-]$"
+      help: Valid resource group names consist of 1-90 underscores, hyphens, periods, parentheses, and letters or digits, and the last character cannot be a period.
