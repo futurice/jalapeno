@@ -2,10 +2,14 @@ version: "3"
 
 tasks:
   tf-state-init:
-    cmds:
+    cmds: # TODO: loop over this to create all envs (ask user what envs to create)
       - terraform init
       - terraform workspace new {{ `{{.CLI_ARGS}}` }}
       - terraform apply -target azurerm_storage_account.tfstate -auto-approve -input=false
       - echo "access_key=\"$(az storage account keys list --resource-group {{ .Variables.RESOURCE_GROUP_NAME }} --account-name $(terraform output -raw tfstate_storage_account_name) --query '[0].value' --output tsv)\"" > terraform-backend.config
       - terraform apply -target local_file.backend_config -auto-approve -input=false
       - terraform init -migrate-state -force-copy -backend-config="key=tfstate_" -backend-config="terraform-backend.config"
+
+# TODO: task to delete state resources for a particular env
+# TODO: validate resource group name when prompting
+# TODO: clear out local tf stuff between different envs (so it doesn't migrate dev state to qa etc)
