@@ -8,4 +8,4 @@ tasks:
       - terraform apply -target azurerm_storage_account.tfstate -auto-approve -input=false
       - echo "access_key=\"$(az storage account keys list --resource-group {{ .Variables.RESOURCE_GROUP_NAME }} --account-name $(terraform output -raw tfstate_storage_account_name) --query '[0].value' --output tsv)\"" > terraform-backend.config
       - terraform apply -target local_file.backend_config -auto-approve -input=false
-      - terraform init -migrate-state -force-copy -backend-config="key=dev.tfstate" -backend-config="terraform-backend.config"
+      - terraform init -migrate-state -force-copy -backend-config="key=tfstate_" -backend-config="terraform-backend.config"
