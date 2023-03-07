@@ -19,7 +19,7 @@ const (
 	IgnoreFileName         = ".jalapenoignore"
 )
 
-// Load a recipe from its source.
+// Load a recipe from a path
 func Load(path string) (*Recipe, error) {
 	rootDir, err := filepath.Abs(path)
 	if err != nil {

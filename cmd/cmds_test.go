@@ -3,27 +3,105 @@ package main
 import (
 	"bytes"
 	"context"
+	"crypto/ecdsa"
+	"crypto/elliptic"
+	"crypto/rand"
+	"crypto/x509"
+	"crypto/x509/pkix"
+	"encoding/pem"
 	"fmt"
+	"math/big"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/cucumber/godog"
+	"github.com/futurice/jalapeno/pkg/recipe"
+	"github.com/ory/dockertest"
 	"github.com/spf13/cobra"
 )
 
 type projectDirectoryPathCtxKey struct{}
 type recipesDirectoryPathCtxKey struct{}
+type certDirectoryPathCtxKey struct{}
+type htpasswdDirectoryPathCtxKey struct{}
+type dockerConfigDirectoryPathCtxKey struct{}
+type ociRegistryCtxKey struct{}
 type cmdStdOutCtxKey struct{}
 type cmdStdErrCtxKey struct{}
+type dockerResourcesCtxKey struct{}
+
+type OCIRegistry struct {
+	TLSEnabled  bool
+	AuthEnabled bool
+	Resource    *dockertest.Resource
+}
+
+const (
+	TLS_KEY_FILENAME         = "key.pem"
+	TLS_CERTIFICATE_FILENAME = "cert.pem"
+	HTPASSWD_FILENAME        = "htpasswd"
+	DOCKER_CONFIG_FILENAME   = "config.json"
+)
+
+/*
+ * STEP DEFINITIONS
+ */
+
+func TestFeatures(t *testing.T) {
+	suite := godog.TestSuite{
+		ScenarioInitializer: func(s *godog.ScenarioContext) {
+			s.Step(`^a project directory$`, aProjectDirectory)
+			s.Step(`^a recipes directory$`, aRecipesDirectory)
+			s.Step(`^a recipe "([^"]*)" that generates file "([^"]*)"$`, aRecipeThatGeneratesFile)
+			s.Step(`^I execute recipe "([^"]*)"$`, iExecuteRecipe)
+			s.Step(`^the project directory should contain file "([^"]*)"$`, theProjectDirectoryShouldContainFile)
+			s.Step(`^the project directory should contain file "([^"]*)" with "([^"]*)"$`, theProjectDirectoryShouldContainFileWith)
+			s.Step(`^execution of the recipe has succeeded$`, executionOfTheRecipeHasSucceeded)
+			s.Step(`^execution of the recipe has failed with error "([^"]*)"$`, executionOfTheRecipeHasFailedWithError)
+			s.Step(`^I change recipe "([^"]*)" to version "([^"]*)"$`, iChangeRecipeToVersion)
+			s.Step(`^I upgrade recipe "([^"]*)"$`, iUpgradeRecipe)
+			s.Step(`^recipe "([^"]*)" ignores pattern "([^"]*)"$`, recipeIgnoresPattern)
+			s.Step(`^I change project file "([^"]*)" to contain "([^"]*)"$`, iChangeProjectFileToContain)
+			s.Step(`^no conflicts were reported$`, noConflictsWereReported)
+			s.Step(`^conflicts are reported$`, conflictsAreReported)
+			s.Step(`^I change recipe "([^"]*)" template "([^"]*)" to render "([^"]*)"$`, iChangeRecipeTemplateToRender)
+			s.Step(`^no errors were printed$`, noErrorsWerePrinted)
+			s.Step(`^a local OCI registry$`, aLocalOCIRegistry)
+			s.Step(`^a local OCI registry with authentication$`, aLocalOCIRegistryWithAuth)
+			s.Step(`^registry credentials are not provided by the command$`, credentialsAreNotProvidedByTheCommand)
+			s.Step(`^registry credentials are provided by config file$`, generateDockerConfigFile)
+			s.Step(`^registry credentials are provided by default config file$`, generateDockerConfigFileAndSetDefaultConfig)
+			s.Step(`^I push the recipe "([^"]*)" to the local OCI repository "([^"]*)"$`, iPushRecipe)
+			s.Step(`^I pull the recipe "([^"]*)" from the local OCI repository "([^"]*)"$`, iPullRecipe)
+			s.Step(`^the recipe "([^"]*)" is pushed to the local OCI repository "([^"]*)"$`, pushRecipe)
+			s.Step(`^push of the recipe was successful$`, pushOfTheRecipeWasSuccessful)
+			s.Step(`^push of the recipe has failed with error "([^"]*)"$`, pushOfTheRecipeHasFailedWithError)
+			s.Step(`^pull of the recipe was successful$`, pullOfTheRecipeWasSuccessful)
+			s.Step(`^pull of the recipe has failed with error "([^"]*)"$`, pullOfTheRecipeHasFailedWithError)
+			s.Step(`^the recipes directory should contain recipe "([^"]*)"$`, theRecipesDirectoryShouldContainRecipe)
+			s.After(cleanDockerResources)
+			s.After(cleanTempDirs)
+		},
+		Options: &godog.Options{
+			Format:   "pretty",
+			Paths:    []string{"../features"},
+			TestingT: t, // Testing instance that will run subtests.
+		},
+	}
+
+	if suite.Run() != 0 {
+		t.Fatal("non-zero status returned, failed to run feature tests")
+	}
+}
 
 /*
  * UTILITIES
  */
 
-func WrapCmdOutputs(cmdFactory func() *cobra.Command) (*cobra.Command, *bytes.Buffer, *bytes.Buffer) {
+func wrapCmdOutputs(cmdFactory func() *cobra.Command) (*cobra.Command, *bytes.Buffer, *bytes.Buffer) {
 	cmd := cmdFactory()
 	cmdStdOut, cmdStdErr := new(bytes.Buffer), new(bytes.Buffer)
 	cmd.SetOut(cmdStdOut)
@@ -32,9 +110,41 @@ func WrapCmdOutputs(cmdFactory func() *cobra.Command) (*cobra.Command, *bytes.Bu
 	return cmd, cmdStdOut, cmdStdErr
 }
 
-/*
- * STEP DEFINITIONS
- */
+func cleanTempDirs(ctx context.Context, sc *godog.Scenario, err error) (context.Context, error) {
+	if dir := ctx.Value(projectDirectoryPathCtxKey{}); dir != nil {
+		os.RemoveAll(dir.(string))
+	}
+	if dir := ctx.Value(recipesDirectoryPathCtxKey{}); dir != nil {
+		os.RemoveAll(dir.(string))
+	}
+	if dir := ctx.Value(certDirectoryPathCtxKey{}); dir != nil {
+		os.RemoveAll(dir.(string))
+	}
+	if dir := ctx.Value(htpasswdDirectoryPathCtxKey{}); dir != nil {
+		os.RemoveAll(dir.(string))
+	}
+	if dir := ctx.Value(dockerConfigDirectoryPathCtxKey{}); dir != nil {
+		os.RemoveAll(dir.(string))
+	}
+	return ctx, err
+}
+
+func cleanDockerResources(ctx context.Context, sc *godog.Scenario, err error) (context.Context, error) {
+	resources, ok := ctx.Value(dockerResourcesCtxKey{}).([]*dockertest.Resource)
+
+	// Resource list was probably empty, skip
+	if !ok {
+		return ctx, err
+	}
+
+	for _, resource := range resources {
+		err := resource.Close()
+		if err != nil {
+			return ctx, err
+		}
+	}
+	return ctx, err
+}
 
 func aProjectDirectory(ctx context.Context) (context.Context, error) {
 	dir, err := os.MkdirTemp("", "jalapeno-test-project")
@@ -69,25 +179,72 @@ func aRecipeThatGeneratesFile(ctx context.Context, recipe, filename string) (con
 	return context.WithValue(ctx, recipesDirectoryPathCtxKey{}, dir), nil
 }
 
-func iExecuteRecipe(ctx context.Context, recipe string) (context.Context, error) {
-	projectDir := ctx.Value(projectDirectoryPathCtxKey{}).(string)
-	recipesDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
-
-	cmd, cmdStdOut, cmdStdErr := WrapCmdOutputs(newExecuteCmd)
-
-	cmd.SetArgs([]string{filepath.Join(recipesDir, recipe)})
-	if err := cmd.Flags().Set("output", projectDir); err != nil {
+func aLocalOCIRegistry(ctx context.Context) (context.Context, error) {
+	resource, err := createLocalRegistry(&dockertest.RunOptions{Repository: "registry", Tag: "2"})
+	if err != nil {
 		return ctx, err
 	}
 
-	if err := cmd.Execute(); err != nil {
-		return ctx, err
-	}
-
-	ctx = context.WithValue(ctx, cmdStdOutCtxKey{}, cmdStdOut.String())
-	ctx = context.WithValue(ctx, cmdStdErrCtxKey{}, cmdStdErr.String())
+	ctx = context.WithValue(ctx, ociRegistryCtxKey{}, OCIRegistry{Resource: resource})
+	ctx = addDockerResourceToContext(ctx, resource)
 
 	return ctx, nil
+}
+
+func aLocalOCIRegistryWithAuth(ctx context.Context) (context.Context, error) {
+	ctx, err := generateTLSCertificate(ctx)
+	if err != nil {
+		return ctx, err
+	}
+
+	ctx, err = generateHtpasswdFile(ctx)
+	if err != nil {
+		return ctx, err
+	}
+
+	resource, err := createLocalRegistry(&dockertest.RunOptions{
+		Repository: "registry",
+		Tag:        "2",
+		Env: []string{
+			"REGISTRY_AUTH_HTPASSWD_REALM=jalapeno-test-realm",
+			fmt.Sprintf("REGISTRY_AUTH_HTPASSWD_PATH=/auth/%s", HTPASSWD_FILENAME),
+			fmt.Sprintf("REGISTRY_HTTP_TLS_CERTIFICATE=/etc/ssl/private/%s", TLS_CERTIFICATE_FILENAME),
+			fmt.Sprintf("REGISTRY_HTTP_TLS_KEY=/etc/ssl/private/%s", TLS_KEY_FILENAME),
+		},
+		Mounts: []string{
+			fmt.Sprintf("%s:/etc/ssl/private", ctx.Value(certDirectoryPathCtxKey{}).(string)),
+			fmt.Sprintf("%s:/auth", ctx.Value(htpasswdDirectoryPathCtxKey{}).(string)),
+		},
+	})
+	if err != nil {
+		return ctx, err
+	}
+
+	ctx = context.WithValue(ctx, ociRegistryCtxKey{}, OCIRegistry{TLSEnabled: true, AuthEnabled: true, Resource: resource})
+	ctx = addDockerResourceToContext(ctx, resource)
+
+	return ctx, nil
+}
+
+func credentialsAreNotProvidedByTheCommand(ctx context.Context) (context.Context, error) {
+	registry := ctx.Value(ociRegistryCtxKey{}).(OCIRegistry)
+	registry.AuthEnabled = false
+
+	return context.WithValue(ctx, ociRegistryCtxKey{}, registry), nil
+}
+
+func theRecipesDirectoryShouldContainRecipe(ctx context.Context, recipeName string) error {
+	recipesDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
+	re, err := recipe.Load(filepath.Join(recipesDir, recipeName))
+	if err != nil {
+		return err
+	}
+
+	if re.Name != recipeName {
+		return fmt.Errorf("recipe name was \"%s\", expected \"%s\"", re.Name, recipeName)
+	}
+
+	return nil
 }
 
 func theProjectDirectoryShouldContainFile(ctx context.Context, filename string) error {
@@ -97,69 +254,6 @@ func theProjectDirectoryShouldContainFile(ctx context.Context, filename string) 
 		return fmt.Errorf("%s is not a regular file", filename)
 	}
 	return err
-}
-
-func cleanTempDirs(ctx context.Context, sc *godog.Scenario, err error) (context.Context, error) {
-	if dir := ctx.Value(projectDirectoryPathCtxKey{}); dir != nil {
-		os.RemoveAll(dir.(string))
-	}
-	if dir := ctx.Value(recipesDirectoryPathCtxKey{}); dir != nil {
-		os.RemoveAll(dir.(string))
-	}
-	return ctx, err
-}
-
-func executionOfTheRecipeHasSucceeded(ctx context.Context) (context.Context, error) {
-	cmdStdOut := ctx.Value(cmdStdOutCtxKey{}).(string)
-	cmdStdErr := ctx.Value(cmdStdErrCtxKey{}).(string)
-	if matched, _ := regexp.MatchString("Recipe executed successfully", cmdStdOut); !matched {
-		return ctx, fmt.Errorf("Recipe failed to execute!\nstdout:\n%s\n\nstderr:\n%s\n", cmdStdOut, cmdStdErr)
-	}
-	return ctx, nil
-}
-
-func executionOfTheRecipeHasFailedWithError(ctx context.Context, errorMessage string) (context.Context, error) {
-	cmdStdOut := ctx.Value(cmdStdOutCtxKey{}).(string)
-	cmdStdErr := ctx.Value(cmdStdErrCtxKey{}).(string)
-	if matched, _ := regexp.MatchString(errorMessage, cmdStdErr); !matched {
-		return ctx, fmt.Errorf("'%s' not found in stderr.\nstdout:\n%s\n\nstderr:\n%s\n", errorMessage, cmdStdOut, cmdStdErr)
-	}
-	return ctx, nil
-}
-
-func iChangeRecipeToVersion(ctx context.Context, recipeName, version string) (context.Context, error) {
-	recipesDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
-	recipeFile := filepath.Join(recipesDir, recipeName, "recipe.yml")
-	recipeData, err := os.ReadFile(recipeFile)
-	if err != nil {
-		return ctx, err
-	}
-
-	newData := strings.Replace(string(recipeData), "v0.0.1", version, 1)
-
-	if err := os.WriteFile(filepath.Join(recipesDir, recipeName, "recipe.yml"), []byte(newData), 0644); err != nil {
-		return ctx, err
-	}
-
-	return ctx, nil
-}
-
-func iUpgradeRecipe(ctx context.Context, recipe string) (context.Context, error) {
-	recipesDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
-	projectDir := ctx.Value(projectDirectoryPathCtxKey{}).(string)
-
-	cmd, cmdStdOut, cmdStdErr := WrapCmdOutputs(newUpgradeCmd)
-
-	cmd.SetArgs([]string{projectDir, filepath.Join(recipesDir, recipe)})
-
-	if err := cmd.Execute(); err != nil {
-		return ctx, err
-	}
-
-	ctx = context.WithValue(ctx, cmdStdOutCtxKey{}, cmdStdOut.String())
-	ctx = context.WithValue(ctx, cmdStdErrCtxKey{}, cmdStdErr.String())
-
-	return ctx, nil
 }
 
 func theProjectDirectoryShouldContainFileWith(ctx context.Context, filename, searchTerm string) error {
@@ -198,41 +292,6 @@ func recipeIgnoresPattern(ctx context.Context, recipeName, pattern string) (cont
 	return ctx, nil
 }
 
-func iChangeProjectFileToContain(ctx context.Context, filename, content string) (context.Context, error) {
-	projectDir := ctx.Value(projectDirectoryPathCtxKey{}).(string)
-	if err := os.WriteFile(filepath.Join(projectDir, filename), []byte(content), 0644); err != nil {
-		return ctx, err
-	}
-	return ctx, nil
-}
-
-func noConflictsWereReported(ctx context.Context) (context.Context, error) {
-	cmdStdOut := ctx.Value(cmdStdOutCtxKey{}).(string)
-	cmdStdErr := ctx.Value(cmdStdErrCtxKey{}).(string)
-	if matched, _ := regexp.MatchString("modified", cmdStdOut); matched {
-		return ctx, fmt.Errorf("Conflict in recipe\nstdout:\n%s\n\nstderr:\n%s\n", cmdStdOut, cmdStdErr)
-	}
-	return ctx, nil
-}
-
-func conflictsAreReported(ctx context.Context) (context.Context, error) {
-	cmdStdOut := ctx.Value(cmdStdOutCtxKey{}).(string)
-	cmdStdErr := ctx.Value(cmdStdErrCtxKey{}).(string)
-	if matched, _ := regexp.MatchString("modified", cmdStdOut); matched {
-		return ctx, nil
-	}
-	return ctx, fmt.Errorf("Expecting conflicts in recipe but none reported\nstdout:\n%s\n\nstderr:\n%s\n", cmdStdOut, cmdStdErr)
-}
-
-func iChangeRecipeTemplateToRender(ctx context.Context, recipeName, filename, content string) (context.Context, error) {
-	recipesDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
-	templateFilePath := filepath.Join(recipesDir, recipeName, "templates", filename)
-	if err := os.WriteFile(templateFilePath, []byte(content), 0644); err != nil {
-		return ctx, err
-	}
-	return ctx, nil
-}
-
 func noErrorsWerePrinted(ctx context.Context) (context.Context, error) {
 	cmdStdErr := ctx.Value(cmdStdErrCtxKey{}).(string)
 	if len(cmdStdErr) != 0 {
@@ -241,42 +300,152 @@ func noErrorsWerePrinted(ctx context.Context) (context.Context, error) {
 	return ctx, nil
 }
 
-func TestFeatures(t *testing.T) {
-	suite := godog.TestSuite{
-		ScenarioInitializer: func(s *godog.ScenarioContext) {
-			s.Step(`^a project directory$`, aProjectDirectory)
-			s.Step(`^a recipes directory$`, aRecipesDirectory)
-			s.Step(`^a recipe "([^"]*)" that generates file "([^"]*)"$`, aRecipeThatGeneratesFile)
-			s.Step(`^I execute recipe "([^"]*)"$`, iExecuteRecipe)
-			s.Step(`^the project directory should contain file "([^"]*)"$`, theProjectDirectoryShouldContainFile)
-			s.Step(`^the project directory should contain file "([^"]*)" with "([^"]*)"$`, theProjectDirectoryShouldContainFileWith)
-			s.Step(`^execution of the recipe has succeeded$`, executionOfTheRecipeHasSucceeded)
-			s.Step(`^execution of the recipe has failed with error "([^"]*)"$`, executionOfTheRecipeHasFailedWithError)
-			s.Step(`^I change recipe "([^"]*)" to version "([^"]*)"$`, iChangeRecipeToVersion)
-			s.Step(`^I upgrade recipe "([^"]*)"$`, iUpgradeRecipe)
-			s.Step(`^recipe "([^"]*)" ignores pattern "([^"]*)"$`, recipeIgnoresPattern)
-			s.Step(`^I change project file "([^"]*)" to contain "([^"]*)"$`, iChangeProjectFileToContain)
-			s.Step(`^no conflicts were reported$`, noConflictsWereReported)
-			s.Step(`^conflicts are reported$`, conflictsAreReported)
-			s.Step(`^I change recipe "([^"]*)" template "([^"]*)" to render "([^"]*)"$`, iChangeRecipeTemplateToRender)
-			s.Step(`^no errors were printed$`, noErrorsWerePrinted)
-			s.After(cleanTempDirs)
-		},
-		Options: &godog.Options{
-			Format:   "pretty",
-			Paths:    []string{"../features"},
-			TestingT: t, // Testing instance that will run subtests.
-		},
+// UTILS
+
+func createLocalRegistry(opts *dockertest.RunOptions) (*dockertest.Resource, error) {
+	pool, err := dockertest.NewPool("")
+	if err != nil {
+		return nil, fmt.Errorf("could not construct pool: %w", err)
 	}
 
-	if suite.Run() != 0 {
-		t.Fatal("non-zero status returned, failed to run feature tests")
+	// uses pool to try to connect to Docker
+	err = pool.Client.Ping()
+	if err != nil {
+		return nil, fmt.Errorf("could not connect to Docker: %s", err)
 	}
+
+	resource, err := pool.RunWithOptions(opts)
+	if err != nil {
+		return nil, fmt.Errorf("could not start resource: %s", err)
+	}
+
+	host := resource.GetHostPort("5000/tcp")
+
+	pool.MaxWait = 30 * time.Second
+	if err = pool.Retry(func() error {
+		_, err := pool.Client.HTTPClient.Get(fmt.Sprintf("http://%s/v2/", host))
+		return err
+	}); err != nil {
+		return nil, fmt.Errorf("could not connect to docker: %s", err)
+	}
+
+	// Even though we check if the registry is ready, running tests immediately causes EOF errors to happen.
+	// So we need to wait a bit more to registry to be ready.
+	time.Sleep(100 * time.Millisecond)
+
+	err = resource.Expire(60) // If the cleanup fails, this will stop the container eventually
+	if err != nil {
+		return nil, err
+	}
+
+	return resource, nil
 }
 
-func TestExampleRecipe(t *testing.T) {
-	recipe := createExampleRecipe("foo")
-	if err := recipe.Validate(); err != nil {
-		t.Errorf("failed to validate the example recipe: %s", err)
+func addDockerResourceToContext(ctx context.Context, resource *dockertest.Resource) context.Context {
+	resources, ok := ctx.Value(dockerResourcesCtxKey{}).([]*dockertest.Resource)
+	if !ok {
+		resources = make([]*dockertest.Resource, 0)
 	}
+
+	return context.WithValue(ctx, dockerResourcesCtxKey{}, append(resources, resource))
+}
+
+func generateTLSCertificate(ctx context.Context) (context.Context, error) {
+	priv, err := ecdsa.GenerateKey(elliptic.P521(), rand.Reader)
+	if err != nil {
+		return ctx, err
+	}
+	template := x509.Certificate{
+		SerialNumber: big.NewInt(1),
+		Subject: pkix.Name{
+			Organization: []string{"Acme Co"},
+		},
+		NotBefore: time.Now(),
+		NotAfter:  time.Now().Add(time.Hour * 24 * 180),
+
+		KeyUsage:              x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature,
+		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
+		BasicConstraintsValid: true,
+	}
+
+	derBytes, err := x509.CreateCertificate(rand.Reader, &template, &template, &priv.PublicKey, priv)
+	if err != nil {
+		return ctx, err
+	}
+
+	dir, err := os.MkdirTemp("", "jalapeno-test-certs")
+	if err != nil {
+		return ctx, err
+	}
+
+	cert := &bytes.Buffer{}
+	err = pem.Encode(cert, &pem.Block{Type: "CERTIFICATE", Bytes: derBytes})
+	if err != nil {
+		return ctx, err
+	}
+
+	err = os.WriteFile(filepath.Join(dir, TLS_CERTIFICATE_FILENAME), cert.Bytes(), 0666)
+	if err != nil {
+		return ctx, err
+	}
+
+	key := &bytes.Buffer{}
+	b, _ := x509.MarshalECPrivateKey(priv)
+	err = pem.Encode(key, &pem.Block{Type: "EC PRIVATE KEY", Bytes: b})
+	if err != nil {
+		return ctx, err
+	}
+
+	err = os.WriteFile(filepath.Join(dir, TLS_KEY_FILENAME), key.Bytes(), 0666)
+	if err != nil {
+		return ctx, err
+	}
+
+	return context.WithValue(ctx, certDirectoryPathCtxKey{}, dir), nil
+}
+
+func generateHtpasswdFile(ctx context.Context) (context.Context, error) {
+	dir, err := os.MkdirTemp("", "jalapeno-test-htpasswd")
+	if err != nil {
+		return ctx, err
+	}
+
+	// Created with `docker run --entrypoint htpasswd httpd:2 -Bbn foo bar`
+	contents := "foo:$2y$05$fHux.x9qjOuYmARV5AXPpuNnph95rssj5tsIeMynjL1O7jj43YMrW\n" // foo:bar
+	err = os.WriteFile(filepath.Join(dir, HTPASSWD_FILENAME), []byte(contents), 0666)
+	if err != nil {
+		return ctx, err
+	}
+
+	return context.WithValue(ctx, htpasswdDirectoryPathCtxKey{}, dir), nil
+}
+
+func generateDockerConfigFile(ctx context.Context) (context.Context, error) {
+	registry := ctx.Value(ociRegistryCtxKey{}).(OCIRegistry)
+	dir, err := os.MkdirTemp("", "jalapeno-test-docker-config")
+	if err != nil {
+		return ctx, err
+	}
+
+	contents := fmt.Sprintf(`{"auths":{"https://%s/v2/":{"auth":"Zm9vOmJhcg=="}}}`, registry.Resource.GetHostPort("5000/tcp"))
+	err = os.WriteFile(filepath.Join(dir, DOCKER_CONFIG_FILENAME), []byte(contents), 0666)
+	if err != nil {
+		return ctx, err
+	}
+
+	return context.WithValue(ctx, dockerConfigDirectoryPathCtxKey{}, dir), nil
+}
+
+func generateDockerConfigFileAndSetDefaultConfig(ctx context.Context) (context.Context, error) {
+	ctx, err := generateDockerConfigFile(ctx)
+	if err != nil {
+		return ctx, err
+	}
+
+	err = os.Setenv("DOCKER_CONFIG", ctx.Value(dockerConfigDirectoryPathCtxKey{}).(string))
+	if err != nil {
+		return ctx, err
+	}
+
+	return ctx, nil
 }
