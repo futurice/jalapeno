@@ -3,7 +3,7 @@ data "azurerm_resource_group" "main" {
 }
 
 resource "azurerm_storage_account" "tfstate" {
-  name                     = "{{ (printf "tfs%.11s%.6s" (regexReplaceAll "[^a-z0-9]" (.Variables.SERVICE_NAME | lower) "") (randNumeric 6)) }}${terraform.workspace}"
+  name                     = "{{ (printf "tfs%.11s%.6s" (regexReplaceAll "[^a-z0-9]" (.Variables.SERVICE_NAME | lower) "") (sha1sum .Recipe.Anchor)) }}${terraform.workspace}"
   resource_group_name      = data.azurerm_resource_group.main.name
   location                 = data.azurerm_resource_group.main.location
   account_tier             = "Standard"
