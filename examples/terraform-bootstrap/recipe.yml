@@ -4,15 +4,16 @@ version: v0.0.1
 description: Set up Terraform basics like state file bootstrapping
 initHelp: Install Task from https://taskfile.dev and run `task tf-state-init -- dev` in the 'terraform' subdirectory of the project directory to set up terraform.
 vars:
-  - name: SERVICE_NAME
-    description: Service name
-  - name: RESOURCE_GROUP_NAME
-    description: Azure Resource Group name
-    regexp:
-      pattern: "^[a-zA-Z0-9_.()-]{0,89}[a-zA-Z0-9_()-]$"
-      help: Valid resource group names consist of 1-90 underscores, hyphens, periods, parentheses, and letters or digits, and the last character cannot be a period.
   - name: ENVIRONMENTS
     description: Comma-separated list of environments to create, e.g. "dev, qa, prod"
     regexp:
       pattern: "^[a-zA-Z0-9_.()-]+(,\\s*[a-zA-Z0-9_.()-]+)*$"
       help: Please enter a comma-separated list of environment names where names consist of letters, digits, underscrores, hyphens, periods or parentheses.
+  - name: SERVICE_NAME
+    description: Service name
+  - name: RESOURCE_GROUP_NAMES
+    description: Comma-separated list of Azure Resource Group name for each environment
+    # TODO: Validate comma separated list of names
+    # regexp:
+    #   pattern: "^[a-zA-Z0-9_.()-]{0,89}[a-zA-Z0-9_()-]$"
+    #   help: Valid resource group names consist of 1-90 underscores, hyphens, periods, parentheses, and letters or digits, and the last character cannot be a period.

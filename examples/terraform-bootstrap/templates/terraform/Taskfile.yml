@@ -1,15 +1,42 @@
 version: "3"
 
 tasks:
-  tf-state-init:
+  init:
+    deps: [az:login]
     cmds: # TODO: loop over this to create all envs (ask user what envs to create)
       - terraform init
       - terraform workspace new {{ `{{.CLI_ARGS}}` }}
-      - terraform apply -target azurerm_storage_account.tfstate -auto-approve -input=false
-      - echo "access_key=\"$(az storage account keys list --resource-group {{ .Variables.RESOURCE_GROUP_NAME }} --account-name $(terraform output -raw tfstate_storage_account_name) --query '[0].value' --output tsv)\"" > terraform-backend.config
-      - terraform apply -target local_file.backend_config -auto-approve -input=false
-      - terraform init -migrate-state -force-copy -backend-config="key=tfstate_" -backend-config="terraform-backend.config"
+      - >-
+        terraform apply
+        -target azurerm_storage_container.tfstate
+        -target azurerm_role_assignment.tfstate
+        -auto-approve
+        -input=false
+      # Save output values to variables before migrating the backend
+      - >-
+        RESOURCE_GROUP_NAME=$(terraform output -raw resource_group_name);
+        STORAGE_ACCOUNT_NAME=$(terraform output -raw tfstate_storage_account_name);
+        STORAGE_CONTAINER_NAME=$(terraform output -raw tfstate_storage_container_name);
 
+        terraform apply
+        -target local_file.backend_config
+        -auto-approve
+        -input=false;
+
+        terraform init
+        -migrate-state
+        -force-copy
+        -input=false
+        -backend-config="resource_group_name=$RESOURCE_GROUP_NAME"
+        -backend-config="storage_account_name=$STORAGE_ACCOUNT_NAME"
+        -backend-config="container_name=$STORAGE_CONTAINER_NAME"
+        -backend-config="key=tfstate_";
+      - rm -R terraform.tfstate.d # Remove local state files
+  az:login:
+    cmds:
+      - az login
+    status:
+      - az account show
 # TODO: task to delete state resources for a particular env
 # TODO: validate resource group name when prompting
-# TODO: clear out local tf stuff between different envs (so it doesn't migrate dev state to qa etc)
+# TODO: Setup CI pipeline

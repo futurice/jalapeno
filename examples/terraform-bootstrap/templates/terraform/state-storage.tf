@@ -1,5 +1,20 @@
+{{ $environments := splitList "," .Variables.ENVIRONMENTS }}
+{{ $resource_groups := splitList "," .Variables.RESOURCE_GROUP_NAMES }}
+
+locals {
+  resource_groups = {
+    {{- range $index, $env := $environments }}
+    {{ $env | quote }}: {{ (index $resource_groups $index) | quote }}
+    {{- end }}
+    "default": {{ (index $resource_groups 0) | quote }}
+  }
+}
+
+data "azurerm_client_config" "current" {
+}
+
 data "azurerm_resource_group" "main" {
-  name     = {{ quote .Variables.RESOURCE_GROUP_NAME }}
+  name     = local.resource_groups[terraform.workspace]
 }
 
 resource "azurerm_storage_account" "tfstate" {
@@ -12,7 +27,6 @@ resource "azurerm_storage_account" "tfstate" {
 }
 
 #
-# TODO: "anchor" / "id" in rendered recipe (generated when executed, somehow uniquely identifies recipe + project combo)
 # TODO: family of stableRandomX helper functions for sprig where they always give the same value for the same id, e.g. "gimme 6 random alphanumeric characters that don't change on recipe upgrade"
 
 resource "azurerm_storage_container" "tfstate" {
@@ -20,18 +34,19 @@ resource "azurerm_storage_container" "tfstate" {
   storage_account_name  = azurerm_storage_account.tfstate.name
 }
 
+resource "azurerm_role_assignment" "tfstate" {
+  scope                = azurerm_storage_container.tfstate.resource_manager_id
+  role_definition_name = "Storage Blob Data Owner"
+  principal_id         = data.azurerm_client_config.current.object_id
+}
+
 resource "local_file" "backend_config" {
   filename = "backend.tf"
   content = <<-EOT
 terraform {
 	backend "azurerm" {
-		storage_account_name = "${azurerm_storage_account.tfstate.name}"
-		container_name = "${azurerm_storage_container.tfstate.name}"
+    use_azuread_auth = true
 	}
 }
 EOT
-}
-
-output "tfstate_storage_account_name" {
-  value = azurerm_storage_account.tfstate.name
 }
