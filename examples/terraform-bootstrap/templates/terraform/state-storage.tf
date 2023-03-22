@@ -1,5 +1,5 @@
-{{ $environments := splitList "," .Variables.ENVIRONMENTS }}
-{{ $resource_groups := splitList "," .Variables.RESOURCE_GROUP_NAMES }}
+{{- $environments := splitList "," .Variables.ENVIRONMENTS }}
+{{- $resource_groups := splitList "," .Variables.RESOURCE_GROUP_NAMES -}}
 
 locals {
   resource_groups = {
