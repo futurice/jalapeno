@@ -31,7 +31,7 @@ tasks:
         -backend-config="storage_account_name=$STORAGE_ACCOUNT_NAME"
         -backend-config="container_name=$STORAGE_CONTAINER_NAME"
         -backend-config="key=tfstate_";
-      - rm -R terraform.tfstate.d # Remove local state files
+      - rm -Rf terraform.tfstate.d # Remove local state files
   az:login:
     cmds:
       - az login
