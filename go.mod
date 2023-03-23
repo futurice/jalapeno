@@ -1,22 +1,22 @@
 module github.com/futurice/jalapeno
 
-go 1.19
+go 1.20
 
 require (
 	github.com/AlecAivazis/survey/v2 v2.3.6
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/cucumber/godog v0.12.6
+	github.com/docker/cli v23.0.0+incompatible
 	github.com/go-yaml/yaml v2.1.0+incompatible
 	github.com/opencontainers/image-spec v1.1.0-rc2
 	github.com/spf13/cobra v1.6.1
 	golang.org/x/mod v0.8.0
-	oras.land/oras-go/v2 v2.0.0
+	oras.land/oras-go/v2 v2.0.2
 )
 
 require (
 	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
 	github.com/creack/pty v1.1.18 // indirect
-	github.com/docker/cli v23.0.0+incompatible // indirect
 	github.com/docker/docker v23.0.0+incompatible // indirect
 	github.com/docker/docker-credential-helpers v0.7.0 // indirect
 	github.com/gotestyourself/gotestyourself v2.2.0+incompatible // indirect
@@ -25,7 +25,7 @@ require (
 	github.com/stretchr/testify v1.8.1 // indirect
 	golang.org/x/sync v0.1.0 // indirect
 	gotest.tools v2.2.0+incompatible // indirect
-	oras.land/oras v0.16.0 // indirect
+	gotest.tools/v3 v3.4.0 // indirect
 )
 
 require (

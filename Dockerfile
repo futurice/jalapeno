@@ -1,4 +1,4 @@
-FROM golang:1.19 AS build
+FROM golang:1.20 AS build
 
 ARG taskfileVersion="3.20.0"
 ARG taskfileChecksum="75cd08890ff18f6036255c7630aa17f9ea81bd6b6166747a3913bbb1cff1357c"
