@@ -4,16 +4,15 @@ version: "3"
 tasks:
   init:
     cmds: # TODO: loop over this to create all envs (ask user what envs to create)
-      - terraform init
       {{- range $index, $env := $environments }}
       - task: init:environment
         vars:
           environment: {{ $env | quote }}
       {{- end }}
-      - rm -Rf terraform.tfstate.d # Remove local state files
   init:environment:
     deps: [az:login]
     cmds:
+      - terraform init
       - terraform workspace new {{ `{{.environment}}` }}
       - >-
         terraform apply
@@ -40,6 +39,7 @@ tasks:
         -backend-config="storage_account_name=$STORAGE_ACCOUNT_NAME"
         -backend-config="container_name=$STORAGE_CONTAINER_NAME"
         -backend-config="key=tfstate_";
+      - rm -Rf terraform.tfstate.d # Remove local state files
   az:login:
     cmds:
       - az login
