@@ -3,7 +3,7 @@ version: "3"
 
 tasks:
   init:
-    cmds: # TODO: loop over this to create all envs (ask user what envs to create)
+    cmds:
       {{- range $index, $env := $environments }}
       - task: init:environment
         vars:
@@ -12,7 +12,7 @@ tasks:
   init:environment:
     deps: [az:login]
     cmds:
-      - rm -Rf .terraform/terraform.tfstate backend.tf # Remove backend config
+      - rm -Rf .terraform/terraform.tfstate backend.tf # Remove backend from previous run
       - terraform init
       - terraform workspace new {{ `{{.environment}}` }}
       - >-
