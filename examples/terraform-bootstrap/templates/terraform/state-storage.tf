@@ -41,9 +41,9 @@ resource "local_file" "backend_config" {
   filename = "backend.tf"
   content = <<-EOT
 terraform {
-	backend "azurerm" {
+  backend "azurerm" {
     use_azuread_auth = true
-	}
+  }
 }
 EOT
 }
