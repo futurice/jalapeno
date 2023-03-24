@@ -3,7 +3,6 @@ version: "3"
 
 tasks:
   init:
-    deps: [az:login]
     cmds: # TODO: loop over this to create all envs (ask user what envs to create)
       - terraform init
       {{- range $index, $env := $environments }}
