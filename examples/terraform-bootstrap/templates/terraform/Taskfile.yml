@@ -11,7 +11,7 @@ tasks:
           environment: {{ $env | quote }}
       {{- end }}
       - rm -Rf terraform.tfstate.d # Remove local state files
-  init:environment
+  init:environment:
     deps: [az:login]
     cmds:
       - terraform workspace new {{ `{{.environment}}` }}
