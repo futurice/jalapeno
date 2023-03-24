@@ -12,6 +12,7 @@ tasks:
   init:environment:
     deps: [az:login]
     cmds:
+      - rm -Rf .terraform/terraform.tfstate backend.tf # Remove backend config
       - terraform init
       - terraform workspace new {{ `{{.environment}}` }}
       - >-
