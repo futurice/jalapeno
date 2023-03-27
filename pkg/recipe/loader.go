@@ -32,7 +32,7 @@ func Load(path string) (*Recipe, error) {
 		return nil, err
 	}
 
-	recipe := &Recipe{}
+	recipe := new()
 	err = yaml.Unmarshal(dat, recipe)
 	if err != nil {
 		return nil, err
@@ -79,8 +79,8 @@ func Load(path string) (*Recipe, error) {
 
 // Load recipes which already have been rendered. Always loads
 // all recipes.
-func LoadRendered(projectDir string) ([]Recipe, error) {
-	var recipes []Recipe
+func LoadRendered(projectDir string) ([]*Recipe, error) {
+	var recipes []*Recipe
 
 	recipeFile := filepath.Join(projectDir, RenderedRecipeDirName, RecipeFileName)
 	if _, err := os.Stat(recipeFile); err != nil {
@@ -97,7 +97,7 @@ func LoadRendered(projectDir string) ([]Recipe, error) {
 
 	decoder := yaml.NewDecoder(bytes.NewReader(recipedata))
 	for {
-		recipe := Recipe{}
+		recipe := new()
 		if err := decoder.Decode(&recipe); err != nil {
 			if err != io.EOF {
 				return nil, fmt.Errorf("failed to decode recipe: %w", err)

@@ -20,14 +20,14 @@ func (re *Recipe) Save(dest string) error {
 	for i, prev := range recipes {
 		if re.Name == prev.Name {
 			// found by name
-			recipes[i] = *re
+			recipes[i] = re
 			added = true
 			break
 		}
 	}
 	if !added {
 		// we hit the end, append
-		recipes = append(recipes, *re)
+		recipes = append(recipes, re)
 	}
 
 	if err := os.MkdirAll(filepath.Join(dest, RenderedRecipeDirName), 0755); err != nil {

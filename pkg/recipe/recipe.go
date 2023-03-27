@@ -4,6 +4,8 @@ import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
+
+	"github.com/futurice/jalapeno/pkg/engine"
 )
 
 type File struct {
@@ -17,10 +19,18 @@ type Recipe struct {
 	Values    VariableValues    `yaml:"values,omitempty"`
 	Files     map[string]File   `yaml:"files,omitempty"`
 	Templates map[string][]byte `yaml:"-"`
+	tests     []Test
+	engine    RenderEngine
 }
 
 type RenderEngine interface {
-	Render(recipe *Recipe, values map[string]interface{}) (map[string][]byte, error)
+	Render(templates map[string][]byte, values map[string]interface{}) (map[string][]byte, error)
+}
+
+func new() *Recipe {
+	return &Recipe{
+		engine: engine.Engine{},
+	}
 }
 
 func (re *Recipe) Validate() error {
@@ -43,11 +53,25 @@ func (re *Recipe) Validate() error {
 		checkDuplicates[v.Name] = true
 	}
 
+	for _, t := range re.tests {
+		if err := t.Validate(); err != nil {
+			return fmt.Errorf("error when validating recipe test case %s: %w", t.Name, err)
+		}
+	}
+
 	return nil
 }
 
+func (re *Recipe) SetEngine(e RenderEngine) {
+	re.engine = e
+}
+
 // Renders recipe templates from .Templates to .Files
-func (re *Recipe) Render(engine RenderEngine) error {
+func (re *Recipe) Render() error {
+	if re.engine == nil {
+		return errors.New("render engine has not been set")
+	}
+
 	// Define the context which is available on templates
 	context := map[string]interface{}{
 		"Recipe":    re.Metadata,
@@ -55,7 +79,7 @@ func (re *Recipe) Render(engine RenderEngine) error {
 	}
 
 	var err error
-	files, err := engine.Render(re, context)
+	files, err := re.engine.Render(re.Templates, context)
 	if err != nil {
 		return err
 	}
@@ -100,4 +124,9 @@ func (re *Recipe) Conflicts(other *Recipe) []RecipeConflict {
 		}
 	}
 	return conflicts
+}
+
+// Check if the recipe conflicts with another recipe. Recipes conflict if they touch the same files.
+func (re *Recipe) Test() error {
+	return nil
 }

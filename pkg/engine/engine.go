@@ -5,26 +5,18 @@ import (
 	"fmt"
 	"strings"
 	"text/template"
-
-	"github.com/futurice/jalapeno/pkg/recipe"
 )
 
 type Engine struct {
 }
 
-var _ recipe.RenderEngine = Engine{}
-
-func Render(recipe *recipe.Recipe, values map[string]interface{}) (map[string][]byte, error) {
-	return new(Engine).Render(recipe, values)
-}
-
-func (e Engine) Render(r *recipe.Recipe, values map[string]interface{}) (map[string][]byte, error) {
+func (e Engine) Render(templates map[string][]byte, values map[string]interface{}) (map[string][]byte, error) {
 	t := template.New("gotpl")
 	t.Funcs(funcMap())
 
 	rendered := make(map[string][]byte)
 
-	for name, data := range r.Templates {
+	for name, data := range templates {
 		_, err := t.New(name).Parse(string(data))
 		if err != nil {
 			// TODO: Inner error message includes prefix "template: ", which does not good when printing this error

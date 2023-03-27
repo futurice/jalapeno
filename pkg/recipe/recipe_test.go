@@ -12,12 +12,12 @@ type TestRenderEngine struct{}
 
 var _ RenderEngine = TestRenderEngine{}
 
-func (e TestRenderEngine) Render(r *Recipe, values map[string]interface{}) (map[string][]byte, error) {
+func (e TestRenderEngine) Render(templates map[string][]byte, values map[string]interface{}) (map[string][]byte, error) {
 	t := template.New("gotpl")
 	t.Funcs(sprig.TxtFuncMap())
 	rendered := make(map[string][]byte)
 
-	for name, data := range r.Templates {
+	for name, data := range templates {
 		if _, err := t.New(name).Parse(string(data)); err != nil {
 			return nil, err
 		}
@@ -48,7 +48,9 @@ func TestRecipeRenderChecksums(t *testing.T) {
 		},
 	}
 
-	if err := recipe.Render(TestRenderEngine{}); err != nil {
+	recipe.SetEngine(TestRenderEngine{})
+
+	if err := recipe.Render(); err != nil {
 		t.Error("Failed to render recipe", err)
 	}
 

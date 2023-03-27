@@ -4,7 +4,6 @@ import (
 	"os"
 
 	"github.com/futurice/jalapeno/cmd/internal/option"
-	"github.com/futurice/jalapeno/pkg/engine"
 	"github.com/futurice/jalapeno/pkg/recipe"
 	"github.com/futurice/jalapeno/pkg/recipeutil"
 	"github.com/spf13/cobra"
@@ -66,7 +65,7 @@ func runExecute(cmd *cobra.Command, opts executeOptions) {
 		return
 	}
 
-	err = re.Render(engine.Engine{})
+	err = re.Render()
 	if err != nil {
 		cmd.PrintErrln(err)
 		return
@@ -81,7 +80,7 @@ func runExecute(cmd *cobra.Command, opts executeOptions) {
 
 	// Check for conflicts
 	for _, r := range rendered {
-		conflicts := re.Conflicts(&r)
+		conflicts := re.Conflicts(r)
 		if conflicts != nil {
 			cmd.PrintErrf("conflict in recipe %s: %s was already created by recipe %s\n", re.Name, conflicts[0].Path, r.Name)
 			return

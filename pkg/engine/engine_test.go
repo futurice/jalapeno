@@ -3,19 +3,11 @@ package engine
 import (
 	"bytes"
 	"testing"
-
-	"github.com/futurice/jalapeno/pkg/recipe"
 )
 
 func TestRender(t *testing.T) {
-	c := &recipe.Recipe{
-		Metadata: recipe.Metadata{
-			Name:    "test-render",
-			Version: "1.2.3",
-		},
-		Templates: map[string][]byte{
-			"templates/test1": []byte("{{.var1 | title }} {{.var2 | title}}"),
-		},
+	templates := map[string][]byte{
+		"templates/test1": []byte("{{.var1 | title }} {{.var2 | title}}"),
 	}
 
 	vals := map[string]interface{}{
@@ -23,7 +15,7 @@ func TestRender(t *testing.T) {
 		"var2": "second",
 	}
 
-	out, err := Render(c, vals)
+	out, err := new(Engine).Render(templates, vals)
 
 	if err != nil {
 		t.Errorf("Failed to render templates: %s", err)

@@ -9,7 +9,6 @@ import (
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/futurice/jalapeno/cmd/internal/option"
-	"github.com/futurice/jalapeno/pkg/engine"
 	"github.com/futurice/jalapeno/pkg/recipe"
 	"github.com/futurice/jalapeno/pkg/recipeutil"
 	"github.com/spf13/cobra"
@@ -61,7 +60,7 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) {
 	var prevRe *recipe.Recipe
 	for _, r := range rendered {
 		if r.Name == re.Name {
-			prevRe = &r
+			prevRe = r
 			break
 		}
 	}
@@ -107,7 +106,7 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) {
 		cmd.PrintErrln(err)
 	}
 
-	err = re.Render(engine.Engine{})
+	err = re.Render()
 	if err != nil {
 		return
 	}
