@@ -19,7 +19,7 @@ const (
 	IgnoreFileName         = ".jalapenoignore"
 )
 
-// Load a recipe from a path
+// Load a recipe from a path. The function does validate the recipe before returning it
 func Load(path string) (*Recipe, error) {
 	rootDir, err := filepath.Abs(path)
 	if err != nil {
@@ -35,10 +35,6 @@ func Load(path string) (*Recipe, error) {
 	recipe := &Recipe{}
 	err = yaml.Unmarshal(dat, recipe)
 	if err != nil {
-		return nil, err
-	}
-
-	if err := recipe.Validate(); err != nil {
 		return nil, err
 	}
 
@@ -74,6 +70,10 @@ func Load(path string) (*Recipe, error) {
 
 	recipe.Templates = templates
 
+	if err := recipe.Validate(); err != nil {
+		return nil, err
+	}
+
 	return recipe, nil
 }
 
@@ -105,9 +105,6 @@ func LoadRendered(projectDir string) ([]Recipe, error) {
 			// ran out of recipe file, all yaml documents read
 			break
 		}
-		if err := recipe.Validate(); err != nil {
-			return nil, fmt.Errorf("failed to validate recipe: %w", err)
-		}
 		// read rendered files
 		for path, file := range recipe.Files {
 			data, err := os.ReadFile(filepath.Join(projectDir, path))
@@ -117,6 +114,11 @@ func LoadRendered(projectDir string) ([]Recipe, error) {
 			file.Content = data
 			recipe.Files[path] = file
 		}
+
+		if err := recipe.Validate(); err != nil {
+			return nil, fmt.Errorf("failed to validate recipe: %w", err)
+		}
+
 		recipes = append(recipes, recipe)
 	}
 

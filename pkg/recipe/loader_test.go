@@ -31,16 +31,29 @@ func TestLoadMultipleRenderedRecipes(t *testing.T) {
 		t.Error("cannot create metadata dir", err)
 	}
 
-	recipes := `
-apiVersion: v1
+	if err = os.WriteFile(filepath.Join(dir, "first.md"), []byte("# first"), 0644); err != nil {
+		t.Error("cannot write rendered template", err)
+	}
+
+	if err = os.WriteFile(filepath.Join(dir, "second.md"), []byte("# second"), 0644); err != nil {
+		t.Error("cannot write rendered template", err)
+	}
+
+	recipes := `apiVersion: v1
 name: foo
 version: v1.0.0
 description: foo recipe
+files:
+  first.md:
+    checksum: sha256:a04042ce4a5e66443c5a26ef2d4432aa535421286c062ea7bf55cba5bae15ef4
 ---
 apiVersion: v1
 name: bar
 version: v2.0.0
 description: bar recipe
+files:
+  second.md:
+    checksum: sha256:1b42293a96dbdcf36ee77dcbee6e2e2804ab085d32e6a2de7736198a0d111044
 `
 
 	if err = os.WriteFile(filepath.Join(dir, ".jalapeno", "recipe.yml"), []byte(recipes), 0644); err != nil {
@@ -49,7 +62,7 @@ description: bar recipe
 
 	loaded, err := LoadRendered(dir)
 	if err != nil {
-		t.Error("failed to load recipes", err)
+		t.Errorf("failed to load recipes: %s", err)
 	}
 	if len(loaded) != 2 {
 		t.Errorf("expected to load 2 recipes, loaded %d", len(loaded))

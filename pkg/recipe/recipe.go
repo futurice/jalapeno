@@ -28,6 +28,10 @@ func (re *Recipe) Validate() error {
 		return err
 	}
 
+	if len(re.Templates) == 0 && len(re.Files) == 0 {
+		return errors.New("the recipe does not contain any templates or rendered files")
+	}
+
 	checkDuplicates := make(map[string]bool)
 	for _, v := range re.Variables {
 		if err := v.Validate(); err != nil {
