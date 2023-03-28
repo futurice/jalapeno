@@ -51,7 +51,7 @@ func TestRecipeRenderChecksums(t *testing.T) {
 	recipe.SetEngine(TestRenderEngine{})
 
 	if err := recipe.Render(); err != nil {
-		t.Error("Failed to render recipe", err)
+		t.Errorf("Failed to render recipe: %s", err)
 	}
 
 	readme := recipe.Files["README.md"]

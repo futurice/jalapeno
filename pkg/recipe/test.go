@@ -12,7 +12,12 @@ type Test struct {
 	Files  map[string][]byte `yaml:"files"`
 }
 
-var ErrNoTestsSpecified error = errors.New("no tests specified")
+var (
+	ErrNoTestsSpecified    error = errors.New("no tests specified")
+	ErrTestWrongFileAmount       = errors.New("recipe rendered different amount of files than expected")
+	ErrTestMissingFile           = errors.New("recipe did not render file which was expected")
+	ErrTestContentMismatch       = errors.New("the contents of the files did not match")
+)
 
 func (t *Test) Validate() error {
 	// TODO
@@ -33,15 +38,15 @@ func (re *Recipe) RunTests() error {
 
 		if len(t.Files) != len(re.Files) {
 			// TODO: show which files were missing/extra
-			return fmt.Errorf("recipe rendered different amount of files than expected")
+			return ErrTestWrongFileAmount
 		}
 
 		for key, tFile := range t.Files {
 			if file, ok := re.Files[key]; !ok {
-				return fmt.Errorf("recipe does not include file '%s' which was expected in the test case", key)
+				return fmt.Errorf("%w: file '%s'", ErrTestMissingFile, key)
 			} else {
 				if !bytes.Equal(tFile, file.Content) {
-					return fmt.Errorf("contents for file '%s' did not match.\nExpected:\n%s\n\nActual:\n%s", key, tFile, file.Content)
+					return fmt.Errorf("%w: file '%s'.\nExpected:\n%s\n\nActual:\n%s", ErrTestContentMismatch, key, tFile, file.Content)
 				}
 			}
 
