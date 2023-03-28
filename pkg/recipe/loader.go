@@ -15,6 +15,7 @@ import (
 const (
 	RecipeFileName         = "recipe.yml"
 	RecipeTemplatesDirName = "templates"
+	RecipeTestsDirName     = "tests"
 	RenderedRecipeDirName  = ".jalapeno"
 	IgnoreFileName         = ".jalapenoignore"
 )
@@ -38,37 +39,15 @@ func Load(path string) (*Recipe, error) {
 		return nil, err
 	}
 
-	templates := make(map[string][]byte)
-	templatesDir := filepath.Join(rootDir, RecipeTemplatesDirName)
-
-	walk := func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-		// Continue walking if the path is directory
-		if info.IsDir() {
-			return nil
-		}
-
-		data, err := os.ReadFile(path)
-		if err != nil {
-			return err
-		}
-
-		prefix := filepath.Join(rootDir, RecipeTemplatesDirName)
-		prefix += string(filepath.Separator)
-		name := filepath.ToSlash(strings.TrimPrefix(path, prefix))
-
-		templates[name] = data
-		return nil
-	}
-
-	err = filepath.Walk(templatesDir, walk)
+	recipe.Templates, err = loadTemplates(filepath.Join(rootDir, RecipeTemplatesDirName))
 	if err != nil {
-		return recipe, err
+		return nil, err
 	}
 
-	recipe.Templates = templates
+	recipe.tests, err = loadTests(filepath.Join(rootDir, RecipeTestsDirName))
+	if err != nil {
+		return nil, err
+	}
 
 	if err := recipe.Validate(); err != nil {
 		return nil, err
@@ -123,4 +102,51 @@ func LoadRendered(projectDir string) ([]*Recipe, error) {
 	}
 
 	return recipes, nil
+}
+
+func loadTemplates(recipePath string) (map[string][]byte, error) {
+	templates := make(map[string][]byte)
+
+	walk := func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		// Continue walking if the path is directory
+		if info.IsDir() {
+			return nil
+		}
+
+		data, err := os.ReadFile(path)
+		if err != nil {
+			return err
+		}
+
+		prefix := fmt.Sprintf("%s%c", recipePath, filepath.Separator)
+		name := filepath.ToSlash(strings.TrimPrefix(path, prefix))
+
+		templates[name] = data
+		return nil
+	}
+
+	err := filepath.Walk(recipePath, walk)
+	if err != nil {
+		return nil, err
+	}
+
+	return templates, nil
+}
+
+func loadTests(path string) ([]Test, error) {
+	tests := make([]Test, 0)
+
+	// TODO
+	tests = append(tests, Test{
+		Name:   "case-1",
+		Values: VariableValues{},
+		Files: map[string][]byte{
+			"README.md": []byte("# minimal recipes, version v0.0.1"),
+		},
+	})
+
+	return tests, nil
 }
