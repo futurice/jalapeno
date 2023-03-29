@@ -27,7 +27,7 @@ func TestLoadMultipleRenderedRecipes(t *testing.T) {
 		t.Error("cannot create temp dir", err)
 	}
 
-	if err = os.MkdirAll(filepath.Join(dir, ".jalapeno"), 0755); err != nil {
+	if err = os.MkdirAll(filepath.Join(dir, RenderedRecipeDirName), 0755); err != nil {
 		t.Error("cannot create metadata dir", err)
 	}
 
@@ -56,7 +56,7 @@ files:
     checksum: sha256:1b42293a96dbdcf36ee77dcbee6e2e2804ab085d32e6a2de7736198a0d111044
 `
 
-	if err = os.WriteFile(filepath.Join(dir, ".jalapeno", "recipe.yml"), []byte(recipes), 0644); err != nil {
+	if err = os.WriteFile(filepath.Join(dir, RenderedRecipeDirName, RecipeFileName+YAMLExtension), []byte(recipes), 0644); err != nil {
 		t.Error("cannot write recipe metadata file", err)
 	}
 

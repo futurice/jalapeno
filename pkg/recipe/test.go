@@ -2,14 +2,37 @@ package recipe
 
 import (
 	"bytes"
+	b64 "encoding/base64"
 	"errors"
 	"fmt"
 )
 
 type Test struct {
-	Name   string            `yaml:"name,omitempty"`
-	Values VariableValues    `yaml:"values"`
-	Files  map[string][]byte `yaml:"files"`
+	Name   string         `yaml:"name,omitempty"`
+	Values VariableValues `yaml:"values"`
+	Files  TestFiles      `yaml:"files"`
+}
+
+type TestFiles map[string][]byte
+
+func (f *TestFiles) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	yamlSequence := make(map[string]string)
+	err := unmarshal(&yamlSequence)
+	if err != nil {
+		return err
+	}
+
+	files := TestFiles{}
+	for name, base64Content := range yamlSequence {
+		content, err := b64.StdEncoding.DecodeString(base64Content)
+		if err != nil {
+			return err
+		}
+		files[name] = content
+	}
+
+	*f = files
+	return nil
 }
 
 var (

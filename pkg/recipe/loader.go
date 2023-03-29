@@ -13,7 +13,8 @@ import (
 )
 
 const (
-	RecipeFileName         = "recipe.yml"
+	YAMLExtension          = ".yml"
+	RecipeFileName         = "recipe"
 	RecipeTemplatesDirName = "templates"
 	RecipeTestsDirName     = "tests"
 	RenderedRecipeDirName  = ".jalapeno"
@@ -27,7 +28,7 @@ func Load(path string) (*Recipe, error) {
 		return nil, err
 	}
 
-	recipeFile := filepath.Join(rootDir, RecipeFileName)
+	recipeFile := filepath.Join(rootDir, RecipeFileName+YAMLExtension)
 	dat, err := os.ReadFile(recipeFile)
 	if err != nil {
 		return nil, err
@@ -61,7 +62,7 @@ func Load(path string) (*Recipe, error) {
 func LoadRendered(projectDir string) ([]*Recipe, error) {
 	var recipes []*Recipe
 
-	recipeFile := filepath.Join(projectDir, RenderedRecipeDirName, RecipeFileName)
+	recipeFile := filepath.Join(projectDir, RenderedRecipeDirName, RecipeFileName+YAMLExtension)
 	if _, err := os.Stat(recipeFile); err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			// treat missing file as empty
@@ -121,6 +122,7 @@ func loadTemplates(recipePath string) (map[string][]byte, error) {
 			return err
 		}
 
+		// Create a filepath related to the root of the directory
 		prefix := fmt.Sprintf("%s%c", recipePath, filepath.Separator)
 		name := filepath.ToSlash(strings.TrimPrefix(path, prefix))
 
@@ -139,14 +141,39 @@ func loadTemplates(recipePath string) (map[string][]byte, error) {
 func loadTests(path string) ([]Test, error) {
 	tests := make([]Test, 0)
 
-	// TODO
-	tests = append(tests, Test{
-		Name:   "case-1",
-		Values: VariableValues{},
-		Files: map[string][]byte{
-			"README.md": []byte("# minimal recipes, version v0.0.1"),
-		},
-	})
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		return tests, nil
+	}
+
+	files, err := os.ReadDir(path)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, file := range files {
+		// Check if not valid test file
+		if !strings.HasSuffix(file.Name(), YAMLExtension) || file.IsDir() {
+			continue
+		}
+
+		test := Test{}
+		contents, err := os.ReadFile(filepath.Join(path, file.Name()))
+		if err != nil {
+			return nil, err
+		}
+
+		err = yaml.Unmarshal(contents, &test)
+		if err != nil {
+			return nil, err
+		}
+
+		// If the test does not define the name, get it from filename
+		if test.Name == "" {
+			test.Name = strings.TrimSuffix(file.Name(), YAMLExtension)
+		}
+
+		tests = append(tests, test)
+	}
 
 	return tests, nil
 }

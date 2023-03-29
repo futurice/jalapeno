@@ -33,7 +33,7 @@ func (re *Recipe) Save(dest string) error {
 	if err := os.MkdirAll(filepath.Join(dest, RenderedRecipeDirName), 0755); err != nil {
 		return fmt.Errorf("failed to create rendered recipe dir: %w", err)
 	}
-	file, err := os.Create(filepath.Join(dest, RenderedRecipeDirName, RecipeFileName))
+	file, err := os.Create(filepath.Join(dest, RenderedRecipeDirName, RecipeFileName+YAMLExtension))
 	if err != nil {
 		return fmt.Errorf("failed to create rendered recipe file: %w", err)
 	}
