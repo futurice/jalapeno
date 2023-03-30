@@ -51,12 +51,12 @@ func TestRecipeRenderChecksums(t *testing.T) {
 	recipe.SetEngine(TestRenderEngine{})
 
 	if err := recipe.Render(); err != nil {
-		t.Errorf("Failed to render recipe: %s", err)
+		t.Fatalf("Failed to render recipe: %s", err)
 	}
 
 	readme := recipe.Files["README.md"]
 	sumWithAlgo := "sha256:fcde2b2edba56bf408601fb721fe9b5c338d10ee429ea04fae5511b68fbf8fb9"
 	if readme.Checksum != sumWithAlgo {
-		t.Errorf("Expected checksum %s for content %s to match %s", readme.Content, readme.Checksum, sumWithAlgo)
+		t.Fatalf("Expected checksum %s for content %s to match %s", readme.Content, readme.Checksum, sumWithAlgo)
 	}
 }

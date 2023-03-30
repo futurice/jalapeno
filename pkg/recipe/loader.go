@@ -42,12 +42,12 @@ func Load(path string) (*Recipe, error) {
 
 	recipe.Templates, err = loadTemplates(filepath.Join(rootDir, RecipeTemplatesDirName))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error when loading recipe templates: %w", err)
 	}
 
 	recipe.tests, err = loadTests(filepath.Join(rootDir, RecipeTestsDirName))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error when loading recipe tests: %w", err)
 	}
 
 	if err := recipe.Validate(); err != nil {

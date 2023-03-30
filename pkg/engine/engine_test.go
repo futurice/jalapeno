@@ -18,7 +18,7 @@ func TestRender(t *testing.T) {
 	out, err := new(Engine).Render(templates, vals)
 
 	if err != nil {
-		t.Errorf("Failed to render templates: %s", err)
+		t.Fatalf("Failed to render templates: %s", err)
 	}
 
 	expect := map[string][]byte{
@@ -27,7 +27,7 @@ func TestRender(t *testing.T) {
 
 	for name := range expect {
 		if !bytes.Equal(out[name], expect[name]) {
-			t.Errorf("Expected %q, got %q", expect[name], out[name])
+			t.Fatalf("Expected %q, got %q", expect[name], out[name])
 		}
 	}
 }

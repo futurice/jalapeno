@@ -101,24 +101,21 @@ func TestRecipeTests(t *testing.T) {
 		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for _, test := range tests {
+		t.Run(test.name, func(tt *testing.T) {
 			recipe := new()
-			recipe.tests = tt.tests
-			recipe.Templates = tt.templates
+			recipe.tests = test.tests
+			recipe.Templates = test.templates
 
 			err := recipe.RunTests()
-			if tt.expectErr == nil && err != nil {
-				t.Errorf("Tests returned error when not expected: %s", err)
-				return
-			} else if tt.expectErr != nil && err == nil {
-				t.Errorf("Tests did not return error when expected. Expected error: %s", tt.expectErr)
-				return
+			if test.expectErr == nil && err != nil {
+				tt.Fatalf("Tests returned error when not expected: %s", err)
+			} else if test.expectErr != nil && err == nil {
+				tt.Fatalf("Tests did not return error when expected. Expected error: %s", test.expectErr)
 			}
 
-			if err != nil && !errors.Is(err, tt.expectErr) {
-				t.Errorf("Tests did not return expected error. Expected: '%s'. Actual: '%s'", tt.expectErr, err)
-				return
+			if err != nil && !errors.Is(err, test.expectErr) {
+				tt.Fatalf("Tests did not return expected error. Expected: '%s'. Actual: '%s'", test.expectErr, err)
 			}
 		})
 	}
