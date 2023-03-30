@@ -8,30 +8,30 @@ import (
 )
 
 type Test struct {
-	Name   string         `yaml:"name,omitempty"`
-	Values VariableValues `yaml:"values"`
-	Files  TestFiles      `yaml:"files"`
+	Name   string              `yaml:"name,omitempty"`
+	Values VariableValues      `yaml:"values"`
+	Files  map[string]TestFile `yaml:"files"`
 }
 
-type TestFiles map[string][]byte
+type TestFile []byte
 
-func (f *TestFiles) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	yamlSequence := make(map[string]string)
-	err := unmarshal(&yamlSequence)
+func (f *TestFile) MarshalYAML() (interface{}, error) {
+	return b64.StdEncoding.EncodeToString(*f), nil
+}
+
+func (f *TestFile) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	var base64String string
+	err := unmarshal(&base64String)
 	if err != nil {
 		return err
 	}
 
-	files := TestFiles{}
-	for name, base64Content := range yamlSequence {
-		content, err := b64.StdEncoding.DecodeString(base64Content)
-		if err != nil {
-			return err
-		}
-		files[name] = content
+	file, err := b64.StdEncoding.DecodeString(base64String)
+	if err != nil {
+		return err
 	}
 
-	*f = files
+	*f = file
 	return nil
 }
 
