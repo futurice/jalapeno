@@ -47,34 +47,33 @@ func (t *Test) Validate() error {
 	return nil
 }
 
-func (re *Recipe) RunTests() error {
-	if len(re.tests) == 0 {
-		return ErrNoTestsSpecified
-	}
-
-	for _, t := range re.tests {
+func (re *Recipe) RunTests() []error {
+	errors := make([]error, len(re.Tests))
+	for i, t := range re.Tests {
 		re.Values = t.Values
 		err := re.Render()
 		if err != nil {
-			return fmt.Errorf("%w", err)
+			errors[i] = fmt.Errorf("%w", err)
 		}
 
 		if len(t.Files) != len(re.Files) {
 			// TODO: show which files were missing/extra
-			return ErrTestWrongFileAmount
+			errors[i] = ErrTestWrongFileAmount
+			continue
 		}
 
 		for key, tFile := range t.Files {
 			if file, ok := re.Files[key]; !ok {
-				return fmt.Errorf("%w: file '%s'", ErrTestMissingFile, key)
+				errors[i] = fmt.Errorf("%w: file '%s'", ErrTestMissingFile, key)
+				continue
 			} else {
 				if !bytes.Equal(tFile, file.Content) {
-					return fmt.Errorf("%w: file '%s'.\nExpected:\n%s\n\nActual:\n%s", ErrTestContentMismatch, key, tFile, file.Content)
+					errors[i] = fmt.Errorf("%w: file '%s'.\nExpected:\n%s\n\nActual:\n%s", ErrTestContentMismatch, key, tFile, file.Content)
+					continue
 				}
 			}
-
 		}
 	}
 
-	return nil
+	return errors
 }

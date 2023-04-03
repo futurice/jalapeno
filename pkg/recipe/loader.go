@@ -45,7 +45,7 @@ func Load(path string) (*Recipe, error) {
 		return nil, fmt.Errorf("error when loading recipe templates: %w", err)
 	}
 
-	recipe.tests, err = loadTests(filepath.Join(rootDir, RecipeTestsDirName))
+	recipe.Tests, err = loadTests(filepath.Join(rootDir, RecipeTestsDirName))
 	if err != nil {
 		return nil, fmt.Errorf("error when loading recipe tests: %w", err)
 	}

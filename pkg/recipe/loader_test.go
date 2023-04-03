@@ -122,11 +122,11 @@ files:
 		t.Fatalf("failed to load the recipe: %s", err)
 	}
 
-	if len(loaded.tests) != 1 {
+	if len(loaded.Tests) != 1 {
 		t.Fatal("failed to load recipe tests")
 	}
 
-	if !bytes.Equal(loaded.tests[0].Files["file.md"], []byte(contents)) {
-		t.Fatalf("loader did not decode recipe test files correctly, expected %s, actual %s", contents, loaded.tests[0].Files["file.md"])
+	if !bytes.Equal(loaded.Tests[0].Files["file.md"], []byte(contents)) {
+		t.Fatalf("loader did not decode recipe test files correctly, expected %s, actual %s", contents, loaded.Tests[0].Files["file.md"])
 	}
 }

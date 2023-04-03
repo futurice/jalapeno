@@ -5,68 +5,101 @@ import (
 	"testing"
 )
 
+type TestWithExpectedOutcome struct {
+	Test
+	ExpectedError error
+}
+
 func TestRecipeTests(t *testing.T) {
-	tests := []struct {
+	scenarios := []struct {
 		name      string
 		templates map[string][]byte
-		tests     []Test
-		expectErr error
+		tests     []TestWithExpectedOutcome
 	}{
 		{
-			"pass",
+			"single_pass",
 			map[string][]byte{
 				"foo.txt":                []byte("foo"),
 				"var.txt":                []byte("{{ .Variables.VAR }}"),
 				"var_with_func_pipe.txt": []byte("{{ sha1sum .Variables.VAR }}"),
 			},
-			[]Test{
+			[]TestWithExpectedOutcome{
 				{
-					Values: VariableValues{
-						"VAR": "var",
+					Test: Test{
+						Values: VariableValues{
+							"VAR": "var",
+						},
+						Files: map[string]TestFile{
+							"foo.txt":                []byte("foo"),
+							"var.txt":                []byte("var"),
+							"var_with_func_pipe.txt": []byte("e5b4e786e382d03c28e9edfab2d8149378ae69df"), // echo -n "var" | shasum -a 1
+						},
 					},
-					Files: map[string]TestFile{
-						"foo.txt":                []byte("foo"),
-						"var.txt":                []byte("var"),
-						"var_with_func_pipe.txt": []byte("e5b4e786e382d03c28e9edfab2d8149378ae69df"), // echo -n "var" | shasum -a 1
-					},
+					ExpectedError: nil,
 				},
 			},
-			nil,
+		},
+		{
+			"one_pass_one_failing",
+			map[string][]byte{
+				"foo.txt": []byte("foo"),
+			},
+			[]TestWithExpectedOutcome{
+				{
+					Test: Test{
+						Files: map[string]TestFile{
+							"foo.txt": []byte("foo"),
+						},
+					},
+					ExpectedError: nil,
+				},
+				{
+					Test: Test{
+						Files: map[string]TestFile{
+							"foo.txt": []byte("bar"),
+						},
+					},
+					ExpectedError: ErrTestContentMismatch,
+				},
+			},
 		},
 		{
 			"no_tests",
 			map[string][]byte{},
 			nil,
-			ErrNoTestsSpecified,
 		},
 		{
 			"content_mismatch",
 			map[string][]byte{
 				"foo.txt": []byte("bar"),
 			},
-			[]Test{
+			[]TestWithExpectedOutcome{
 				{
-					Files: map[string]TestFile{
-						"foo.txt": []byte("foo"),
+					Test: Test{
+						Files: map[string]TestFile{
+							"foo.txt": []byte("foo"),
+						},
 					},
+					ExpectedError: ErrTestContentMismatch,
 				},
 			},
-			ErrTestContentMismatch,
 		},
 		{
 			"expected_more_files",
 			map[string][]byte{
 				"foo.txt": []byte("foo"),
 			},
-			[]Test{
+			[]TestWithExpectedOutcome{
 				{
-					Files: map[string]TestFile{
-						"foo.txt": []byte("foo"),
-						"bar.txt": []byte("bar"),
+					Test: Test{
+						Files: map[string]TestFile{
+							"foo.txt": []byte("foo"),
+							"bar.txt": []byte("bar"),
+						},
 					},
+					ExpectedError: ErrTestWrongFileAmount,
 				},
 			},
-			ErrTestWrongFileAmount,
 		},
 		{
 			"expected_less_files",
@@ -74,14 +107,16 @@ func TestRecipeTests(t *testing.T) {
 				"foo.txt": []byte("foo"),
 				"bar.txt": []byte("bar"),
 			},
-			[]Test{
+			[]TestWithExpectedOutcome{
 				{
-					Files: map[string]TestFile{
-						"foo.txt": []byte("foo"),
+					Test: Test{
+						Files: map[string]TestFile{
+							"foo.txt": []byte("foo"),
+						},
 					},
+					ExpectedError: ErrTestWrongFileAmount,
 				},
 			},
-			ErrTestWrongFileAmount,
 		},
 		{
 			"unexpected_file_rendered",
@@ -89,33 +124,42 @@ func TestRecipeTests(t *testing.T) {
 				"foo.txt": []byte("foo"),
 				"baz.txt": []byte("baz"),
 			},
-			[]Test{
+			[]TestWithExpectedOutcome{
 				{
-					Files: map[string]TestFile{
-						"foo.txt": []byte("foo"),
-						"bar.txt": []byte("bar"),
+					Test: Test{
+						Files: map[string]TestFile{
+							"foo.txt": []byte("foo"),
+							"bar.txt": []byte("bar"),
+						},
 					},
+					ExpectedError: ErrTestMissingFile,
 				},
 			},
-			ErrTestMissingFile,
 		},
 	}
 
-	for _, test := range tests {
-		t.Run(test.name, func(tt *testing.T) {
-			recipe := new()
-			recipe.tests = test.tests
-			recipe.Templates = test.templates
-
-			err := recipe.RunTests()
-			if test.expectErr == nil && err != nil {
-				tt.Fatalf("Tests returned error when not expected: %s", err)
-			} else if test.expectErr != nil && err == nil {
-				tt.Fatalf("Tests did not return error when expected. Expected error: %s", test.expectErr)
+	for _, scenario := range scenarios {
+		t.Run(scenario.name, func(tt *testing.T) {
+			tests := make([]Test, len(scenario.tests))
+			for i, t := range scenario.tests {
+				tests[i] = t.Test
 			}
+			recipe := new()
+			recipe.Tests = tests
+			recipe.Templates = scenario.templates
 
-			if err != nil && !errors.Is(err, test.expectErr) {
-				tt.Fatalf("Tests did not return expected error. Expected: '%s'. Actual: '%s'", test.expectErr, err)
+			errs := recipe.RunTests()
+			for i, err := range errs {
+				expectedErr := scenario.tests[i].ExpectedError
+				if expectedErr == nil && err != nil {
+					tt.Fatalf("Tests returned error when not expected: %s", err)
+				} else if expectedErr != nil && err == nil {
+					tt.Fatalf("Tests did not return error when expected. Expected error: %s", expectedErr)
+				}
+
+				if err != nil && !errors.Is(err, expectedErr) {
+					tt.Fatalf("Tests did not return expected error. Expected: '%s'. Actual: '%s'", expectedErr, err)
+				}
 			}
 		})
 	}

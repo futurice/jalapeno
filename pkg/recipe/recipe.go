@@ -19,7 +19,7 @@ type Recipe struct {
 	Values    VariableValues    `yaml:"values,omitempty"`
 	Files     map[string]File   `yaml:"files,omitempty"`
 	Templates map[string][]byte `yaml:"-"`
-	tests     []Test
+	Tests     []Test            `yaml:"-"`
 	engine    RenderEngine
 }
 
@@ -53,7 +53,7 @@ func (re *Recipe) Validate() error {
 		checkDuplicates[v.Name] = true
 	}
 
-	for _, t := range re.tests {
+	for _, t := range re.Tests {
 		if err := t.Validate(); err != nil {
 			return fmt.Errorf("error when validating recipe test case %s: %w", t.Name, err)
 		}

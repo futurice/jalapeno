@@ -1,15 +1,14 @@
 package main
 
 import (
-	"errors"
-
 	"github.com/futurice/jalapeno/cmd/internal/option"
 	"github.com/futurice/jalapeno/pkg/recipe"
 	"github.com/spf13/cobra"
 )
 
 type testOptions struct {
-	RecipePath string
+	RecipePath      string
+	UpdateSnapshots bool
 	option.Common
 }
 
@@ -29,6 +28,8 @@ func newTestCmd() *cobra.Command {
 		},
 	}
 
+	cmd.Flags().BoolVar(&opts.UpdateSnapshots, "update-snapshots", false, "TODO")
+
 	if err := option.ApplyFlags(&opts, cmd.Flags()); err != nil {
 		return nil
 	}
@@ -43,16 +44,26 @@ func runTest(cmd *cobra.Command, opts testOptions) {
 		return
 	}
 
-	err = re.RunTests()
-	if err != nil {
-		if errors.Is(err, recipe.ErrNoTestsSpecified) {
-			cmd.Println("No tests specified")
-			return
-		}
-
-		cmd.PrintErrf("Tests failed: %v\n", err)
+	if len(re.Tests) == 0 {
+		cmd.Println("No tests specified")
 		return
 	}
 
-	cmd.Println("Tests passed successfully!")
+	if opts.UpdateSnapshots {
+
+	}
+
+	errs := re.RunTests()
+	errFound := false
+	for i, err := range errs {
+		if err == nil {
+			continue
+		}
+		cmd.PrintErrf("Test %s failed: %v\n", re.Tests[i].Name, err)
+		errFound = true
+	}
+
+	if !errFound {
+		cmd.Println("Tests passed successfully!")
+	}
 }
