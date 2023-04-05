@@ -7,8 +7,7 @@ import (
 )
 
 type testOptions struct {
-	RecipePath      string
-	UpdateSnapshots bool
+	RecipePath string
 	option.Common
 }
 
@@ -28,8 +27,6 @@ func newTestCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().BoolVar(&opts.UpdateSnapshots, "update-snapshots", false, "TODO")
-
 	if err := option.ApplyFlags(&opts, cmd.Flags()); err != nil {
 		return nil
 	}
@@ -47,10 +44,6 @@ func runTest(cmd *cobra.Command, opts testOptions) {
 	if len(re.Tests) == 0 {
 		cmd.Println("No tests specified")
 		return
-	}
-
-	if opts.UpdateSnapshots {
-
 	}
 
 	errs := re.RunTests()

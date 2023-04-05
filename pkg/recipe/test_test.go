@@ -144,7 +144,7 @@ func TestRecipeTests(t *testing.T) {
 			for i, t := range scenario.tests {
 				tests[i] = t.Test
 			}
-			recipe := new()
+			recipe := New()
 			recipe.Tests = tests
 			recipe.Templates = scenario.templates
 

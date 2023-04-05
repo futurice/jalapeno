@@ -27,7 +27,7 @@ type RenderEngine interface {
 	Render(templates map[string][]byte, values map[string]interface{}) (map[string][]byte, error)
 }
 
-func new() *Recipe {
+func New() *Recipe {
 	return &Recipe{
 		engine: engine.Engine{},
 	}

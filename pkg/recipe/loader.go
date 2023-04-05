@@ -34,7 +34,7 @@ func Load(path string) (*Recipe, error) {
 		return nil, err
 	}
 
-	recipe := new()
+	recipe := New()
 	err = yaml.Unmarshal(dat, recipe)
 	if err != nil {
 		return nil, err
@@ -77,7 +77,7 @@ func LoadRendered(projectDir string) ([]*Recipe, error) {
 
 	decoder := yaml.NewDecoder(bytes.NewReader(recipedata))
 	for {
-		recipe := new()
+		recipe := New()
 		if err := decoder.Decode(&recipe); err != nil {
 			if err != io.EOF {
 				return nil, fmt.Errorf("failed to decode recipe: %w", err)
