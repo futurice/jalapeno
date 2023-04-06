@@ -46,7 +46,7 @@ func newPushCmd() *cobra.Command {
 func runPush(cmd *cobra.Command, opts pushOptions) {
 	ctx := context.Background()
 
-	re, err := recipe.Load(opts.RecipePath)
+	re, err := recipe.LoadRecipe(opts.RecipePath)
 	if err != nil {
 		cmd.PrintErrf("Error: can't load the recipe: %s\n", err)
 		return
@@ -54,7 +54,7 @@ func runPush(cmd *cobra.Command, opts pushOptions) {
 
 	store, err := file.New("")
 	if err != nil {
-		cmd.PrintErrln(err)
+		cmd.PrintErrf("Error: %s", err)
 		return
 	}
 
@@ -62,25 +62,25 @@ func runPush(cmd *cobra.Command, opts pushOptions) {
 
 	desc, err := store.Add(ctx, re.Name, "application/x.futurice.jalapeno.recipe.v1", opts.RecipePath)
 	if err != nil {
-		cmd.PrintErrln(err)
+		cmd.PrintErrf("Error: %s", err)
 		return
 	}
 
 	root, err := oras.Pack(ctx, store, "", []v1.Descriptor{desc}, oras.PackOptions{PackImageManifest: true})
 	if err != nil {
-		cmd.PrintErrln(err)
+		cmd.PrintErrf("Error: %s", err)
 		return
 	}
 
 	err = store.Tag(ctx, root, re.Version)
 	if err != nil {
-		cmd.PrintErrln(err)
+		cmd.PrintErrf("Error: %s", err)
 		return
 	}
 
 	repo, err := opts.NewRepository(opts.TargetRef, opts.Common)
 	if err != nil {
-		cmd.PrintErrln(err)
+		cmd.PrintErrf("Error: %s", err)
 		return
 	}
 

@@ -46,13 +46,13 @@ func runPull(cmd *cobra.Command, opts pullOptions) {
 
 	repo, err := opts.NewRepository(opts.TargetRef, opts.Common)
 	if err != nil {
-		cmd.PrintErrln(err)
+		cmd.PrintErrf("Error: %s", err)
 		return
 	}
 
 	dst, err := file.New(opts.OutputPath)
 	if err != nil {
-		cmd.PrintErrln(err)
+		cmd.PrintErrf("Error: %s", err)
 		return
 	}
 

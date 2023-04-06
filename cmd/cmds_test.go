@@ -18,7 +18,7 @@ import (
 	"time"
 
 	"github.com/cucumber/godog"
-	"github.com/futurice/jalapeno/pkg/recipe"
+	re "github.com/futurice/jalapeno/pkg/recipe"
 	"github.com/ory/dockertest"
 	"github.com/spf13/cobra"
 )
@@ -62,7 +62,7 @@ func TestFeatures(t *testing.T) {
 			s.Step(`^execution of the recipe has succeeded$`, executionOfTheRecipeHasSucceeded)
 			s.Step(`^execution of the recipe has failed with error "([^"]*)"$`, executionOfTheRecipeHasFailedWithError)
 			s.Step(`^I change recipe "([^"]*)" to version "([^"]*)"$`, iChangeRecipeToVersion)
-			s.Step(`^I upgrade recipe "([^"]*)"$`, iUpgradeRecipe)
+			s.Step(`^I upgrade sauce "([^"]*)"$`, iUpgradeSauce)
 			s.Step(`^recipe "([^"]*)" ignores pattern "([^"]*)"$`, recipeIgnoresPattern)
 			s.Step(`^I change project file "([^"]*)" to contain "([^"]*)"$`, iChangeProjectFileToContain)
 			s.Step(`^no conflicts were reported$`, noConflictsWereReported)
@@ -174,7 +174,7 @@ name: %[1]s
 version: v0.0.1
 description: %[1]s
 `
-	if err := os.WriteFile(filepath.Join(dir, recipe, "recipe.yml"), []byte(fmt.Sprintf(template, recipe)), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(dir, recipe, re.RecipeFileName+re.YAMLExtension), []byte(fmt.Sprintf(template, recipe)), 0644); err != nil {
 		return ctx, err
 	}
 	if err := os.WriteFile(filepath.Join(dir, recipe, "templates", filename), []byte(recipe), 0644); err != nil {
@@ -239,7 +239,7 @@ func credentialsAreNotProvidedByTheCommand(ctx context.Context) (context.Context
 
 func theRecipesDirectoryShouldContainRecipe(ctx context.Context, recipeName string) error {
 	recipesDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
-	re, err := recipe.Load(filepath.Join(recipesDir, recipeName))
+	re, err := re.LoadRecipe(filepath.Join(recipesDir, recipeName))
 	if err != nil {
 		return err
 	}
@@ -277,14 +277,14 @@ func theProjectDirectoryShouldContainFileWith(ctx context.Context, filename, sea
 		return err
 	}
 	if !strings.Contains(string(bytes), searchTerm) {
-		return fmt.Errorf("substring %s not found in %s.\nstdout:\n%s\n\nstderr:\n%s\n", searchTerm, filename, cmdStdOut, cmdStdErr)
+		return fmt.Errorf("substring %s not found in file %s. Contents:\n%s", searchTerm, filename, string(bytes))
 	}
 	return nil
 }
 
 func recipeIgnoresPattern(ctx context.Context, recipeName, pattern string) (context.Context, error) {
 	recipesDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
-	recipeFile := filepath.Join(recipesDir, recipeName, "recipe.yml")
+	recipeFile := filepath.Join(recipesDir, recipeName, re.RecipeFileName+re.YAMLExtension)
 	recipeData, err := os.ReadFile(recipeFile)
 	if err != nil {
 		return ctx, err

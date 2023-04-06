@@ -1,10 +1,7 @@
 package recipe
 
 import (
-	"bytes"
-	"errors"
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -17,12 +14,11 @@ const (
 	RecipeFileName         = "recipe"
 	RecipeTemplatesDirName = "templates"
 	RecipeTestsDirName     = "tests"
-	RenderedRecipeDirName  = ".jalapeno"
 	IgnoreFileName         = ".jalapenoignore"
 )
 
-// Load a recipe from a path. The function does validate the recipe before returning it
-func Load(path string) (*Recipe, error) {
+// LoadRecipe a recipe from a path. The function does validate the recipe before returning it
+func LoadRecipe(path string) (*Recipe, error) {
 	rootDir, err := filepath.Abs(path)
 	if err != nil {
 		return nil, err
@@ -34,7 +30,7 @@ func Load(path string) (*Recipe, error) {
 		return nil, err
 	}
 
-	recipe := New()
+	recipe := NewRecipe()
 	err = yaml.Unmarshal(dat, recipe)
 	if err != nil {
 		return nil, err
@@ -55,54 +51,6 @@ func Load(path string) (*Recipe, error) {
 	}
 
 	return recipe, nil
-}
-
-// Load recipes which already have been rendered. Always loads
-// all recipes.
-func LoadRendered(projectDir string) ([]*Recipe, error) {
-	var recipes []*Recipe
-
-	recipeFile := filepath.Join(projectDir, RenderedRecipeDirName, RecipeFileName+YAMLExtension)
-	if _, err := os.Stat(recipeFile); err != nil {
-		if errors.Is(err, os.ErrNotExist) {
-			// treat missing file as empty
-			return recipes, nil
-		}
-		// other errors go boom in os.ReadFile() below
-	}
-	recipedata, err := os.ReadFile(recipeFile)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read recipe file: %w", err)
-	}
-
-	decoder := yaml.NewDecoder(bytes.NewReader(recipedata))
-	for {
-		recipe := New()
-		if err := decoder.Decode(&recipe); err != nil {
-			if err != io.EOF {
-				return nil, fmt.Errorf("failed to decode recipe: %w", err)
-			}
-			// ran out of recipe file, all yaml documents read
-			break
-		}
-		// read rendered files
-		for path, file := range recipe.Files {
-			data, err := os.ReadFile(filepath.Join(projectDir, path))
-			if err != nil {
-				return nil, fmt.Errorf("failed to read rendered file: %w", err)
-			}
-			file.Content = data
-			recipe.Files[path] = file
-		}
-
-		if err := recipe.Validate(); err != nil {
-			return nil, fmt.Errorf("failed to validate recipe: %w", err)
-		}
-
-		recipes = append(recipes, recipe)
-	}
-
-	return recipes, nil
 }
 
 func loadTemplates(recipePath string) (map[string][]byte, error) {

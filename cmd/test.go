@@ -35,7 +35,7 @@ func newTestCmd() *cobra.Command {
 }
 
 func runTest(cmd *cobra.Command, opts testOptions) {
-	re, err := recipe.Load(opts.RecipePath)
+	re, err := recipe.LoadRecipe(opts.RecipePath)
 	if err != nil {
 		cmd.PrintErrf("Can't load the recipe: %v\n", err)
 		return

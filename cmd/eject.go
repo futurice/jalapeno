@@ -46,7 +46,7 @@ func runEject(cmd *cobra.Command, opts ejectOptions) {
 		return
 	}
 
-	jalapenoPath := filepath.Join(opts.ProjectPath, recipe.RenderedRecipeDirName)
+	jalapenoPath := filepath.Join(opts.ProjectPath, recipe.SauceDirName)
 
 	if stat, err := os.Stat(jalapenoPath); os.IsNotExist(err) || !stat.IsDir() {
 		cmd.PrintErrf("'%s' is not a Jalapeno project\n", opts.ProjectPath)
@@ -56,7 +56,7 @@ func runEject(cmd *cobra.Command, opts ejectOptions) {
 	cmd.Printf("Deleting %s...", jalapenoPath)
 	err := os.RemoveAll(jalapenoPath)
 	if err != nil {
-		cmd.PrintErrln(err)
+		cmd.PrintErrf("Error: %s", err)
 		return
 	}
 

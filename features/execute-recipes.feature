@@ -8,7 +8,7 @@ Feature: Execute recipes
     When I execute recipe "foo"
     Then execution of the recipe has succeeded
     And the project directory should contain file "README.md"
-    And the project directory should contain file ".jalapeno/recipe.yml" with "name: foo"
+    And the project directory should contain file ".jalapeno/sauce.yml" with "name: foo"
 
   Scenario: Execute multiple recipes
     Given a project directory
@@ -22,8 +22,8 @@ Feature: Execute recipes
     And no errors were printed
     And the project directory should contain file "README.md"
     And the project directory should contain file "Taskfile.yml"
-    And the project directory should contain file ".jalapeno/recipe.yml" with "name: foo"
-    And the project directory should contain file ".jalapeno/recipe.yml" with "name: bar"
+    And the project directory should contain file ".jalapeno/sauce.yml" with "name: foo"
+    And the project directory should contain file ".jalapeno/sauce.yml" with "name: bar"
 
   Scenario: New recipe conflicts with the previous recipe
     Given a project directory

@@ -82,18 +82,16 @@ func runCreate(cmd *cobra.Command, opts createOptions) {
 }
 
 func createExampleRecipe(name string) *recipe.Recipe {
-	return &recipe.Recipe{
-		Metadata: recipe.Metadata{
-			APIVersion:  "v1",
-			Name:        name,
-			Version:     "v0.0.0",
-			Description: "Description about what the recipe is used for and what it contains. For example tech stack, cloud environments, tools",
-		},
-		Variables: []recipe.Variable{
-			{Name: "MY_VAR", Default: "Hello World!"},
-		},
-		Templates: map[string][]byte{
-			"README.md": []byte("{{ .Variables.MY_VAR }}"),
-		},
+	r := recipe.NewRecipe()
+	r.Metadata.Name = name
+	r.Metadata.Version = "v0.0.0"
+	r.Metadata.Description = "Description about what the recipe is used for and what it contains. For example tech stack, cloud environments, tools"
+	r.Variables = []recipe.Variable{
+		{Name: "MY_VAR", Default: "Hello World!"},
 	}
+	r.Templates = map[string][]byte{
+		"README.md": []byte("{{ .Variables.MY_VAR }}"),
+	}
+
+	return r
 }
