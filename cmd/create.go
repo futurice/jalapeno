@@ -92,5 +92,8 @@ func createExampleRecipe(name string) *recipe.Recipe {
 		Variables: []recipe.Variable{
 			{Name: "MY_VAR", Default: "Hello World!"},
 		},
+		Templates: map[string][]byte{
+			"README.md": []byte("{{ .Variables.MY_VAR }}"),
+		},
 	}
 }

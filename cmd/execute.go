@@ -4,7 +4,6 @@ import (
 	"os"
 
 	"github.com/futurice/jalapeno/cmd/internal/option"
-	"github.com/futurice/jalapeno/pkg/engine"
 	"github.com/futurice/jalapeno/pkg/recipe"
 	"github.com/futurice/jalapeno/pkg/recipeutil"
 	"github.com/spf13/cobra"
@@ -58,17 +57,6 @@ func runExecute(cmd *cobra.Command, opts executeOptions) {
 		cmd.Printf("Description: %s\n", re.Metadata.Description)
 	}
 
-	err = re.Validate()
-	if err != nil {
-		cmd.PrintErrf("the provided recipe was invalid: %v\n", err)
-		return
-	}
-
-	if len(re.Templates) == 0 {
-		cmd.PrintErrf("the recipe does not contain any templates\n")
-		return
-	}
-
 	// TODO: Set values provided by --set flag to re.Values
 
 	err = recipeutil.PromptUserForValues(re)
@@ -77,7 +65,7 @@ func runExecute(cmd *cobra.Command, opts executeOptions) {
 		return
 	}
 
-	err = re.Render(engine.Engine{})
+	err = re.Render()
 	if err != nil {
 		cmd.PrintErrln(err)
 		return
@@ -92,7 +80,7 @@ func runExecute(cmd *cobra.Command, opts executeOptions) {
 
 	// Check for conflicts
 	for _, r := range rendered {
-		conflicts := re.Conflicts(&r)
+		conflicts := re.Conflicts(r)
 		if conflicts != nil {
 			cmd.PrintErrf("conflict in recipe %s: %s was already created by recipe %s\n", re.Name, conflicts[0].Path, r.Name)
 			return

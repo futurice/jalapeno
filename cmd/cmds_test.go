@@ -169,7 +169,11 @@ func aRecipeThatGeneratesFile(ctx context.Context, recipe, filename string) (con
 	if err := os.MkdirAll(filepath.Join(dir, recipe, "templates"), 0755); err != nil {
 		return ctx, err
 	}
-	template := "apiVersion: v1\nname: %[1]s\nversion: v0.0.1\ndescription: %[1]s"
+	template := `apiVersion: v1
+name: %[1]s
+version: v0.0.1
+description: %[1]s
+`
 	if err := os.WriteFile(filepath.Join(dir, recipe, "recipe.yml"), []byte(fmt.Sprintf(template, recipe)), 0644); err != nil {
 		return ctx, err
 	}
@@ -331,7 +335,7 @@ func createLocalRegistry(opts *dockertest.RunOptions) (*dockertest.Resource, err
 
 	// Even though we check if the registry is ready, running tests immediately causes EOF errors to happen.
 	// So we need to wait a bit more to registry to be ready.
-	time.Sleep(100 * time.Millisecond)
+	time.Sleep(200 * time.Millisecond)
 
 	err = resource.Expire(60) // If the cleanup fails, this will stop the container eventually
 	if err != nil {

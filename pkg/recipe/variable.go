@@ -31,7 +31,7 @@ type VariableRegExpValidator struct {
 	// Regular expression pattern to match the input against
 	Pattern string `yaml:"pattern,omitempty"`
 
-	// If the regular expression validation fails, this help message will be showed to the user
+	// If the regular expression validation fails, this help message will be shown to the user
 	Help string `yaml:"help,omitempty"`
 }
 
