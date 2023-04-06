@@ -24,7 +24,7 @@ type Sauce struct {
 }
 
 const (
-	SauceFileName = "sauce"
+	SauceFileName = "sauces"
 	SauceDirName  = ".jalapeno"
 )
 

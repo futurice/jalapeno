@@ -9,7 +9,7 @@ Feature: Upgrade sauce
     And I change recipe "foo" to version "v0.0.2"
     And I change recipe "foo" template "README.md" to render "New version"
     When I upgrade sauce "foo"
-    Then the project directory should contain file ".jalapeno/sauce.yml" with "version: v0.0.2"
+    Then the project directory should contain file ".jalapeno/sauces.yml" with "version: v0.0.2"
     And no errors were printed
     And the project directory should contain file "README.md" with "New version"
     And no conflicts were reported
