@@ -9,8 +9,10 @@ import (
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/pem"
+	"errors"
 	"fmt"
 	"math/big"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -325,17 +327,23 @@ func createLocalRegistry(opts *dockertest.RunOptions) (*dockertest.Resource, err
 
 	host := resource.GetHostPort("5000/tcp")
 
-	pool.MaxWait = 30 * time.Second
+	pool.MaxWait = 10 * time.Second
 	if err = pool.Retry(func() error {
-		_, err := pool.Client.HTTPClient.Get(fmt.Sprintf("http://%s/v2/", host))
-		return err
+		url := fmt.Sprintf("http://%s/v2/", host)
+		resp, err := http.Get(url)
+		if err != nil {
+			return err
+		}
+
+		// Non-authenticated registry responds with status 200, authenticated with 400
+		if resp.StatusCode == 200 || resp.StatusCode == 400 {
+			return nil
+		}
+
+		return errors.New("endpoint not yet healthy")
 	}); err != nil {
 		return nil, fmt.Errorf("could not connect to docker: %s", err)
 	}
-
-	// Even though we check if the registry is ready, running tests immediately causes EOF errors to happen.
-	// So we need to wait a bit more to registry to be ready.
-	time.Sleep(200 * time.Millisecond)
 
 	err = resource.Expire(60) // If the cleanup fails, this will stop the container eventually
 	if err != nil {
