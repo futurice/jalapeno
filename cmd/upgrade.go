@@ -52,7 +52,7 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) {
 		return
 	}
 
-	sauces, err := recipe.LoadSauce(opts.ProjectPath)
+	sauces, err := recipe.LoadSauces(opts.ProjectPath)
 	if err != nil {
 		cmd.PrintErrf("Error: %s", err)
 		return

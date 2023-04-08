@@ -34,10 +34,6 @@ func (re *Recipe) Validate() error {
 		return err
 	}
 
-	if len(re.Templates) == 0 {
-		return errors.New("the recipe does not contain any templates")
-	}
-
 	checkDuplicates := make(map[string]bool)
 	for _, v := range re.Variables {
 		if err := v.Validate(); err != nil {
@@ -120,9 +116,4 @@ func (s *Sauce) Conflicts(other *Sauce) []RecipeConflict {
 		}
 	}
 	return conflicts
-}
-
-// Check if the recipe conflicts with another recipe. Recipes conflict if they touch the same files.
-func (re *Recipe) Test() error {
-	return nil
 }

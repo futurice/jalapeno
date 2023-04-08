@@ -72,7 +72,7 @@ func runExecute(cmd *cobra.Command, opts executeOptions) {
 	}
 
 	// Load all existingSauces recipes
-	existingSauces, err := recipe.LoadSauce(opts.OutputPath)
+	existingSauces, err := recipe.LoadSauces(opts.OutputPath)
 	if err != nil {
 		cmd.PrintErrf("Error: %s", err)
 		return

@@ -1,9 +1,6 @@
 package main
 
 import (
-	"os"
-	"path/filepath"
-
 	"github.com/futurice/jalapeno/cmd/internal/option"
 	"github.com/futurice/jalapeno/pkg/recipe"
 	"github.com/spf13/cobra"
@@ -25,6 +22,7 @@ func newCreateCmd() *cobra.Command {
 	foo/
 	├── recipe.yml
 	├── templates/
+	├──── README.md
 `, // TODO
 		Args: cobra.ExactArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
@@ -46,37 +44,15 @@ func newCreateCmd() *cobra.Command {
 func runCreate(cmd *cobra.Command, opts createOptions) {
 	re := createExampleRecipe(opts.RecipeName)
 
-	path := filepath.Join(".", opts.RecipeName)
-
-	if _, err := os.Stat(path); !os.IsNotExist(err) {
-		cmd.PrintErrf("directory '%s' already exists\n", opts.RecipeName)
+	err := re.Validate()
+	if err != nil {
+		cmd.PrintErrln("Internal error: placeholder recipe is not valid")
 		return
 	}
 
-	err := os.Mkdir(path, 0700)
+	err = re.Save(".")
 	if err != nil {
-		cmd.PrintErrf("can not create directory %s: %v\n", path, err)
-		return
-	}
-
-	err = re.Validate()
-	if err != nil {
-		// TODO: Clean up the already create directory if the command failed
-		cmd.PrintErrln("internal error: placeholder recipe is not valid")
-		return
-	}
-
-	err = re.Save(path)
-	if err != nil {
-		// TODO: Clean up the already create directory if the command failed
-		cmd.PrintErrf("can not save recipe to the directory: %v\n", err)
-		return
-	}
-
-	err = os.Mkdir(filepath.Join(path, recipe.RecipeTemplatesDirName), 0700)
-	if err != nil {
-		// TODO: Clean up the already create directory if the command failed
-		cmd.PrintErrf("can not save templates to the directory: %v\n", err)
+		cmd.PrintErrf("Error: can not save recipe to the directory: %v\n", err)
 		return
 	}
 }

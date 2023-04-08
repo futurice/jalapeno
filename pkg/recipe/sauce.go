@@ -1,14 +1,7 @@
 package recipe
 
 import (
-	"bytes"
-	"errors"
 	"fmt"
-	"io"
-	"os"
-	"path/filepath"
-
-	"github.com/go-yaml/yaml"
 )
 
 type File struct {
@@ -24,8 +17,11 @@ type Sauce struct {
 }
 
 const (
-	SauceFileName = "sauces"
-	SauceDirName  = ".jalapeno"
+	SaucesFileName = "sauces"
+
+	// The directory name which contains all Jalapeno related files
+	// in the project directory
+	SauceDirName = ".jalapeno"
 )
 
 func NewSauce() *Sauce {
@@ -33,53 +29,14 @@ func NewSauce() *Sauce {
 }
 
 func (s *Sauce) Validate() error {
-	// TODO
+	if err := s.Recipe.Validate(); err != nil {
+		return fmt.Errorf("sauce recipe was invalid: %w", err)
+	}
+
+	for _, variable := range s.Recipe.Variables {
+		if _, found := s.Values[variable.Name]; !variable.Optional && !found {
+			return fmt.Errorf("sauce did not have value for required variable '%s'", variable.Name)
+		}
+	}
 	return nil
-}
-
-// Load all sauces from a project directory
-func LoadSauce(projectDir string) ([]*Sauce, error) {
-	var sauces []*Sauce
-
-	sauceFile := filepath.Join(projectDir, SauceDirName, SauceFileName+YAMLExtension)
-	if _, err := os.Stat(sauceFile); err != nil {
-		if errors.Is(err, os.ErrNotExist) {
-			// treat missing file as empty
-			return sauces, nil
-		}
-		// other errors go boom in os.ReadFile() below
-	}
-	recipedata, err := os.ReadFile(sauceFile)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read recipe file: %w", err)
-	}
-
-	decoder := yaml.NewDecoder(bytes.NewReader(recipedata))
-	for {
-		sauce := NewSauce()
-		if err := decoder.Decode(&sauce); err != nil {
-			if err != io.EOF {
-				return nil, fmt.Errorf("failed to decode recipe: %w", err)
-			}
-			// ran out of recipe file, all yaml documents read
-			break
-		}
-		// read rendered files
-		for path, file := range sauce.Files {
-			data, err := os.ReadFile(filepath.Join(projectDir, path))
-			if err != nil {
-				return nil, fmt.Errorf("failed to read rendered file: %w", err)
-			}
-			file.Content = data
-			sauce.Files[path] = file
-		}
-
-		if err := sauce.Validate(); err != nil {
-			return nil, fmt.Errorf("failed to validate recipe: %w", err)
-		}
-
-		sauces = append(sauces, sauce)
-	}
-
-	return sauces, nil
 }
