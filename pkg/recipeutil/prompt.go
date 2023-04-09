@@ -7,17 +7,11 @@ import (
 	"github.com/futurice/jalapeno/pkg/recipe"
 )
 
-func PromptUserForValues(re *recipe.Recipe) error {
+func PromptUserForValues(variables []recipe.Variable) (recipe.VariableValues, error) {
 	values := recipe.VariableValues{}
 	headerAdded := false
 
-	for _, variable := range re.Variables {
-		// Check if there already exist value for the given variable
-		if value, exists := re.Values[variable.Name]; exists {
-			values[variable.Name] = value
-			continue
-		}
-
+	for _, variable := range variables {
 		if !headerAdded {
 			fmt.Println("\nProvide the following variables:")
 			headerAdded = true
@@ -60,7 +54,7 @@ func PromptUserForValues(re *recipe.Recipe) error {
 		if variable.RegExp.Pattern != "" {
 			validator, err := variable.RegExp.CreateValidatorFunc()
 			if err != nil {
-				return err
+				return nil, err
 			}
 
 			opts = append(opts, survey.WithValidator(validator))
@@ -68,14 +62,13 @@ func PromptUserForValues(re *recipe.Recipe) error {
 
 		answer, err := askFunc(prompt, opts)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		values[variable.Name] = answer
 	}
 
-	re.Values = values
-	return nil
+	return values, nil
 }
 
 // NOTE: Since survey.AskOne tries to cast the answer to the type of the response

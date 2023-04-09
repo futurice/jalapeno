@@ -39,6 +39,10 @@ func (m *Metadata) Validate() error {
 		return fmt.Errorf("unreconized metadata API version \"%s\"", m.APIVersion)
 	}
 
+	if m.Name == "" {
+		return fmt.Errorf("recipe name can not be empty")
+	}
+
 	if !semver.IsValid(m.Version) {
 		return fmt.Errorf("version \"%s\" is not a valid semver", m.Version)
 	}

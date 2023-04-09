@@ -14,12 +14,12 @@ func TestLoadNoRenderedRecipes(t *testing.T) {
 	}
 	defer os.RemoveAll(dir)
 
-	loaded, err := LoadRendered(dir)
+	sauces, err := LoadSauces(dir)
 	if err != nil {
 		t.Fatalf("unexpected error when loading from empty dir: %s", err)
 	}
-	if len(loaded) != 0 {
-		t.Fatalf("expected slice of length 0, got %d", len(loaded))
+	if len(sauces) != 0 {
+		t.Fatalf("expected slice of length 0, got %d", len(sauces))
 	}
 }
 
@@ -30,7 +30,7 @@ func TestLoadMultipleRenderedRecipes(t *testing.T) {
 	}
 	defer os.RemoveAll(dir)
 
-	if err = os.MkdirAll(filepath.Join(dir, RenderedRecipeDirName), 0755); err != nil {
+	if err = os.MkdirAll(filepath.Join(dir, SauceDirName), 0755); err != nil {
 		t.Fatalf("cannot create metadata dir: %s", err)
 	}
 
@@ -42,7 +42,8 @@ func TestLoadMultipleRenderedRecipes(t *testing.T) {
 		t.Fatalf("cannot write rendered template: %s", err)
 	}
 
-	recipes := `apiVersion: v1
+	sauces := `
+apiVersion: v1
 name: foo
 version: v1.0.0
 description: foo recipe
@@ -59,23 +60,23 @@ files:
     checksum: sha256:1b42293a96dbdcf36ee77dcbee6e2e2804ab085d32e6a2de7736198a0d111044
 `
 
-	if err = os.WriteFile(filepath.Join(dir, RenderedRecipeDirName, RecipeFileName+YAMLExtension), []byte(recipes), 0644); err != nil {
+	if err = os.WriteFile(filepath.Join(dir, SauceDirName, SaucesFileName+YAMLExtension), []byte(sauces), 0644); err != nil {
 		t.Fatalf("cannot write recipe metadata file: %s", err)
 	}
 
-	loaded, err := LoadRendered(dir)
+	loadedSauces, err := LoadSauces(dir)
 	if err != nil {
 		t.Fatalf("failed to load recipes: %s", err)
 	}
-	if len(loaded) != 2 {
-		t.Fatalf("expected to load 2 recipes, loaded %d", len(loaded))
+	if len(loadedSauces) != 2 {
+		t.Fatalf("expected to load 2 recipes, loaded %d", len(loadedSauces))
 	}
 
-	if loaded[0].Name != "foo" {
-		t.Fatalf("expected 'foo' as the first recipe name, got %s", loaded[0].Name)
+	if loadedSauces[0].Recipe.Name != "foo" {
+		t.Fatalf("expected 'foo' as the first recipe name, got %s", loadedSauces[0].Recipe.Name)
 	}
-	if loaded[1].Name != "bar" {
-		t.Fatalf("expected 'bar' as the first recipe name, got %s", loaded[0].Name)
+	if loadedSauces[1].Recipe.Name != "bar" {
+		t.Fatalf("expected 'bar' as the first recipe name, got %s", loadedSauces[0].Recipe.Name)
 	}
 }
 
@@ -117,7 +118,7 @@ files:
 		t.Fatalf("cannot write recipe test file: %s", err)
 	}
 
-	loaded, err := Load(dir)
+	loaded, err := LoadRecipe(dir)
 	if err != nil {
 		t.Fatalf("failed to load the recipe: %s", err)
 	}

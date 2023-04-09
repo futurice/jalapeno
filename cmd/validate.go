@@ -35,7 +35,7 @@ func newValidateCmd() *cobra.Command {
 }
 
 func runValidate(cmd *cobra.Command, opts validateOptions) {
-	r, err := recipe.Load(opts.TargetPath)
+	r, err := recipe.LoadRecipe(opts.TargetPath)
 	if err != nil {
 		cmd.PrintErrf("could not load the recipe: %v\n", err)
 	}

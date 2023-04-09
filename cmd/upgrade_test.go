@@ -7,9 +7,11 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+
+	re "github.com/futurice/jalapeno/pkg/recipe"
 )
 
-func iUpgradeRecipe(ctx context.Context, recipe string) (context.Context, error) {
+func iUpgradeSauce(ctx context.Context, recipe string) (context.Context, error) {
 	recipesDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
 	projectDir := ctx.Value(projectDirectoryPathCtxKey{}).(string)
 
@@ -64,7 +66,7 @@ func iChangeRecipeTemplateToRender(ctx context.Context, recipeName, filename, co
 
 func iChangeRecipeToVersion(ctx context.Context, recipeName, version string) (context.Context, error) {
 	recipesDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
-	recipeFile := filepath.Join(recipesDir, recipeName, "recipe.yml")
+	recipeFile := filepath.Join(recipesDir, recipeName, re.RecipeFileName+re.YAMLExtension)
 	recipeData, err := os.ReadFile(recipeFile)
 	if err != nil {
 		return ctx, err
@@ -72,7 +74,7 @@ func iChangeRecipeToVersion(ctx context.Context, recipeName, version string) (co
 
 	newData := strings.Replace(string(recipeData), "v0.0.1", version, 1)
 
-	if err := os.WriteFile(filepath.Join(recipesDir, recipeName, "recipe.yml"), []byte(newData), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(recipesDir, recipeName, re.RecipeFileName+re.YAMLExtension), []byte(newData), 0644); err != nil {
 		return ctx, err
 	}
 

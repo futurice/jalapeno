@@ -42,7 +42,6 @@ func TestRecipeRenderChecksums(t *testing.T) {
 				Name: "foo",
 			},
 		},
-		Values: VariableValues{"foo": "bar"},
 		Templates: map[string][]byte{
 			"README.md": []byte("{{ .Variables.foo }}"),
 		},
@@ -50,11 +49,12 @@ func TestRecipeRenderChecksums(t *testing.T) {
 
 	recipe.SetEngine(TestRenderEngine{})
 
-	if err := recipe.Render(); err != nil {
+	sauce, err := recipe.Execute(VariableValues{"foo": "bar"})
+	if err != nil {
 		t.Fatalf("Failed to render recipe: %s", err)
 	}
 
-	readme := recipe.Files["README.md"]
+	readme := sauce.Files["README.md"]
 	sumWithAlgo := "sha256:fcde2b2edba56bf408601fb721fe9b5c338d10ee429ea04fae5511b68fbf8fb9"
 	if readme.Checksum != sumWithAlgo {
 		t.Fatalf("Expected checksum %s for content %s to match %s", readme.Content, readme.Checksum, sumWithAlgo)

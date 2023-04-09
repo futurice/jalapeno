@@ -50,20 +50,19 @@ func (t *Test) Validate() error {
 func (re *Recipe) RunTests() []error {
 	errors := make([]error, len(re.Tests))
 	for i, t := range re.Tests {
-		re.Values = t.Values
-		err := re.Render()
+		sauce, err := re.Execute(t.Values)
 		if err != nil {
 			errors[i] = fmt.Errorf("%w", err)
 		}
 
-		if len(t.Files) != len(re.Files) {
+		if len(t.Files) != len(sauce.Files) {
 			// TODO: show which files were missing/extra
 			errors[i] = ErrTestWrongFileAmount
 			continue
 		}
 
 		for key, tFile := range t.Files {
-			if file, ok := re.Files[key]; !ok {
+			if file, ok := sauce.Files[key]; !ok {
 				errors[i] = fmt.Errorf("%w: file '%s'", ErrTestMissingFile, key)
 				continue
 			} else {

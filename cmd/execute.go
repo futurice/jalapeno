@@ -45,7 +45,7 @@ func runExecute(cmd *cobra.Command, opts executeOptions) {
 		return
 	}
 
-	re, err := recipe.Load(opts.RecipePath)
+	re, err := recipe.LoadRecipe(opts.RecipePath)
 	if err != nil {
 		cmd.PrintErrf("can't load the recipe: %v\n", err)
 		return
@@ -59,43 +59,43 @@ func runExecute(cmd *cobra.Command, opts executeOptions) {
 
 	// TODO: Set values provided by --set flag to re.Values
 
-	err = recipeutil.PromptUserForValues(re)
+	values, err := recipeutil.PromptUserForValues(re.Variables)
 	if err != nil {
-		cmd.PrintErrf("error when prompting for values: %v\n", err)
+		cmd.PrintErrf("Error when prompting for values: %v\n", err)
 		return
 	}
 
-	err = re.Render()
+	sauce, err := re.Execute(values)
 	if err != nil {
-		cmd.PrintErrln(err)
+		cmd.PrintErrf("Error: %s", err)
 		return
 	}
 
-	// Load all rendered recipes
-	rendered, err := recipe.LoadRendered(opts.OutputPath)
+	// Load all existingSauces recipes
+	existingSauces, err := recipe.LoadSauces(opts.OutputPath)
 	if err != nil {
-		cmd.PrintErrln(err)
+		cmd.PrintErrf("Error: %s", err)
 		return
 	}
 
 	// Check for conflicts
-	for _, r := range rendered {
-		conflicts := re.Conflicts(r)
+	for _, s := range existingSauces {
+		conflicts := s.Conflicts(sauce)
 		if conflicts != nil {
-			cmd.PrintErrf("conflict in recipe %s: %s was already created by recipe %s\n", re.Name, conflicts[0].Path, r.Name)
+			cmd.PrintErrf("conflict in recipe %s: %s was already created by recipe %s\n", re.Name, conflicts[0].Path, s.Recipe.Name)
 			return
 		}
 	}
 
-	err = re.Save(opts.OutputPath)
+	err = sauce.Save(opts.OutputPath)
 	if err != nil {
-		cmd.PrintErrln(err)
+		cmd.PrintErrf("Error: %s", err)
 		return
 	}
 
-	err = recipeutil.SaveFiles(re.Files, opts.OutputPath)
+	err = recipeutil.SaveFiles(sauce.Files, opts.OutputPath)
 	if err != nil {
-		cmd.PrintErrln(err)
+		cmd.PrintErrf("Error: %s", err)
 		return
 	}
 

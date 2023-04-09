@@ -8,16 +8,9 @@ import (
 	"github.com/futurice/jalapeno/pkg/engine"
 )
 
-type File struct {
-	Checksum string `yaml:"checksum"` // e.g. "sha256:asdjfajdfa" w. default algo
-	Content  []byte `yaml:"-"`
-}
-
 type Recipe struct {
 	Metadata  `yaml:",inline"`
 	Variables []Variable        `yaml:"vars,omitempty"`
-	Values    VariableValues    `yaml:"values,omitempty"`
-	Files     map[string]File   `yaml:"files,omitempty"`
 	Templates map[string][]byte `yaml:"-"`
 	Tests     []Test            `yaml:"-"`
 	engine    RenderEngine
@@ -27,8 +20,11 @@ type RenderEngine interface {
 	Render(templates map[string][]byte, values map[string]interface{}) (map[string][]byte, error)
 }
 
-func New() *Recipe {
+func NewRecipe() *Recipe {
 	return &Recipe{
+		Metadata: Metadata{
+			APIVersion: "v1",
+		},
 		engine: engine.Engine{},
 	}
 }
@@ -36,10 +32,6 @@ func New() *Recipe {
 func (re *Recipe) Validate() error {
 	if err := re.Metadata.Validate(); err != nil {
 		return err
-	}
-
-	if len(re.Templates) == 0 && len(re.Files) == 0 {
-		return errors.New("the recipe does not contain any templates or rendered files")
 	}
 
 	checkDuplicates := make(map[string]bool)
@@ -67,40 +59,40 @@ func (re *Recipe) SetEngine(e RenderEngine) {
 }
 
 // Renders recipe templates from .Templates to .Files
-func (re *Recipe) Render() error {
+func (re *Recipe) Execute(values VariableValues) (*Sauce, error) {
 	if re.engine == nil {
-		return errors.New("render engine has not been set")
+		return nil, errors.New("render engine has not been set")
 	}
 
 	// Define the context which is available on templates
 	context := map[string]interface{}{
 		"Recipe":    re.Metadata,
-		"Variables": re.Values,
+		"Variables": values,
 	}
 
 	var err error
 	files, err := re.engine.Render(re.Templates, context)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	re.Files = make(map[string]File, len(files))
+	sauce := &Sauce{
+		Recipe: *re,
+		Values: values,
+	}
+
+	sauce.Files = make(map[string]File, len(files))
 	idx := 0
 	for filename, content := range files {
 		sum := sha256.Sum256(content)
-		re.Files[filename] = File{Content: content, Checksum: fmt.Sprintf("sha256:%x", sum)}
+		sauce.Files[filename] = File{Content: content, Checksum: fmt.Sprintf("sha256:%x", sum)}
 		idx += 1
 		if idx > len(files) {
-			return errors.New("files array grew during execution")
+			return nil, errors.New("files array grew during execution")
 		}
 	}
 
-	return nil
-}
-
-// Check if the recipe is in executed state (the templates has been rendered)
-func (re *Recipe) IsExecuted() bool {
-	return len(re.Files) > 0
+	return sauce, nil
 }
 
 type RecipeConflict struct {
@@ -110,9 +102,9 @@ type RecipeConflict struct {
 }
 
 // Check if the recipe conflicts with another recipe. Recipes conflict if they touch the same files.
-func (re *Recipe) Conflicts(other *Recipe) []RecipeConflict {
+func (s *Sauce) Conflicts(other *Sauce) []RecipeConflict {
 	var conflicts []RecipeConflict
-	for path, file := range re.Files {
+	for path, file := range s.Files {
 		if otherFile, exists := other.Files[path]; exists {
 			conflicts = append(
 				conflicts,
@@ -124,9 +116,4 @@ func (re *Recipe) Conflicts(other *Recipe) []RecipeConflict {
 		}
 	}
 	return conflicts
-}
-
-// Check if the recipe conflicts with another recipe. Recipes conflict if they touch the same files.
-func (re *Recipe) Test() error {
-	return nil
 }
