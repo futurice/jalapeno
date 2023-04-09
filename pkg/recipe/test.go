@@ -8,6 +8,7 @@ import (
 )
 
 type Test struct {
+	// Name of the test case. Can be also defined implicitly by the filename
 	Name   string              `yaml:"name,omitempty"`
 	Values VariableValues      `yaml:"values"`
 	Files  map[string]TestFile `yaml:"files"`
@@ -43,7 +44,10 @@ var (
 )
 
 func (t *Test) Validate() error {
-	// TODO
+	if t.Name == "" {
+		return errors.New("test name can not be empty")
+	}
+
 	return nil
 }
 

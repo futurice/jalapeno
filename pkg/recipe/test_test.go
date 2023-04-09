@@ -143,6 +143,7 @@ func TestRecipeTests(t *testing.T) {
 			tests := make([]Test, len(scenario.tests))
 			for i, t := range scenario.tests {
 				tests[i] = t.Test
+				tests[i].Name = scenario.name
 			}
 			recipe := NewRecipe()
 			recipe.Tests = tests
