@@ -146,6 +146,8 @@ func TestRecipeTests(t *testing.T) {
 				tests[i].Name = scenario.name
 			}
 			recipe := NewRecipe()
+			recipe.Name = "foo"
+			recipe.Version = "v0.0.0"
 			recipe.Tests = tests
 			recipe.Templates = scenario.templates
 

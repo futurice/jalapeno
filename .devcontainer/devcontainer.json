@@ -11,7 +11,11 @@
 		"ghcr.io/devcontainers/features/go:1": {},
 		"ghcr.io/eitsupi/devcontainer-features/go-task:0": {},
 		"ghcr.io/guiyomh/features/golangci-lint:0": {},
-		"ghcr.io/guiyomh/features/goreleaser:0": {}
+		"ghcr.io/guiyomh/features/goreleaser:0": {},
+		"ghcr.io/devcontainers/features/azure-cli:1": {},
+		"ghcr.io/devcontainers/features/terraform:1": {
+			"installTFsec": true
+		}
 	},
 	// Configure tool-specific properties.
 	"customizations": {
@@ -25,7 +29,8 @@
 			},
 			"extensions": [
 				"GitHub.vscode-pull-request-github",
-				"golang.go"
+				"golang.go",
+				"hashicorp.terraform"
 			]
 		}
 	}

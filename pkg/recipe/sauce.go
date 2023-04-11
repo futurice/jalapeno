@@ -2,6 +2,8 @@ package recipe
 
 import (
 	"fmt"
+
+	"github.com/gofrs/uuid"
 )
 
 type File struct {
@@ -14,6 +16,11 @@ type Sauce struct {
 	Recipe Recipe          `yaml:",inline"`
 	Values VariableValues  `yaml:"values,omitempty"`
 	Files  map[string]File `yaml:"files"`
+
+	// Random ID whose value is determined on first render and stays the same
+	// on subsequent re-renders (upgrades) of the sauce. Can be used for example as a seed
+	// for template random functions to provide same result on each template
+	Anchor uuid.UUID `yaml:"anchor"`
 }
 
 const (
@@ -25,7 +32,9 @@ const (
 )
 
 func NewSauce() *Sauce {
-	return &Sauce{}
+	return &Sauce{
+		Anchor: uuid.Must(uuid.NewV4()),
+	}
 }
 
 func (s *Sauce) Validate() error {

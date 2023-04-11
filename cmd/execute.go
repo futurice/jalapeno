@@ -41,13 +41,13 @@ func newExecuteCmd() *cobra.Command {
 
 func runExecute(cmd *cobra.Command, opts executeOptions) {
 	if _, err := os.Stat(opts.OutputPath); os.IsNotExist(err) {
-		cmd.PrintErrln("output path does not exist")
+		cmd.PrintErrln("Error: output path does not exist")
 		return
 	}
 
 	re, err := recipe.LoadRecipe(opts.RecipePath)
 	if err != nil {
-		cmd.PrintErrf("can't load the recipe: %v\n", err)
+		cmd.PrintErrf("Error: can't load the recipe: %s\n", err)
 		return
 	}
 

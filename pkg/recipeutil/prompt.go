@@ -8,6 +8,8 @@ import (
 )
 
 func PromptUserForValues(variables []recipe.Variable) (recipe.VariableValues, error) {
+	// TODO: This command does not respect stdio defined by the Cobra cmd, so
+	// capturing and examining the output of this function does not work at the moment
 	values := recipe.VariableValues{}
 	headerAdded := false
 
@@ -33,6 +35,7 @@ func PromptUserForValues(variables []recipe.Variable) (recipe.VariableValues, er
 			prompt = &survey.Confirm{
 				Message: variable.Name,
 				Help:    variable.Description,
+				Default: variable.Default == "true",
 			}
 			askFunc = askBool
 
@@ -77,17 +80,17 @@ func PromptUserForValues(variables []recipe.Variable) (recipe.VariableValues, er
 type AskFunc func(prompt survey.Prompt, opts []survey.AskOpt) (interface{}, error)
 
 func askString(prompt survey.Prompt, opts []survey.AskOpt) (interface{}, error) {
-	var answer string
-	if err := survey.AskOne(prompt, &answer, opts...); err != nil {
-		return nil, err
-	}
-	return answer, nil
+	return ask[string](prompt, opts)
 }
 
 func askBool(prompt survey.Prompt, opts []survey.AskOpt) (interface{}, error) {
-	var answer bool
+	return ask[bool](prompt, opts)
+}
+
+func ask[T string | bool](prompt survey.Prompt, opts []survey.AskOpt) (T, error) {
+	var answer T
 	if err := survey.AskOne(prompt, &answer, opts...); err != nil {
-		return nil, err
+		return answer, err
 	}
 	return answer, nil
 }

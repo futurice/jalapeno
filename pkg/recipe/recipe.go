@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/futurice/jalapeno/pkg/engine"
 )
@@ -70,26 +71,32 @@ func (re *Recipe) Execute(values VariableValues) (*Sauce, error) {
 		"Variables": values,
 	}
 
-	var err error
 	files, err := re.engine.Render(re.Templates, context)
 	if err != nil {
 		return nil, err
 	}
 
-	sauce := &Sauce{
-		Recipe: *re,
-		Values: values,
-	}
+	sauce := NewSauce()
+	sauce.Recipe = *re
+	sauce.Values = values
 
 	sauce.Files = make(map[string]File, len(files))
 	idx := 0
 	for filename, content := range files {
+		// Skip empty files
+		if len(strings.TrimSpace(string(content))) == 0 {
+			continue
+		}
 		sum := sha256.Sum256(content)
 		sauce.Files[filename] = File{Content: content, Checksum: fmt.Sprintf("sha256:%x", sum)}
 		idx += 1
 		if idx > len(files) {
 			return nil, errors.New("files array grew during execution")
 		}
+	}
+
+	if err = sauce.Validate(); err != nil {
+		return nil, fmt.Errorf("sauce was not valid: %w", err)
 	}
 
 	return sauce, nil

@@ -11,6 +11,7 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
+	"io"
 	"math/big"
 	"net/http"
 	"os"
@@ -20,7 +21,10 @@ import (
 	"time"
 
 	"github.com/cucumber/godog"
+	"github.com/futurice/jalapeno/pkg/recipe"
 	re "github.com/futurice/jalapeno/pkg/recipe"
+	"github.com/go-yaml/yaml"
+	"github.com/gofrs/uuid"
 	"github.com/ory/dockertest"
 	"github.com/spf13/cobra"
 )
@@ -61,6 +65,8 @@ func TestFeatures(t *testing.T) {
 			s.Step(`^I execute recipe "([^"]*)"$`, iExecuteRecipe)
 			s.Step(`^the project directory should contain file "([^"]*)"$`, theProjectDirectoryShouldContainFile)
 			s.Step(`^the project directory should contain file "([^"]*)" with "([^"]*)"$`, theProjectDirectoryShouldContainFileWith)
+			s.Step(`^the sauce file contains a sauce in index (\d) which should have property "([^"]*)" with value "([^"]*)"$`, theSauceFileShouldHavePropertyWithValue)
+			s.Step(`^the sauce file contains a sauce in index (\d) which should have property "([^"]*)" that is a valid UUID$`, theSauceFileFileShouldHavePropertyThatIsAValidUUID)
 			s.Step(`^execution of the recipe has succeeded$`, executionOfTheRecipeHasSucceeded)
 			s.Step(`^execution of the recipe has failed with error "([^"]*)"$`, executionOfTheRecipeHasFailedWithError)
 			s.Step(`^I change recipe "([^"]*)" to version "([^"]*)"$`, iChangeRecipeToVersion)
@@ -130,6 +136,46 @@ func cleanTempDirs(ctx context.Context, sc *godog.Scenario, err error) (context.
 	}
 	return ctx, err
 }
+
+func readProjectDirectoryFile(ctx context.Context, filename string) (string, error) {
+	dir := ctx.Value(projectDirectoryPathCtxKey{}).(string)
+	path := filepath.Join(dir, filename)
+	info, err := os.Stat(path)
+	if err != nil {
+		return "", err
+	} else if !info.Mode().IsRegular() {
+		return "", fmt.Errorf("%s is not a regular file", filename)
+	}
+	bytes, err := os.ReadFile(path)
+	if err != nil {
+		return "", err
+	}
+	return string(bytes), nil
+}
+
+func readSauceFile(ctx context.Context) ([]map[interface{}]interface{}, error) {
+	content, err := readProjectDirectoryFile(ctx, filepath.Join(recipe.SauceDirName, recipe.SaucesFileName+recipe.YAMLExtension))
+	if err != nil {
+		return nil, err
+	}
+	var recipes []map[interface{}]interface{}
+	decoder := yaml.NewDecoder(bytes.NewReader([]byte(content)))
+	for {
+		recipe := make(map[interface{}]interface{})
+		if err := decoder.Decode(&recipe); err != nil {
+			if err != io.EOF {
+				return nil, fmt.Errorf("failed to decode recipe file: %w", err)
+			}
+			break
+		}
+		recipes = append(recipes, recipe)
+	}
+	return recipes, nil
+}
+
+/*
+ * STEP DEFINITIONS
+ */
 
 func cleanDockerResources(ctx context.Context, sc *godog.Scenario, err error) (context.Context, error) {
 	resources, ok := ctx.Value(dockerResourcesCtxKey{}).([]*dockertest.Resource)
@@ -265,21 +311,50 @@ func theProjectDirectoryShouldContainFile(ctx context.Context, filename string) 
 func theProjectDirectoryShouldContainFileWith(ctx context.Context, filename, searchTerm string) error {
 	cmdStdOut := ctx.Value(cmdStdOutCtxKey{}).(string)
 	cmdStdErr := ctx.Value(cmdStdErrCtxKey{}).(string)
-	dir := ctx.Value(projectDirectoryPathCtxKey{}).(string)
 
-	path := filepath.Join(dir, filename)
-	info, err := os.Stat(path)
+	content, err := readProjectDirectoryFile(ctx, filename)
+	if err != nil {
+		return fmt.Errorf("%s\nstdout:\n%s\nstderr:\n%s\n", err, cmdStdOut, cmdStdErr)
+	}
+	if !strings.Contains(content, searchTerm) {
+		return fmt.Errorf("substring %s not found in %s.\nstdout:\n%s\n\nstderr:\n%s\n", searchTerm, filename, cmdStdOut, cmdStdErr)
+	}
+	return nil
+}
+
+func theSauceFileFileShouldHavePropertyThatIsAValidUUID(ctx context.Context, index int, propertyName string) error {
+	recipes, err := readSauceFile(ctx)
 	if err != nil {
 		return err
-	} else if !info.Mode().IsRegular() {
-		return fmt.Errorf("%s is not a regular file.\nstdout:\n%s\n\nstderr:\n%s\n", filename, cmdStdOut, cmdStdErr)
 	}
-	bytes, err := os.ReadFile(path)
+
+	value, exists := (recipes[index])[propertyName].(string)
+	if exists {
+		if _, err := uuid.FromString(value); err != nil {
+			return fmt.Errorf("found UUID but it does not parse: %w", err)
+		}
+	} else {
+		return fmt.Errorf("recipe file does not have property %s", propertyName)
+	}
+
 	if err != nil {
 		return err
 	}
-	if !strings.Contains(string(bytes), searchTerm) {
-		return fmt.Errorf("substring %s not found in file %s. Contents:\n%s", searchTerm, filename, string(bytes))
+
+	return nil
+}
+
+func theSauceFileShouldHavePropertyWithValue(ctx context.Context, index int, propertyName, expectedValue string) error {
+	recipes, err := readSauceFile(ctx)
+	if err != nil {
+		return err
+	}
+	value, exists := (recipes[index])[propertyName].(string)
+	if !exists {
+		return fmt.Errorf("recipe file does not have property %s", propertyName)
+	}
+	if value != expectedValue {
+		return fmt.Errorf("expected property %s to have value %s, got %s", propertyName, expectedValue, value)
 	}
 	return nil
 }

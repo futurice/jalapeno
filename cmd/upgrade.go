@@ -110,13 +110,16 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) {
 		return
 	}
 
+	// Keep the same anchor over the upgrade
+	newSauce.Anchor = oldSauce.Anchor
+
 	// read common ignore file if it exists
 	ignorePatterns := make([]string, 0)
 	if data, err := os.ReadFile(filepath.Join(opts.ProjectPath, recipe.IgnoreFileName)); err == nil {
 		ignorePatterns = append(ignorePatterns, strings.Split(string(data), "\n")...)
 	} else if !errors.Is(err, fs.ErrNotExist) {
 		// something else happened than trying to read an ignore file that does not exist
-		cmd.PrintErrf("failed to read ignore file: %v\n", err)
+		cmd.PrintErrf("Error: failed to read ignore file: %s\n", err)
 		return
 	}
 	ignorePatterns = append(ignorePatterns, re.IgnorePatterns...)
@@ -129,7 +132,7 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) {
 		skip := false
 		for _, pattern := range ignorePatterns {
 			if matched, err := filepath.Match(pattern, path); err != nil {
-				cmd.PrintErrf("bad ignore pattern '%s': %v\n", pattern, err)
+				cmd.PrintErrf("Error: bad ignore pattern '%s': %s\n", pattern, err)
 				return
 			} else if matched {
 				// file was marked as ignored for upgrades

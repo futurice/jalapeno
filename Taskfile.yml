@@ -41,5 +41,6 @@ tasks:
         --api-version 2
         -- {{.CLI_ARGS}}
   test:
+    desc: Run the test suite
     cmds:
       - go test {{.CLI_ARGS}} ./...

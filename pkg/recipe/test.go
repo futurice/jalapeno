@@ -57,6 +57,7 @@ func (re *Recipe) RunTests() []error {
 		sauce, err := re.Execute(t.Values)
 		if err != nil {
 			errors[i] = fmt.Errorf("%w", err)
+			continue
 		}
 
 		if len(t.Files) != len(sauce.Files) {
