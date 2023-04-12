@@ -1,6 +1,7 @@
 package recipe
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -15,7 +16,6 @@ func (re *Recipe) Save(dest string) error {
 	// TODO: Make sure recipe name is path friendly
 	recipeDir := filepath.Join(dest, re.Name)
 
-	// TODO: Override recipe if already exists?
 	if _, err := os.Stat(recipeDir); !os.IsNotExist(err) {
 		return fmt.Errorf("directory '%s' already exists", dest)
 	}
@@ -71,20 +71,15 @@ func (re *Recipe) saveTests(dest string) error {
 	for _, test := range re.Tests {
 		file, err := os.Create(filepath.Join(testDir, test.Name+YAMLExtension))
 		if err != nil {
-			return fmt.Errorf("failed to create rendered recipe file: %w", err)
+			return fmt.Errorf("failed to create recipe test file: %w", err)
 		}
+		defer file.Close()
 
 		encoder := yaml.NewEncoder(file)
+		defer encoder.Close()
 
 		if err := encoder.Encode(test); err != nil {
 			return fmt.Errorf("failed to write recipe test to a file: %w", err)
-		}
-
-		if err := encoder.Close(); err != nil {
-			return fmt.Errorf("failed to close recipe test YAML encoder: %w", err)
-		}
-		if err := file.Close(); err != nil {
-			return fmt.Errorf("failed to close recipe test file: %w", err)
 		}
 	}
 
@@ -98,17 +93,9 @@ func (re *Recipe) saveTemplates(dest string) error {
 		return fmt.Errorf("can not save templates to the directory: %w", err)
 	}
 
-	for relativeFilepath, content := range re.Templates {
-		templatePath := filepath.Join(templateDir, relativeFilepath)
-		err = os.MkdirAll(filepath.Dir(templatePath), defaultFileMode)
-		if err != nil {
-			return fmt.Errorf("failed to create rendered recipe file: %w", err)
-		}
-
-		err := os.WriteFile(templatePath, content, defaultFileMode)
-		if err != nil {
-			return fmt.Errorf("failed to create rendered recipe file: %w", err)
-		}
+	err = saveFileMap(re.Templates, templateDir)
+	if err != nil {
+		return fmt.Errorf("failed to save template files: %w", err)
 	}
 
 	return nil
@@ -117,7 +104,7 @@ func (re *Recipe) saveTemplates(dest string) error {
 // Save saves sauce to given destination
 func (s *Sauce) Save(dest string) error {
 	// load all sauces from target dir, because we will either replace
-	// a previous rendering of this recipe, or create a new file
+	// a previous sauce, or create a new file
 	sauces, err := LoadSauces(dest)
 	if err != nil {
 		return err
@@ -137,25 +124,67 @@ func (s *Sauce) Save(dest string) error {
 	}
 
 	if err := os.MkdirAll(filepath.Join(dest, SauceDirName), defaultFileMode); err != nil {
-		return fmt.Errorf("failed to create rendered recipe dir: %w", err)
+		return fmt.Errorf("failed to create sauce dir: %w", err)
 	}
 	file, err := os.Create(filepath.Join(dest, SauceDirName, SaucesFileName+YAMLExtension))
 	if err != nil {
-		return fmt.Errorf("failed to create rendered recipe file: %w", err)
+		return fmt.Errorf("failed to create sauce file: %w", err)
 	}
+	defer file.Close()
+
 	encoder := yaml.NewEncoder(file)
+	defer encoder.Close()
 
 	for _, sauce := range sauces {
 		if err := encoder.Encode(sauce); err != nil {
-			return fmt.Errorf("failed to write recipes: %w", err)
+			return fmt.Errorf("failed to write sauces: %w", err)
 		}
 	}
-	if err := encoder.Close(); err != nil {
-		return fmt.Errorf("failed to close recipe file: %w", err)
-	}
-	if err := file.Close(); err != nil {
-		return fmt.Errorf("failed to close recipe file: %w", err)
+
+	fileMap := make(map[string][]byte)
+	for filename, file := range s.Files {
+		fileMap[filename] = file.Content
 	}
 
+	err = saveFileMap(fileMap, dest)
+	if err != nil {
+		return fmt.Errorf("failed to save sauce files: %w", err)
+	}
+
+	return nil
+}
+
+func saveFileMap(files map[string][]byte, dest string) error {
+	if _, err := os.Stat(dest); os.IsNotExist(err) {
+		return errors.New("destination path does not exist")
+	}
+
+	for path, file := range files {
+		destPath := filepath.Join(dest, path)
+
+		// Create file's parent directories (if not already exist)
+		err := os.MkdirAll(filepath.Dir(destPath), 0700)
+		if err != nil {
+			return err
+		}
+
+		// Create the file
+		f, err := os.Create(destPath)
+		if err != nil {
+			return err
+		}
+		defer f.Close()
+
+		// Write the data to the file
+		_, err = f.Write(file)
+		if err != nil {
+			return err
+		}
+
+		err = f.Sync()
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }

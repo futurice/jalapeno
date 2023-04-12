@@ -21,7 +21,6 @@ import (
 	"time"
 
 	"github.com/cucumber/godog"
-	"github.com/futurice/jalapeno/pkg/recipe"
 	re "github.com/futurice/jalapeno/pkg/recipe"
 	"github.com/go-yaml/yaml"
 	"github.com/gofrs/uuid"
@@ -155,7 +154,7 @@ func readProjectDirectoryFile(ctx context.Context, filename string) (string, err
 }
 
 func readSauceFile(ctx context.Context) ([]map[interface{}]interface{}, error) {
-	content, err := readProjectDirectoryFile(ctx, filepath.Join(recipe.SauceDirName, recipe.SaucesFileName+recipe.YAMLExtension))
+	content, err := readProjectDirectoryFile(ctx, filepath.Join(re.SauceDirName, re.SaucesFileName+re.YAMLExtension))
 	if err != nil {
 		return nil, err
 	}

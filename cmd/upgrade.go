@@ -180,11 +180,7 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) {
 		output[path] = newSauce.Files[path]
 	}
 
-	err = recipeutil.SaveFiles(output, opts.ProjectPath)
-	if err != nil {
-		cmd.PrintErrf("Error: %s", err)
-		return
-	}
+	newSauce.Files = output
 
 	err = newSauce.Save(opts.ProjectPath)
 	if err != nil {

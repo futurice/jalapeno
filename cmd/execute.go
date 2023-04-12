@@ -93,12 +93,6 @@ func runExecute(cmd *cobra.Command, opts executeOptions) {
 		return
 	}
 
-	err = recipeutil.SaveFiles(sauce.Files, opts.OutputPath)
-	if err != nil {
-		cmd.PrintErrf("Error: %s", err)
-		return
-	}
-
 	cmd.Println("\nRecipe executed successfully!")
 
 	if re.InitHelp != "" {
