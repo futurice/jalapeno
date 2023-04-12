@@ -146,7 +146,8 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) {
 
 		if prevFile, exists := oldSauce.Files[path]; exists {
 			// Check if file was modified after rendering
-			if modified, err := recipeutil.IsFileModified(opts.ProjectPath, path, prevFile); err != nil {
+			filePath := filepath.Join(opts.ProjectPath, path)
+			if modified, err := recipeutil.IsFileModified(filePath, prevFile); err != nil {
 				cmd.PrintErrf("Error: %s", err)
 				return
 			} else if modified {
