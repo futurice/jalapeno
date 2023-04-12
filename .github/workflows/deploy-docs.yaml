@@ -5,6 +5,9 @@ on:
     branches:
       - main
       - docs
+    paths:
+      - ".github/workflows/deploy-docs.yaml"
+      - "docs/**"
 
 jobs:
   deploy:
