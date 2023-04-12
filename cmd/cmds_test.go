@@ -94,9 +94,10 @@ func TestFeatures(t *testing.T) {
 			s.After(cleanTempDirs)
 		},
 		Options: &godog.Options{
-			Format:   "pretty",
-			Paths:    []string{"../features"},
-			TestingT: t, // Testing instance that will run subtests.
+			Concurrency: 4,
+			Format:      "pretty",
+			Paths:       []string{"../features"},
+			TestingT:    t, // Testing instance that will run subtests.
 		},
 	}
 
