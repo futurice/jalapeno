@@ -65,7 +65,7 @@ func runExecute(cmd *cobra.Command, opts executeOptions) {
 		return
 	}
 
-	sauce, err := re.Execute(values)
+	sauce, err := re.Execute(values, recipe.ExecuteOptions{})
 	if err != nil {
 		cmd.PrintErrf("Error: %s", err)
 		return

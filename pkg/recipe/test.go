@@ -8,16 +8,20 @@ import (
 )
 
 type Test struct {
-	// Name of the test case. Can be also defined implicitly by the filename
-	Name   string              `yaml:"name,omitempty"`
-	Values VariableValues      `yaml:"values"`
-	Files  map[string]TestFile `yaml:"files"`
+	// Name of the test case. Defined by the test filename
+	Name string `yaml:"-"`
+
+	// Values to use to render the recipe templates
+	Values VariableValues `yaml:"values"`
+
+	// Snapshots of the rendered templates which were rendered with the values specified in the test
+	Files map[string]TestFile `yaml:"files"`
 }
 
 type TestFile []byte
 
-func (f *TestFile) MarshalYAML() (interface{}, error) {
-	return b64.StdEncoding.EncodeToString(*f), nil
+func (f TestFile) MarshalYAML() (interface{}, error) {
+	return b64.StdEncoding.EncodeToString(f), nil
 }
 
 func (f *TestFile) UnmarshalYAML(unmarshal func(interface{}) error) error {
@@ -54,7 +58,7 @@ func (t *Test) Validate() error {
 func (re *Recipe) RunTests() []error {
 	errors := make([]error, len(re.Tests))
 	for i, t := range re.Tests {
-		sauce, err := re.Execute(t.Values)
+		sauce, err := re.Execute(t.Values, ExecuteOptions{UseStaticAnchor: true})
 		if err != nil {
 			errors[i] = fmt.Errorf("%w", err)
 			continue

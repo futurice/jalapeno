@@ -1,10 +1,7 @@
 package recipe
 
 import (
-	"crypto/sha256"
-	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/futurice/jalapeno/pkg/engine"
 )
@@ -57,70 +54,4 @@ func (re *Recipe) Validate() error {
 
 func (re *Recipe) SetEngine(e RenderEngine) {
 	re.engine = e
-}
-
-// Renders recipe templates from .Templates to .Files
-func (re *Recipe) Execute(values VariableValues) (*Sauce, error) {
-	if re.engine == nil {
-		return nil, errors.New("render engine has not been set")
-	}
-
-	// Define the context which is available on templates
-	context := map[string]interface{}{
-		"Recipe":    re.Metadata,
-		"Variables": values,
-	}
-
-	files, err := re.engine.Render(re.Templates, context)
-	if err != nil {
-		return nil, err
-	}
-
-	sauce := NewSauce()
-	sauce.Recipe = *re
-	sauce.Values = values
-
-	sauce.Files = make(map[string]File, len(files))
-	idx := 0
-	for filename, content := range files {
-		// Skip empty files
-		if len(strings.TrimSpace(string(content))) == 0 {
-			continue
-		}
-		sum := sha256.Sum256(content)
-		sauce.Files[filename] = File{Content: content, Checksum: fmt.Sprintf("sha256:%x", sum)}
-		idx += 1
-		if idx > len(files) {
-			return nil, errors.New("files array grew during execution")
-		}
-	}
-
-	if err = sauce.Validate(); err != nil {
-		return nil, fmt.Errorf("sauce was not valid: %w", err)
-	}
-
-	return sauce, nil
-}
-
-type RecipeConflict struct {
-	Path           string
-	Sha256Sum      string
-	OtherSha256Sum string
-}
-
-// Check if the recipe conflicts with another recipe. Recipes conflict if they touch the same files.
-func (s *Sauce) Conflicts(other *Sauce) []RecipeConflict {
-	var conflicts []RecipeConflict
-	for path, file := range s.Files {
-		if otherFile, exists := other.Files[path]; exists {
-			conflicts = append(
-				conflicts,
-				RecipeConflict{
-					Path:           path,
-					Sha256Sum:      file.Checksum,
-					OtherSha256Sum: otherFile.Checksum,
-				})
-		}
-	}
-	return conflicts
 }

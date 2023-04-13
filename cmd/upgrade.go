@@ -104,7 +104,7 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) {
 		return
 	}
 
-	newSauce, err := re.Execute(values)
+	newSauce, err := re.Execute(values, recipe.ExecuteOptions{})
 	if err != nil {
 		cmd.PrintErrf("Error: %s", err)
 		return

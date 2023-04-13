@@ -6,11 +6,6 @@ import (
 	"github.com/gofrs/uuid"
 )
 
-type File struct {
-	Checksum string `yaml:"checksum"` // e.g. "sha256:asdjfajdfa" w. default algo
-	Content  []byte `yaml:"-"`
-}
-
 // Sauce represents a rendered recipe
 type Sauce struct {
 	Recipe Recipe          `yaml:",inline"`
@@ -21,6 +16,17 @@ type Sauce struct {
 	// on subsequent re-renders (upgrades) of the sauce. Can be used for example as a seed
 	// for template random functions to provide same result on each template
 	Anchor uuid.UUID `yaml:"anchor"`
+}
+
+type File struct {
+	Checksum string `yaml:"checksum"` // e.g. "sha256:asdjfajdfa" w. default algo
+	Content  []byte `yaml:"-"`
+}
+
+type RecipeConflict struct {
+	Path           string
+	Sha256Sum      string
+	OtherSha256Sum string
 }
 
 const (
@@ -48,4 +54,21 @@ func (s *Sauce) Validate() error {
 		}
 	}
 	return nil
+}
+
+// Check if the recipe conflicts with another recipe. Recipes conflict if they touch the same files.
+func (s *Sauce) Conflicts(other *Sauce) []RecipeConflict {
+	var conflicts []RecipeConflict
+	for path, file := range s.Files {
+		if otherFile, exists := other.Files[path]; exists {
+			conflicts = append(
+				conflicts,
+				RecipeConflict{
+					Path:           path,
+					Sha256Sum:      file.Checksum,
+					OtherSha256Sum: otherFile.Checksum,
+				})
+		}
+	}
+	return conflicts
 }

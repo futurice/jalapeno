@@ -42,14 +42,14 @@ func newEjectCmd() *cobra.Command {
 
 func runEject(cmd *cobra.Command, opts ejectOptions) {
 	if _, err := os.Stat(opts.ProjectPath); os.IsNotExist(err) {
-		cmd.PrintErrln("project path does not exist")
+		cmd.PrintErrln("Error: project path does not exist")
 		return
 	}
 
 	jalapenoPath := filepath.Join(opts.ProjectPath, recipe.SauceDirName)
 
 	if stat, err := os.Stat(jalapenoPath); os.IsNotExist(err) || !stat.IsDir() {
-		cmd.PrintErrf("'%s' is not a Jalapeno project\n", opts.ProjectPath)
+		cmd.PrintErrf("Error: '%s' is not a Jalapeno project\n", opts.ProjectPath)
 		return
 	}
 

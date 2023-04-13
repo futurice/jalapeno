@@ -85,7 +85,7 @@ func TestSaveSauce(t *testing.T) {
 		t.Fatalf("test recipe was not valid: %s", err)
 	}
 
-	sauce, err := re.Execute(nil)
+	sauce, err := re.Execute(nil, ExecuteOptions{})
 	if err != nil {
 		t.Fatalf("recipe execution failed: %s", err)
 	}

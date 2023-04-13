@@ -43,7 +43,7 @@ func TestRecipeRenderChecksums(t *testing.T) {
 
 	recipe.SetEngine(TestRenderEngine{})
 
-	sauce, err := recipe.Execute(VariableValues{"foo": "bar"})
+	sauce, err := recipe.Execute(VariableValues{"foo": "bar"}, ExecuteOptions{})
 	if err != nil {
 		t.Fatalf("Failed to render recipe: %s", err)
 	}
@@ -62,7 +62,7 @@ func TestRecipeRenderAnchor(t *testing.T) {
 
 	recipe.SetEngine(TestRenderEngine{})
 
-	sauce, err := recipe.Execute(nil)
+	sauce, err := recipe.Execute(nil, ExecuteOptions{})
 	if err != nil {
 		t.Fatalf("Failed to render recipe: %s", err)
 	}
@@ -70,7 +70,28 @@ func TestRecipeRenderAnchor(t *testing.T) {
 	if sauce.Anchor.IsNil() {
 		t.Fatal("Sauce anchor was empty")
 	}
+}
 
+func TestRecipeRenderStaticAnchor(t *testing.T) {
+	recipe := NewRecipe()
+	recipe.Metadata.Name = "test"
+	recipe.Metadata.Version = "v1.0.0"
+
+	recipe.SetEngine(TestRenderEngine{})
+
+	sauce1, err := recipe.Execute(nil, ExecuteOptions{UseStaticAnchor: true})
+	if err != nil {
+		t.Fatalf("Failed to render first recipe: %s", err)
+	}
+
+	sauce2, err := recipe.Execute(nil, ExecuteOptions{UseStaticAnchor: true})
+	if err != nil {
+		t.Fatalf("Failed to render second recipe: %s", err)
+	}
+
+	if sauce1.Anchor != sauce2.Anchor {
+		t.Fatal("Anchors were not same when used static anchor on both exeutrions")
+	}
 }
 
 func TestRecipeRenderEmptyFiles(t *testing.T) {
@@ -90,7 +111,7 @@ func TestRecipeRenderEmptyFiles(t *testing.T) {
 
 	recipe.SetEngine(TestRenderEngine{})
 
-	sauce, err := recipe.Execute(VariableValues{"foo": ""})
+	sauce, err := recipe.Execute(VariableValues{"foo": ""}, ExecuteOptions{})
 	if err != nil {
 		t.Fatalf("Failed to render recipe: %s", err)
 	}

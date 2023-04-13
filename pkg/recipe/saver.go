@@ -16,11 +16,7 @@ func (re *Recipe) Save(dest string) error {
 	// TODO: Make sure recipe name is path friendly
 	recipeDir := filepath.Join(dest, re.Name)
 
-	if _, err := os.Stat(recipeDir); !os.IsNotExist(err) {
-		return fmt.Errorf("directory '%s' already exists", dest)
-	}
-
-	err := os.Mkdir(recipeDir, defaultFileMode)
+	err := os.MkdirAll(recipeDir, defaultFileMode)
 	if err != nil {
 		return fmt.Errorf("can not create directory %s: %v", recipeDir, err)
 	}
@@ -63,7 +59,7 @@ func (re *Recipe) saveTests(dest string) error {
 
 	testDir := filepath.Join(dest, RecipeTestsDirName)
 
-	err := os.Mkdir(testDir, defaultFileMode)
+	err := os.MkdirAll(testDir, defaultFileMode)
 	if err != nil {
 		return fmt.Errorf("can not create recipe test directory: %w", err)
 	}
@@ -88,7 +84,7 @@ func (re *Recipe) saveTests(dest string) error {
 
 func (re *Recipe) saveTemplates(dest string) error {
 	templateDir := filepath.Join(dest, RecipeTemplatesDirName)
-	err := os.Mkdir(templateDir, defaultFileMode)
+	err := os.MkdirAll(templateDir, defaultFileMode)
 	if err != nil {
 		return fmt.Errorf("can not save templates to the directory: %w", err)
 	}

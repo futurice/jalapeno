@@ -8,6 +8,7 @@ type Common struct {
 }
 
 func (opts *Common) ApplyFlags(fs *pflag.FlagSet) {
-	fs.BoolVarP(&opts.Debug, "debug", "d", false, "debug mode")
-	fs.BoolVarP(&opts.Verbose, "verbose", "v", false, "verbose output")
+	// Not in use yet
+	// fs.BoolVarP(&opts.Debug, "debug", "d", false, "debug mode")
+	// fs.BoolVarP(&opts.Verbose, "verbose", "v", false, "verbose output")
 }
