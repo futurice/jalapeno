@@ -38,9 +38,7 @@ const (
 )
 
 func NewSauce() *Sauce {
-	return &Sauce{
-		Anchor: uuid.Must(uuid.NewV4()),
-	}
+	return &Sauce{}
 }
 
 func (s *Sauce) Validate() error {

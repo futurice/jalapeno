@@ -104,14 +104,11 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) {
 		return
 	}
 
-	newSauce, err := re.Execute(values, recipe.ExecuteOptions{})
+	newSauce, err := re.Execute(values, oldSauce.Anchor)
 	if err != nil {
 		cmd.PrintErrf("Error: %s", err)
 		return
 	}
-
-	// Keep the same anchor over the upgrade
-	newSauce.Anchor = oldSauce.Anchor
 
 	// read common ignore file if it exists
 	ignorePatterns := make([]string, 0)

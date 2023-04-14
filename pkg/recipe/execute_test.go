@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/Masterminds/sprig"
+	"github.com/gofrs/uuid"
 )
 
 type TestRenderEngine struct{}
@@ -43,7 +44,7 @@ func TestRecipeRenderChecksums(t *testing.T) {
 
 	recipe.SetEngine(TestRenderEngine{})
 
-	sauce, err := recipe.Execute(VariableValues{"foo": "bar"}, ExecuteOptions{})
+	sauce, err := recipe.Execute(VariableValues{"foo": "bar"}, uuid.Must(uuid.NewV4()))
 	if err != nil {
 		t.Fatalf("Failed to render recipe: %s", err)
 	}
@@ -62,7 +63,7 @@ func TestRecipeRenderAnchor(t *testing.T) {
 
 	recipe.SetEngine(TestRenderEngine{})
 
-	sauce, err := recipe.Execute(nil, ExecuteOptions{})
+	sauce, err := recipe.Execute(nil, uuid.Must(uuid.NewV4()))
 	if err != nil {
 		t.Fatalf("Failed to render recipe: %s", err)
 	}
@@ -79,12 +80,12 @@ func TestRecipeRenderStaticAnchor(t *testing.T) {
 
 	recipe.SetEngine(TestRenderEngine{})
 
-	sauce1, err := recipe.Execute(nil, ExecuteOptions{UseStaticAnchor: true})
+	sauce1, err := recipe.Execute(nil, TestAnchor)
 	if err != nil {
 		t.Fatalf("Failed to render first recipe: %s", err)
 	}
 
-	sauce2, err := recipe.Execute(nil, ExecuteOptions{UseStaticAnchor: true})
+	sauce2, err := recipe.Execute(nil, TestAnchor)
 	if err != nil {
 		t.Fatalf("Failed to render second recipe: %s", err)
 	}
@@ -111,7 +112,7 @@ func TestRecipeRenderEmptyFiles(t *testing.T) {
 
 	recipe.SetEngine(TestRenderEngine{})
 
-	sauce, err := recipe.Execute(VariableValues{"foo": ""}, ExecuteOptions{})
+	sauce, err := recipe.Execute(VariableValues{"foo": ""}, uuid.Must(uuid.NewV4()))
 	if err != nil {
 		t.Fatalf("Failed to render recipe: %s", err)
 	}

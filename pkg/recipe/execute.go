@@ -9,25 +9,20 @@ import (
 	"github.com/gofrs/uuid"
 )
 
-type ExecuteOptions struct {
-	UseStaticAnchor bool
-}
-
 // Renders recipe templates
-func (re *Recipe) Execute(values VariableValues, opts ExecuteOptions) (*Sauce, error) {
+func (re *Recipe) Execute(values VariableValues, anchor uuid.UUID) (*Sauce, error) {
 	if re.engine == nil {
 		return nil, errors.New("render engine has not been set")
+	}
+
+	if anchor.IsNil() {
+		return nil, errors.New("anchor was nil")
 	}
 
 	sauce := NewSauce()
 	sauce.Recipe = *re
 	sauce.Values = values
-
-	// Static anchor is used when running recipe tests
-	if opts.UseStaticAnchor {
-		// Not necessarily have to be nil UUID, can be any hardcoded UUID
-		sauce.Anchor = uuid.Nil
-	}
+	sauce.Anchor = anchor
 
 	// Define the context which is available on templates
 	context := map[string]interface{}{

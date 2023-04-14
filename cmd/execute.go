@@ -6,6 +6,7 @@ import (
 	"github.com/futurice/jalapeno/cmd/internal/option"
 	"github.com/futurice/jalapeno/pkg/recipe"
 	"github.com/futurice/jalapeno/pkg/recipeutil"
+	"github.com/gofrs/uuid"
 	"github.com/spf13/cobra"
 )
 
@@ -65,13 +66,13 @@ func runExecute(cmd *cobra.Command, opts executeOptions) {
 		return
 	}
 
-	sauce, err := re.Execute(values, recipe.ExecuteOptions{})
+	sauce, err := re.Execute(values, uuid.Must(uuid.NewV4()))
 	if err != nil {
 		cmd.PrintErrf("Error: %s", err)
 		return
 	}
 
-	// Load all existingSauces recipes
+	// Load all existing sauces
 	existingSauces, err := recipe.LoadSauces(opts.OutputPath)
 	if err != nil {
 		cmd.PrintErrf("Error: %s", err)
