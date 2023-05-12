@@ -35,6 +35,7 @@ type VariableRegExpValidator struct {
 	Help string `yaml:"help,omitempty"`
 }
 
+// VariableValues stores values for each variable. In practice the value can bee either string or boolean.
 type VariableValues map[string]interface{}
 
 func (v *Variable) Validate() error {
@@ -52,13 +53,10 @@ func (v *Variable) Validate() error {
 	return nil
 }
 
-func (r *VariableRegExpValidator) CreateValidatorFunc() (func(input interface{}) error, error) {
-	reg, err := regexp.Compile(r.Pattern)
-	if err != nil {
-		return nil, err
-	}
+func (r *VariableRegExpValidator) CreateValidatorFunc() func(input interface{}) error {
+	reg := regexp.MustCompile(r.Pattern)
 
-	validator := func(input interface{}) error {
+	return func(input interface{}) error {
 		if match := reg.MatchString(fmt.Sprint(input)); !match {
 			if r.Help != "" {
 				return errors.New(r.Help)
@@ -68,6 +66,4 @@ func (r *VariableRegExpValidator) CreateValidatorFunc() (func(input interface{})
 		}
 		return nil
 	}
-
-	return validator, nil
 }

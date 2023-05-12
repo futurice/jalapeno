@@ -36,6 +36,7 @@ type dockerConfigDirectoryPathCtxKey struct{}
 type ociRegistryCtxKey struct{}
 type cmdStdOutCtxKey struct{}
 type cmdStdErrCtxKey struct{}
+type cmdFlagSetCtxKey struct{}
 type dockerResourcesCtxKey struct{}
 
 type OCIRegistry struct {

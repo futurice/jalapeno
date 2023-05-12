@@ -7,12 +7,15 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/spf13/pflag"
 )
 
 func iPullRecipe(ctx context.Context, recipeName, repoName string) (context.Context, error) {
 	recipesDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
 	registry := ctx.Value(ociRegistryCtxKey{}).(OCIRegistry)
 	configDir, configFileExists := ctx.Value(dockerConfigDirectoryPathCtxKey{}).(string)
+	optionalFlagSet, flagsAreSet := ctx.Value(cmdFlagSetCtxKey{}).(*pflag.FlagSet)
 
 	cmd, cmdStdOut, cmdStdErr := wrapCmdOutputs(newPullCmd)
 
@@ -45,6 +48,10 @@ func iPullRecipe(ctx context.Context, recipeName, repoName string) (context.Cont
 		if err := flags.Set("registry-config", filepath.Join(configDir, DOCKER_CONFIG_FILENAME)); err != nil {
 			return ctx, err
 		}
+	}
+
+	if flagsAreSet && optionalFlagSet != nil {
+		cmd.Flags().AddFlagSet(optionalFlagSet)
 	}
 
 	if err := cmd.Execute(); err != nil {

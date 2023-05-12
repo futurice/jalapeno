@@ -11,12 +11,9 @@ func TestVariableRegExpValidation(t *testing.T) {
 		},
 	}
 
-	validatorFunc, err := variable.RegExp.CreateValidatorFunc()
-	if err != nil {
-		t.Error("Failed to create validator function", err)
-	}
+	validatorFunc := variable.RegExp.CreateValidatorFunc()
 
-	err = validatorFunc("")
+	err := validatorFunc("")
 	if err == nil {
 		t.Error("Incorrectly validated empty string")
 	}

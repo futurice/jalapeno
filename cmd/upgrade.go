@@ -18,6 +18,7 @@ import (
 type upgradeOptions struct {
 	ProjectPath string
 	SourcePath  string
+	option.Values
 	option.Common
 }
 
@@ -74,7 +75,7 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) {
 		return
 	}
 
-	cmd.Printf("Upgrade from %s to %s\n", oldSauce.Recipe.Metadata.Version, re.Metadata.Version)
+	cmd.Printf("Upgrading recipe %s from version %s to %s\n", oldSauce.Recipe.Name, oldSauce.Recipe.Metadata.Version, re.Metadata.Version)
 
 	// Check if the new version of the recipe has removed some variables
 	// which existed on previous version
@@ -90,21 +91,29 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) {
 		}
 	}
 
-	// Don't prompt variables which already has a value in existing sauce
-	vars := make([]recipe.Variable, 0, len(re.Variables))
+	predefinedValues, err := recipeutil.ParsePredefinedValues(re.Variables, opts.Values.Flags)
+	if err != nil {
+		cmd.PrintErrf("Error when parsing provided values: %v\n", err)
+		return
+	}
+
+	// Don't prompt variables which already has a value in existing sauce or is predefined
+	varsWithoutValues := make([]recipe.Variable, 0, len(re.Variables))
 	for _, v := range re.Variables {
-		if _, exists := oldSauce.Values[v.Name]; !exists {
-			vars = append(vars, v)
+		_, oldValueExists := oldSauce.Values[v.Name]
+		_, predefinedValueExists := predefinedValues[v.Name]
+		if !oldValueExists && !predefinedValueExists {
+			varsWithoutValues = append(varsWithoutValues, v)
 		}
 	}
 
-	values, err := recipeutil.PromptUserForValues(vars)
+	values, err := recipeutil.PromptUserForValues(varsWithoutValues)
 	if err != nil {
 		cmd.PrintErrf("Error: %s", err)
 		return
 	}
 
-	newSauce, err := re.Execute(values, oldSauce.Anchor)
+	newSauce, err := re.Execute(recipeutil.MergeValues(values, oldSauce.Values, predefinedValues), oldSauce.Anchor)
 	if err != nil {
 		cmd.PrintErrf("Error: %s", err)
 		return
