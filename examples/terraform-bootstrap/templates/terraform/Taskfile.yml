@@ -5,11 +5,12 @@ tasks:
   init:
     cmds:
       {{- range $index, $env := $environments }}
-      - task: init:environment
+      - task: tf:init-environment
         vars:
           environment: {{ $env | quote }}
+          storage_account_name: {{ (printf "tfs%.11s" (regexReplaceAll "[^a-z0-9]" (.Variables.SERVICE_NAME | lower) "")) }}{{ stableRandomAlphanumeric 6 .Recipe.Anchor }}{{ $env }}
       {{- end }}
-  init:environment:
+  tf:init-environment:
     deps: [az:login]
     cmds:
       - rm -Rf .terraform/terraform.tfstate backend.tf # Remove backend from previous run
@@ -41,6 +42,11 @@ tasks:
         -backend-config="container_name=$STORAGE_CONTAINER_NAME"
         -backend-config="key=tfstate_";
       - rm -Rf terraform.tfstate.d # Remove local state files
+  tf:select-environment:
+    cmds:
+      - task: tf:init-environment
+        vars:
+          environment: {{ `{{.CLI_ARGS}}` }}
   az:login:
     cmds:
       - az login
@@ -49,3 +55,8 @@ tasks:
 # TODO: task to delete state resources for a particular env
 # TODO: validate resource group name when prompting
 # TODO: Setup CI pipeline
+#   - inject SP credentials to GH actions secrets
+#   - add GH action that installs terraform and task
+#   - template out tasks in this taskfile that
+#     1. do terraform init with proper backend config for the env
+#   - add GH action that runs those tasks
