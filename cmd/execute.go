@@ -12,6 +12,7 @@ import (
 
 type executeOptions struct {
 	RecipePath string
+	option.Values
 	option.Output
 	option.Common
 }
@@ -58,15 +59,22 @@ func runExecute(cmd *cobra.Command, opts executeOptions) {
 		cmd.Printf("Description: %s\n", re.Metadata.Description)
 	}
 
-	// TODO: Set values provided by --set flag to re.Values
+	predefinedValues, err := recipeutil.ParsePredefinedValues(re.Variables, opts.Values.Flags)
+	if err != nil {
+		cmd.PrintErrf("Error when parsing provided values: %v\n", err)
+		return
+	}
 
-	values, err := recipeutil.PromptUserForValues(re.Variables)
+	values, err := recipeutil.PromptUserForValues(recipeutil.FilterVariables(re.Variables, predefinedValues))
 	if err != nil {
 		cmd.PrintErrf("Error when prompting for values: %v\n", err)
 		return
 	}
 
-	sauce, err := re.Execute(values, uuid.Must(uuid.NewV4()))
+	sauce, err := re.Execute(
+		recipeutil.MergeValues(values, predefinedValues),
+		uuid.Must(uuid.NewV4()),
+	)
 	if err != nil {
 		cmd.PrintErrf("Error: %s", err)
 		return

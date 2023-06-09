@@ -55,11 +55,7 @@ func PromptUserForValues(variables []recipe.Variable) (recipe.VariableValues, er
 		}
 
 		if variable.RegExp.Pattern != "" {
-			validator, err := variable.RegExp.CreateValidatorFunc()
-			if err != nil {
-				return nil, err
-			}
-
+			validator := variable.RegExp.CreateValidatorFunc()
 			opts = append(opts, survey.WithValidator(validator))
 		}
 

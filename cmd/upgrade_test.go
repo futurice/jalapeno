@@ -9,15 +9,21 @@ import (
 	"strings"
 
 	re "github.com/futurice/jalapeno/pkg/recipe"
+	"github.com/spf13/pflag"
 )
 
 func iUpgradeSauce(ctx context.Context, recipe string) (context.Context, error) {
 	recipesDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
 	projectDir := ctx.Value(projectDirectoryPathCtxKey{}).(string)
+	optionalFlagSet, flagsAreSet := ctx.Value(cmdFlagSetCtxKey{}).(*pflag.FlagSet)
 
 	cmd, cmdStdOut, cmdStdErr := wrapCmdOutputs(newUpgradeCmd)
 
 	cmd.SetArgs([]string{projectDir, filepath.Join(recipesDir, recipe)})
+
+	if flagsAreSet && optionalFlagSet != nil {
+		cmd.Flags().AddFlagSet(optionalFlagSet)
+	}
 
 	if err := cmd.Execute(); err != nil {
 		return ctx, err
