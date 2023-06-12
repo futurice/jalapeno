@@ -25,8 +25,8 @@ type upgradeOptions struct {
 func newUpgradeCmd() *cobra.Command {
 	var opts upgradeOptions
 	var cmd = &cobra.Command{
-		Use:   "upgrade PROJECT RECIPE",
-		Short: "Upgrade recipe in a project",
+		Use:   "upgrade PROJECT_PATH RECIPE_PATH",
+		Short: "Upgrade sauce in a project",
 		Long:  "", // TODO
 		Args:  cobra.ExactArgs(2),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
@@ -66,12 +66,12 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) {
 		}
 	}
 	if oldSauce == nil {
-		cmd.PrintErrf("Error: Directory %s does not contain sauce %s. Recipe name used in the project should match the recipe which is used for upgrading", opts.ProjectPath, re.Name)
+		cmd.PrintErrf("Error: project %s does not contain sauce %s. Recipe name used in the project should match the recipe which is used for upgrading", opts.ProjectPath, re.Name)
 		return
 	}
 
 	if semver.Compare(re.Metadata.Version, oldSauce.Recipe.Metadata.Version) <= 0 {
-		cmd.PrintErrln("new recipe version is lower or same than the existing one")
+		cmd.PrintErrln("Error: new recipe version is lower or same than the existing one")
 		return
 	}
 

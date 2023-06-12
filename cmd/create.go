@@ -13,7 +13,6 @@ type createOptions struct {
 
 func newCreateCmd() *cobra.Command {
 	var opts createOptions
-	// createCmd represents the create command
 	var cmd = &cobra.Command{
 		Use:   "create NAME",
 		Short: "Create a new recipe",

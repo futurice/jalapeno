@@ -16,7 +16,7 @@ type ejectOptions struct {
 func newEjectCmd() *cobra.Command {
 	var opts ejectOptions
 	var cmd = &cobra.Command{
-		Use:   "eject (PATH)",
+		Use:   "eject (PROJECT_PATH)",
 		Short: "Remove all Jalapeno-specific files from a project",
 		Long:  "Remove all the files and directories that are for Jalapeno internal use, and leave only the rendered project files.",
 		Args:  cobra.MaximumNArgs(1),

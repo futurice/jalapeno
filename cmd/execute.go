@@ -20,7 +20,7 @@ type executeOptions struct {
 func newExecuteCmd() *cobra.Command {
 	var opts executeOptions
 	var cmd = &cobra.Command{
-		Use:     "execute RECIPE",
+		Use:     "execute RECIPE_PATH",
 		Aliases: []string{"exec", "e"},
 		Short:   "Execute a given recipe and save output to path",
 		Long:    "", // TODO

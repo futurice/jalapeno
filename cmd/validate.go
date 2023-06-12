@@ -14,7 +14,7 @@ type validateOptions struct {
 func newValidateCmd() *cobra.Command {
 	var opts validateOptions
 	var cmd = &cobra.Command{
-		Use:   "validate RECIPE",
+		Use:   "validate RECIPE_PATH",
 		Short: "Validate a recipe",
 		Long:  "", // TODO
 		PreRunE: func(cmd *cobra.Command, args []string) error {

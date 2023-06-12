@@ -22,7 +22,7 @@ type pushOptions struct {
 func newPushCmd() *cobra.Command {
 	var opts pushOptions
 	var cmd = &cobra.Command{
-		Use:   "push RECIPE_PATH TARGET",
+		Use:   "push RECIPE_PATH TARGET_URL",
 		Short: "Push a recipe to OCI repository",
 		Long:  "",
 		Args:  cobra.ExactArgs(2),
