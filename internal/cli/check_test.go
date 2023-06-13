@@ -1,9 +1,10 @@
-package main
+package cli
 
 import (
 	"context"
 	"fmt"
 	"path/filepath"
+	"strings"
 
 	re "github.com/futurice/jalapeno/pkg/recipe"
 	"github.com/spf13/pflag"
@@ -53,6 +54,11 @@ func newRecipeVersionsWereFound(ctx context.Context) (context.Context, error) {
 
 	if cmdStdOut == "" {
 		return ctx, fmt.Errorf("command output was empty")
+	}
+
+	expectedOutput := "New versions found"
+	if !strings.Contains(cmdStdOut, expectedOutput) {
+		return ctx, fmt.Errorf("command produced unexpected output: Expected: '%s', Actual: '%s'", expectedOutput, cmdStdOut)
 	}
 
 	return ctx, nil

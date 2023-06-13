@@ -3,10 +3,9 @@ package cli
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/futurice/jalapeno/internal/cli/internal/option"
-	"github.com/futurice/jalapeno/pkg/recipe"
+	re "github.com/futurice/jalapeno/pkg/recipe"
 	"github.com/spf13/cobra"
 	"golang.org/x/mod/semver"
 )
@@ -43,9 +42,9 @@ func newCheckCmd() *cobra.Command {
 }
 
 func runCheck(cmd *cobra.Command, opts checkOptions) {
-	sauce, err := recipe.LoadSauce(opts.ProjectPath, opts.RecipeName)
+	sauce, err := re.LoadSauce(opts.ProjectPath, opts.RecipeName)
 	if err != nil {
-		if errors.Is(err, recipe.ErrSauceNotFound) {
+		if errors.Is(err, re.ErrSauceNotFound) {
 			cmd.PrintErrf("Error: project %s does not contain sauce with recipe %s. Recipe name used in the project should match the recipe which is used for upgrading", opts.ProjectPath, opts.RecipeName)
 		} else {
 			cmd.PrintErrf("Error: %s", err)
@@ -53,7 +52,9 @@ func runCheck(cmd *cobra.Command, opts checkOptions) {
 		return
 	}
 
-	if len(sauce.Recipe.Sources) == 0 {
+	recipe := sauce.Recipe
+
+	if len(recipe.Sources) == 0 {
 		cmd.PrintErr("Error: source of the recipe is undefined, can not check for new versions")
 		return
 	}
@@ -62,26 +63,33 @@ func runCheck(cmd *cobra.Command, opts checkOptions) {
 
 	// TODO: How to handle multiple sources?
 
-	repo, err := opts.NewRepository(sauce.Recipe.Sources[0], opts.Common)
+	repo, err := opts.NewRepository(recipe.Sources[0], opts.Common)
 	if err != nil {
 		cmd.PrintErrf("Error: %s", err)
 		return
 	}
 
+	newTags := []string{}
 	err = repo.Tags(ctx, "", func(tags []string) error {
-		semverTags := []string{}
 		for _, tag := range tags {
-			if semver.IsValid(tag) {
-				semverTags = append(semverTags, tag)
+			if semver.IsValid(tag) && semver.Compare(tag, recipe.Version) > 0 {
+				newTags = append(newTags, tag)
 			}
 		}
-		fmt.Println(semverTags)
-		cmd.Println(semverTags)
+		semver.Sort(newTags)
 		return nil
 	})
 
 	if err != nil {
 		cmd.PrintErrf("Error: %s", err)
 		return
+	}
+
+	if len(newTags) > 0 {
+		cmd.Println("New versions found:")
+		cmd.Println(newTags)
+	} else {
+		// TODO: Use different exit code
+		cmd.PrintErrln("No new versions found")
 	}
 }
