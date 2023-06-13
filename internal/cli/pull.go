@@ -1,10 +1,10 @@
-package main
+package cli
 
 import (
 	"context"
 	"strings"
 
-	"github.com/futurice/jalapeno/cmd/internal/option"
+	"github.com/futurice/jalapeno/internal/cli/internal/option"
 	"github.com/spf13/cobra"
 	"oras.land/oras-go/v2"
 	"oras.land/oras-go/v2/content/file"

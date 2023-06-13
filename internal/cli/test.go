@@ -1,9 +1,9 @@
-package main
+package cli
 
 import (
 	"path/filepath"
 
-	"github.com/futurice/jalapeno/cmd/internal/option"
+	"github.com/futurice/jalapeno/internal/cli/internal/option"
 	"github.com/futurice/jalapeno/pkg/recipe"
 	"github.com/spf13/cobra"
 )

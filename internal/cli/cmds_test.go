@@ -1,4 +1,4 @@
-package main
+package cli
 
 import (
 	"bytes"
@@ -96,7 +96,7 @@ func TestFeatures(t *testing.T) {
 		Options: &godog.Options{
 			Concurrency: 4,
 			Format:      "pretty",
-			Paths:       []string{"../features"},
+			Paths:       []string{"../../features"},
 			TestingT:    t, // Testing instance that will run subtests.
 		},
 	}

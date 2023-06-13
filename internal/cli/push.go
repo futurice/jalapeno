@@ -1,10 +1,10 @@
-package main
+package cli
 
 import (
 	"context"
 	"strings"
 
-	"github.com/futurice/jalapeno/cmd/internal/option"
+	"github.com/futurice/jalapeno/internal/cli/internal/option"
 	"github.com/futurice/jalapeno/pkg/recipe"
 	v1 "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"

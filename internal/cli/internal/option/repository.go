@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/futurice/jalapeno/cmd/internal/credential"
+	"github.com/futurice/jalapeno/internal/cli/internal/credential"
 	"github.com/spf13/pflag"
 	"oras.land/oras-go/v2/registry/remote"
 	"oras.land/oras-go/v2/registry/remote/auth"

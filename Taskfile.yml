@@ -6,7 +6,7 @@ includes:
     dir: ./docs
 
 vars:
-  ENTRYPOINT: ./cmd # Path to main package
+  ENTRYPOINT: ./cmd/jalapeno # Path to main package
 
 tasks:
   mod:

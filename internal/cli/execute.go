@@ -1,9 +1,9 @@
-package main
+package cli
 
 import (
 	"os"
 
-	"github.com/futurice/jalapeno/cmd/internal/option"
+	"github.com/futurice/jalapeno/internal/cli/internal/option"
 	"github.com/futurice/jalapeno/pkg/recipe"
 	"github.com/futurice/jalapeno/pkg/recipeutil"
 	"github.com/gofrs/uuid"
