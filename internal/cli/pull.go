@@ -14,7 +14,7 @@ type pullOptions struct {
 	TargetRef string
 
 	option.Output
-	option.Repository
+	option.OCIRepository
 	option.Common
 }
 

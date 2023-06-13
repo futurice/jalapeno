@@ -19,7 +19,7 @@ type Sauce struct {
 }
 
 type File struct {
-	Checksum string `yaml:"checksum"` // e.g. "sha256:asdjfajdfa" w. default algo
+	Checksum string `yaml:"checksum"` // e.g. "sha256:xxxxxxxxx" w. default algo
 	Content  []byte `yaml:"-"`
 }
 

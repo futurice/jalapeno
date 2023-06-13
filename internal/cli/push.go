@@ -15,7 +15,7 @@ import (
 type pushOptions struct {
 	RecipePath string
 	TargetRef  string
-	option.Repository
+	option.OCIRepository
 	option.Common
 }
 
@@ -84,7 +84,7 @@ func runPush(cmd *cobra.Command, opts pushOptions) {
 		return
 	}
 
-	_, err = oras.Copy(ctx, store, re.Version, repo, repo.Reference.Reference, oras.DefaultCopyOptions)
+	_, err = oras.Copy(ctx, store, re.Version, repo, re.Version, oras.DefaultCopyOptions)
 	if err != nil {
 		if strings.Contains(err.Error(), "credential required") {
 			cmd.PrintErrln("Error: failed to authorize: 401 Unauthorized")

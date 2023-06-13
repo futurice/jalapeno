@@ -18,7 +18,7 @@ import (
 	"oras.land/oras-go/v2/registry/remote/auth"
 )
 
-type Repository struct {
+type OCIRepository struct {
 	CACertFilePath    string
 	PlainHTTP         bool
 	Insecure          bool
@@ -28,6 +28,7 @@ type Repository struct {
 	Password          string
 }
 
+<<<<<<< main:internal/cli/internal/option/repository.go
 func (opts *Repository) ApplyFlags(fs *pflag.FlagSet) {
 	fs.StringVarP(&opts.Username, "username", "u", "", "Registry username")
 	fs.StringVarP(&opts.Password, "password", "p", "", "Registry password or identity token")
@@ -35,15 +36,24 @@ func (opts *Repository) ApplyFlags(fs *pflag.FlagSet) {
 	fs.BoolVarP(&opts.PlainHTTP, "plain-http", "", false, "Allow insecure connections to registry without SSL check")
 	fs.StringVarP(&opts.CACertFilePath, "ca-file", "", "", "Server certificate authority file for the remote registry")
 	fs.StringArrayVarP(&opts.Configs, "registry-configs", "", nil, "Paths of registry configuration files")
+=======
+func (opts *OCIRepository) ApplyFlags(fs *pflag.FlagSet) {
+	fs.StringVarP(&opts.Username, "username", "u", "", "registry username")
+	fs.StringVarP(&opts.Password, "password", "p", "", "registry password or identity token")
+	fs.BoolVarP(&opts.Insecure, "insecure", "", false, "allow connections to SSL registry without certs")
+	fs.BoolVarP(&opts.PlainHTTP, "plain-http", "", false, "allow insecure connections to registry without SSL check")
+	fs.StringVarP(&opts.CACertFilePath, "ca-file", "", "", "server certificate authority file for the remote registry")
+	fs.StringArrayVarP(&opts.Configs, "registry-config", "", nil, "`path` of the authentication file")
+>>>>>>> Get list of recipe tags from registry:internal/cli/internal/option/oci_repository.go
 }
 
 // Parse tries to read password with optional cmd prompt.
-func (opts *Repository) Parse() error {
+func (opts *OCIRepository) Parse() error {
 	return opts.readPassword()
 }
 
 // readPassword tries to read password with optional cmd prompt.
-func (opts *Repository) readPassword() (err error) {
+func (opts *OCIRepository) readPassword() (err error) {
 	if opts.Password != "" {
 		fmt.Fprintln(os.Stderr, "WARNING! Using --password via the CLI is insecure. Use --password-stdin.")
 	} else if opts.PasswordFromStdin {
@@ -58,8 +68,8 @@ func (opts *Repository) readPassword() (err error) {
 	return nil
 }
 
-// NewRegistry assembles a oras remote registry.
-func (opts *Repository) NewRegistry(hostname string, common Common) (reg *remote.Registry, err error) {
+// NewRegistry assembles an ORAS remote registry.
+func (opts *OCIRepository) NewRegistry(hostname string, common Common) (reg *remote.Registry, err error) {
 	reg, err = remote.NewRegistry(hostname)
 	if err != nil {
 		return nil, err
@@ -72,8 +82,8 @@ func (opts *Repository) NewRegistry(hostname string, common Common) (reg *remote
 	return
 }
 
-// NewRepository assembles a oras remote repository.
-func (opts *Repository) NewRepository(reference string, common Common) (repo *remote.Repository, err error) {
+// NewRepository assembles an ORAS remote repository.
+func (opts *OCIRepository) NewRepository(reference string, common Common) (repo *remote.Repository, err error) {
 	repo, err = remote.NewRepository(reference)
 	if err != nil {
 		return nil, err
@@ -86,7 +96,7 @@ func (opts *Repository) NewRepository(reference string, common Common) (repo *re
 	return
 }
 
-func (opts *Repository) tlsConfig() (*tls.Config, error) {
+func (opts *OCIRepository) tlsConfig() (*tls.Config, error) {
 	config := &tls.Config{
 		InsecureSkipVerify: opts.Insecure,
 	}
@@ -114,7 +124,7 @@ func loadCertPool(path string) (*x509.CertPool, error) {
 }
 
 // authClient assembles a oras auth client.
-func (opts *Repository) authClient(registry string, debug bool) (client *auth.Client, err error) {
+func (opts *OCIRepository) authClient(registry string, debug bool) (client *auth.Client, err error) {
 	config, err := opts.tlsConfig()
 	if err != nil {
 		return nil, err
@@ -166,6 +176,6 @@ func (opts *Repository) authClient(registry string, debug bool) (client *auth.Cl
 }
 
 // Credential returns a credential based on the remote options.
-func (opts *Repository) Credential() auth.Credential {
+func (opts *OCIRepository) Credential() auth.Credential {
 	return credential.Credential(opts.Username, opts.Password)
 }

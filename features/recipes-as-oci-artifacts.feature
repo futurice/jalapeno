@@ -6,7 +6,7 @@ Feature: Recipes as OCI artifacts
 		Given a recipes directory
 		And a recipe "foo" that generates file "README.md"
 		And a local OCI registry
-		When I push the recipe "foo" to the local OCI repository "foo:v0.0.1"
+		When I push the recipe "foo" to the local OCI repository
 		Then push of the recipe was successful
 
 	Scenario: Pull a recipe from OCI repository
@@ -22,7 +22,7 @@ Feature: Recipes as OCI artifacts
 		Given a recipes directory
 		And a recipe "foo" that generates file "README.md"
 	 	And a local OCI registry with authentication
-		When I push the recipe "foo" to the local OCI repository "foo:v0.0.1"
+		When I push the recipe "foo" to the local OCI repository
 		Then push of the recipe was successful
 
 	Scenario: Pull a recipe from OCI repository with authentication
@@ -39,7 +39,7 @@ Feature: Recipes as OCI artifacts
 		And a recipe "foo" that generates file "README.md"
 	 	And a local OCI registry with authentication
 	 	And registry credentials are not provided by the command
-		When I push the recipe "foo" to the local OCI repository "foo:v0.0.1"
+		When I push the recipe "foo" to the local OCI repository
 		Then push of the recipe has failed with error "Error: failed to authorize: 401 Unauthorized"
 
 	Scenario: Try to pull a recipe from OCI repository which not exist
@@ -54,7 +54,7 @@ Feature: Recipes as OCI artifacts
 	 	And a local OCI registry with authentication
 		And registry credentials are provided by config file
 		And registry credentials are not provided by the command
-		When I push the recipe "foo" to the local OCI repository "foo:v0.0.1"
+		When I push the recipe "foo" to the local OCI repository
 		Then push of the recipe was successful
 
 	Scenario: Pull a recipe from OCI repository using credentials from default config file
@@ -63,5 +63,5 @@ Feature: Recipes as OCI artifacts
 	 	And a local OCI registry with authentication
 		And registry credentials are provided by default config file
 		And registry credentials are not provided by the command
-		When I push the recipe "foo" to the local OCI repository "foo:v0.0.1"
+		When I push the recipe "foo" to the local OCI repository
 		Then push of the recipe was successful
