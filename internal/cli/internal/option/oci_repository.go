@@ -28,15 +28,6 @@ type OCIRepository struct {
 	Password          string
 }
 
-<<<<<<< main:internal/cli/internal/option/repository.go
-func (opts *Repository) ApplyFlags(fs *pflag.FlagSet) {
-	fs.StringVarP(&opts.Username, "username", "u", "", "Registry username")
-	fs.StringVarP(&opts.Password, "password", "p", "", "Registry password or identity token")
-	fs.BoolVarP(&opts.Insecure, "insecure", "", false, "Allow connections to SSL registry without certs")
-	fs.BoolVarP(&opts.PlainHTTP, "plain-http", "", false, "Allow insecure connections to registry without SSL check")
-	fs.StringVarP(&opts.CACertFilePath, "ca-file", "", "", "Server certificate authority file for the remote registry")
-	fs.StringArrayVarP(&opts.Configs, "registry-configs", "", nil, "Paths of registry configuration files")
-=======
 func (opts *OCIRepository) ApplyFlags(fs *pflag.FlagSet) {
 	fs.StringVarP(&opts.Username, "username", "u", "", "registry username")
 	fs.StringVarP(&opts.Password, "password", "p", "", "registry password or identity token")
@@ -44,7 +35,6 @@ func (opts *OCIRepository) ApplyFlags(fs *pflag.FlagSet) {
 	fs.BoolVarP(&opts.PlainHTTP, "plain-http", "", false, "allow insecure connections to registry without SSL check")
 	fs.StringVarP(&opts.CACertFilePath, "ca-file", "", "", "server certificate authority file for the remote registry")
 	fs.StringArrayVarP(&opts.Configs, "registry-config", "", nil, "`path` of the authentication file")
->>>>>>> Get list of recipe tags from registry:internal/cli/internal/option/oci_repository.go
 }
 
 // Parse tries to read password with optional cmd prompt.

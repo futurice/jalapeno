@@ -2,6 +2,7 @@ package cli
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"path/filepath"
 	"strings"
@@ -59,6 +60,26 @@ func newRecipeVersionsWereFound(ctx context.Context) (context.Context, error) {
 	expectedOutput := "New versions found"
 	if !strings.Contains(cmdStdOut, expectedOutput) {
 		return ctx, fmt.Errorf("command produced unexpected output: Expected: '%s', Actual: '%s'", expectedOutput, cmdStdOut)
+	}
+
+	return ctx, nil
+}
+
+func noNewRecipeVersionsWereFound(ctx context.Context) (context.Context, error) {
+	cmdStdOut := ctx.Value(cmdStdOutCtxKey{}).(string)
+	cmdStdErr := ctx.Value(cmdStdErrCtxKey{}).(string)
+
+	if cmdStdOut != "" {
+		return ctx, fmt.Errorf("command output was not empty when expecting an error")
+	}
+
+	if cmdStdErr == "" {
+		return ctx, errors.New("command did not return expected error")
+	}
+
+	expectedError := "No new versions found"
+	if !strings.Contains(cmdStdErr, expectedError) {
+		return ctx, fmt.Errorf("command produced unexpected error: Expected: '%s', Actual: '%s'", expectedError, cmdStdErr)
 	}
 
 	return ctx, nil
