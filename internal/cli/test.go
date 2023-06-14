@@ -17,9 +17,9 @@ type testOptions struct {
 func newTestCmd() *cobra.Command {
 	var opts testOptions
 	var cmd = &cobra.Command{
-		Use:   "test RECIPE",
+		Use:   "test RECIPE_PATH",
 		Short: "Test a recipe",
-		Long:  "",
+		Long:  "TODO",
 		Args:  cobra.ExactArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			opts.RecipePath = args[0]

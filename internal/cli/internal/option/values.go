@@ -7,5 +7,5 @@ type Values struct {
 }
 
 func (opts *Values) ApplyFlags(fs *pflag.FlagSet) {
-	fs.StringSliceVarP(&opts.Flags, "set", "s", []string{}, "predefine values to be used in the templates. Example: --set \"MY_VAR=foo\"")
+	fs.StringSliceVarP(&opts.Flags, "set", "s", []string{}, "Predefine values to be used in the templates. Example: --set \"MY_VAR=foo\"")
 }

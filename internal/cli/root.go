@@ -1,12 +1,10 @@
 package cli
 
 import (
-	"io"
-
 	"github.com/spf13/cobra"
 )
 
-func NewRootCmd(out io.Writer, args []string) (*cobra.Command, error) {
+func NewRootCmd() (*cobra.Command, error) {
 	// rootCmd represents the base command when called without any subcommands
 	var cmd = &cobra.Command{
 		Use:   "jalapeno",

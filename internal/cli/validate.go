@@ -16,7 +16,7 @@ func newValidateCmd() *cobra.Command {
 	var cmd = &cobra.Command{
 		Use:   "validate RECIPE_PATH",
 		Short: "Validate a recipe",
-		Long:  "", // TODO
+		Long:  "TODO",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			opts.TargetPath = args[0]
 			return option.Parse(&opts)

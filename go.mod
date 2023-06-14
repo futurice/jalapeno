@@ -9,21 +9,24 @@ require (
 	github.com/docker/cli v23.0.0+incompatible
 	github.com/go-yaml/yaml v2.1.0+incompatible
 	github.com/opencontainers/image-spec v1.1.0-rc2
-	github.com/spf13/cobra v1.6.1
+	github.com/spf13/cobra v1.7.0
 	golang.org/x/mod v0.8.0
 	oras.land/oras-go/v2 v2.0.2
 )
 
 require (
 	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
+	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
 	github.com/creack/pty v1.1.18 // indirect
 	github.com/docker/docker v23.0.0+incompatible // indirect
 	github.com/docker/docker-credential-helpers v0.7.0 // indirect
 	github.com/gotestyourself/gotestyourself v2.2.0+incompatible // indirect
 	github.com/lib/pq v0.0.0-20180327071824-d34b9ff171c2 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
+	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/stretchr/testify v1.8.1 // indirect
 	golang.org/x/sync v0.1.0 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 	gotest.tools v2.2.0+incompatible // indirect
 	gotest.tools/v3 v3.4.0 // indirect
 )

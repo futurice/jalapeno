@@ -1,0 +1,17 @@
+{{- define "cmd" }}
+## `jalapeno {{.Name}}` {#{{.Name}}}
+
+{{.Description}}
+
+Usage: `jalapeno {{.Usage}}`
+{{- if len .Flags }}
+
+#### Options {#{{.Name}}-options}
+
+| Name | Default | Description |
+| --- | --- | --- |
+{{- range $flag := .Flags}}
+| `--{{$flag.Name}}`{{if $flag.Shorthand}}, `-{{$flag.Shorthand}}`{{end}} | {{if $flag.Default}}`{{ $flag.Default }}`{{- end }} | {{$flag.Description}} |
+{{- end}}
+{{- end}}
+{{- end}}

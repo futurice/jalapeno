@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	cmd, err := cli.NewRootCmd(os.Stdout, os.Args[1:])
+	cmd, err := cli.NewRootCmd()
 	if err != nil {
 		fmt.Printf("%+v", err)
 		os.Exit(1)

@@ -23,7 +23,7 @@ func newPullCmd() *cobra.Command {
 	var cmd = &cobra.Command{
 		Use:   "pull URL",
 		Short: "Pull a recipe from OCI repository",
-		Long:  "",
+		Long:  "TODO",
 		Args:  cobra.ExactArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			opts.TargetRef = args[0]

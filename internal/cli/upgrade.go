@@ -27,7 +27,7 @@ func newUpgradeCmd() *cobra.Command {
 	var cmd = &cobra.Command{
 		Use:   "upgrade PROJECT_PATH RECIPE_PATH",
 		Short: "Upgrade sauce in a project",
-		Long:  "", // TODO
+		Long:  "TODO",
 		Args:  cobra.ExactArgs(2),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			opts.ProjectPath = args[0]

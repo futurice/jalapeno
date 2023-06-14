@@ -24,7 +24,7 @@ func newPushCmd() *cobra.Command {
 	var cmd = &cobra.Command{
 		Use:   "push RECIPE_PATH TARGET_URL",
 		Short: "Push a recipe to OCI repository",
-		Long:  "",
+		Long:  "TODO",
 		Args:  cobra.ExactArgs(2),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			opts.RecipePath = args[0]

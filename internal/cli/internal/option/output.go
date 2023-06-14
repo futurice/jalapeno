@@ -7,5 +7,5 @@ type Output struct {
 }
 
 func (opts *Output) ApplyFlags(fs *pflag.FlagSet) {
-	fs.StringVarP(&opts.OutputPath, "output", "o", ".", "path where the output files should be created")
+	fs.StringVarP(&opts.OutputPath, "output", "o", ".", "Path where the output files should be created")
 }
