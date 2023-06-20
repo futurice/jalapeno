@@ -90,6 +90,6 @@ func runCheck(cmd *cobra.Command, opts checkOptions) {
 		cmd.Println(newTags)
 	} else {
 		// TODO: Use different exit code
-		cmd.PrintErrln("No new versions found")
+		cmd.Println("No new versions found")
 	}
 }

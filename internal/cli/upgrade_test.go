@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"os"
@@ -17,7 +18,7 @@ func iUpgradeSauce(ctx context.Context, recipe string) (context.Context, error) 
 	projectDir := ctx.Value(projectDirectoryPathCtxKey{}).(string)
 	optionalFlagSet, flagsAreSet := ctx.Value(cmdFlagSetCtxKey{}).(*pflag.FlagSet)
 
-	cmd, cmdStdOut, cmdStdErr := wrapCmdOutputs(newUpgradeCmd)
+	ctx, cmd := wrapCmdOutputs(ctx, newUpgradeCmd)
 
 	cmd.SetArgs([]string{projectDir, filepath.Join(recipesDir, recipe)})
 
@@ -29,25 +30,17 @@ func iUpgradeSauce(ctx context.Context, recipe string) (context.Context, error) 
 		return ctx, err
 	}
 
-	ctx = context.WithValue(ctx, cmdStdOutCtxKey{}, cmdStdOut.String())
-	ctx = context.WithValue(ctx, cmdStdErrCtxKey{}, cmdStdErr.String())
-
 	return ctx, nil
 }
 
 func conflictsAreReported(ctx context.Context) (context.Context, error) {
-	cmdStdOut := ctx.Value(cmdStdOutCtxKey{}).(string)
-	cmdStdErr := ctx.Value(cmdStdErrCtxKey{}).(string)
-	if matched, _ := regexp.MatchString("modified", cmdStdOut); matched {
-		return ctx, nil
-	}
-	return ctx, fmt.Errorf("Expecting conflicts in recipe but none reported\nstdout:\n%s\n\nstderr:\n%s\n", cmdStdOut, cmdStdErr)
+	return ctx, expectGivenOutput(ctx, "modified")
 }
 
 func noConflictsWereReported(ctx context.Context) (context.Context, error) {
-	cmdStdOut := ctx.Value(cmdStdOutCtxKey{}).(string)
-	cmdStdErr := ctx.Value(cmdStdErrCtxKey{}).(string)
-	if matched, _ := regexp.MatchString("modified", cmdStdOut); matched {
+	cmdStdOut := ctx.Value(cmdStdOutCtxKey{}).(*bytes.Buffer)
+	cmdStdErr := ctx.Value(cmdStdErrCtxKey{}).(*bytes.Buffer)
+	if matched, _ := regexp.MatchString("modified", cmdStdOut.String()); matched {
 		return ctx, fmt.Errorf("Conflict in recipe\nstdout:\n%s\n\nstderr:\n%s\n", cmdStdOut, cmdStdErr)
 	}
 	return ctx, nil

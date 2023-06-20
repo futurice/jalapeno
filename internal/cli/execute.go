@@ -89,9 +89,8 @@ func runExecute(cmd *cobra.Command, opts executeOptions) {
 
 	// Check for conflicts
 	for _, s := range existingSauces {
-		conflicts := s.Conflicts(sauce)
-		if conflicts != nil {
-			cmd.PrintErrf("conflict in recipe %s: %s was already created by recipe %s\n", re.Name, conflicts[0].Path, s.Recipe.Name)
+		if conflicts := s.Conflicts(sauce); conflicts != nil {
+			cmd.PrintErrf("conflict in recipe '%s': file '%s' was already created by recipe '%s'\n", re.Name, conflicts[0].Path, s.Recipe.Name)
 			return
 		}
 	}

@@ -2,10 +2,8 @@ package cli
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"path/filepath"
-	"strings"
 
 	re "github.com/futurice/jalapeno/pkg/recipe"
 	"github.com/spf13/pflag"
@@ -16,7 +14,7 @@ func iCheckRecipe(ctx context.Context, recipe string) (context.Context, error) {
 	ociRegistry := ctx.Value(ociRegistryCtxKey{}).(OCIRegistry)
 	optionalFlagSet, flagsAreSet := ctx.Value(cmdFlagSetCtxKey{}).(*pflag.FlagSet)
 
-	cmd, cmdStdOut, cmdStdErr := wrapCmdOutputs(newCheckCmd)
+	ctx, cmd := wrapCmdOutputs(ctx, newCheckCmd)
 
 	cmd.SetArgs([]string{projectDir, recipe})
 
@@ -39,50 +37,15 @@ func iCheckRecipe(ctx context.Context, recipe string) (context.Context, error) {
 		return ctx, err
 	}
 
-	ctx = context.WithValue(ctx, cmdStdOutCtxKey{}, cmdStdOut.String())
-	ctx = context.WithValue(ctx, cmdStdErrCtxKey{}, cmdStdErr.String())
-
 	return ctx, nil
 }
 
 func newRecipeVersionsWereFound(ctx context.Context) (context.Context, error) {
-	cmdStdOut := ctx.Value(cmdStdOutCtxKey{}).(string)
-	cmdStdErr := ctx.Value(cmdStdErrCtxKey{}).(string)
-
-	if cmdStdErr != "" {
-		return ctx, fmt.Errorf("command caused unexpected error: %s", cmdStdErr)
-	}
-
-	if cmdStdOut == "" {
-		return ctx, fmt.Errorf("command output was empty")
-	}
-
-	expectedOutput := "New versions found"
-	if !strings.Contains(cmdStdOut, expectedOutput) {
-		return ctx, fmt.Errorf("command produced unexpected output: Expected: '%s', Actual: '%s'", expectedOutput, cmdStdOut)
-	}
-
-	return ctx, nil
+	return ctx, expectGivenOutput(ctx, "New versions found")
 }
 
 func noNewRecipeVersionsWereFound(ctx context.Context) (context.Context, error) {
-	cmdStdOut := ctx.Value(cmdStdOutCtxKey{}).(string)
-	cmdStdErr := ctx.Value(cmdStdErrCtxKey{}).(string)
-
-	if cmdStdOut != "" {
-		return ctx, fmt.Errorf("command output was not empty when expecting an error")
-	}
-
-	if cmdStdErr == "" {
-		return ctx, errors.New("command did not return expected error")
-	}
-
-	expectedError := "No new versions found"
-	if !strings.Contains(cmdStdErr, expectedError) {
-		return ctx, fmt.Errorf("command produced unexpected error: Expected: '%s', Actual: '%s'", expectedError, cmdStdErr)
-	}
-
-	return ctx, nil
+	return ctx, expectGivenOutput(ctx, "No new versions found")
 }
 
 func sourceOfTheRecipeIsTheLocalOCIRegistry(ctx context.Context, recipeName string) (context.Context, error) {

@@ -16,6 +16,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"testing"
 	"time"
@@ -68,7 +69,8 @@ func TestFeatures(t *testing.T) {
 			s.Step(`^the sauce file contains a sauce in index (\d) which should have property "([^"]*)" with value "([^"]*)"$`, theSauceFileShouldHavePropertyWithValue)
 			s.Step(`^the sauce file contains a sauce in index (\d) which should have property "([^"]*)" that is a valid UUID$`, theSauceFileFileShouldHavePropertyThatIsAValidUUID)
 			s.Step(`^execution of the recipe has succeeded$`, executionOfTheRecipeHasSucceeded)
-			s.Step(`^execution of the recipe has failed with error "([^"]*)"$`, executionOfTheRecipeHasFailedWithError)
+			s.Step(`^CLI produced an output "([^"]*)"$`, expectGivenOutput)
+			s.Step(`^CLI produced an error "([^"]*)"$`, expectGivenError)
 			s.Step(`^I change recipe "([^"]*)" to version "([^"]*)"$`, iChangeRecipeToVersion)
 			s.Step(`^I check new versions for recipe "([^"]*)"$`, iCheckRecipe)
 			s.Step(`^newer recipe versions were found`, newRecipeVersionsWereFound)
@@ -90,9 +92,7 @@ func TestFeatures(t *testing.T) {
 			s.Step(`^I pull the recipe "([^"]*)" from the local OCI repository "([^"]*)"$`, iPullRecipe)
 			s.Step(`^the recipe "([^"]*)" is pushed to the local OCI repository "([^"]*)"$`, pushRecipe)
 			s.Step(`^push of the recipe was successful$`, pushOfTheRecipeWasSuccessful)
-			s.Step(`^push of the recipe has failed with error "([^"]*)"$`, pushOfTheRecipeHasFailedWithError)
 			s.Step(`^pull of the recipe was successful$`, pullOfTheRecipeWasSuccessful)
-			s.Step(`^pull of the recipe has failed with error "([^"]*)"$`, pullOfTheRecipeHasFailedWithError)
 			s.Step(`^the recipes directory should contain recipe "([^"]*)"$`, theRecipesDirectoryShouldContainRecipe)
 			s.After(cleanDockerResources)
 			s.After(cleanTempDirs)
@@ -114,13 +114,16 @@ func TestFeatures(t *testing.T) {
  * UTILITIES
  */
 
-func wrapCmdOutputs(cmdFactory func() *cobra.Command) (*cobra.Command, *bytes.Buffer, *bytes.Buffer) {
+func wrapCmdOutputs(ctx context.Context, cmdFactory func() *cobra.Command) (context.Context, *cobra.Command) {
 	cmd := cmdFactory()
 	cmdStdOut, cmdStdErr := new(bytes.Buffer), new(bytes.Buffer)
 	cmd.SetOut(cmdStdOut)
 	cmd.SetErr(cmdStdErr)
 
-	return cmd, cmdStdOut, cmdStdErr
+	ctx = context.WithValue(ctx, cmdStdOutCtxKey{}, cmdStdOut)
+	ctx = context.WithValue(ctx, cmdStdErrCtxKey{}, cmdStdErr)
+
+	return ctx, cmd
 }
 
 func cleanTempDirs(ctx context.Context, sc *godog.Scenario, err error) (context.Context, error) {
@@ -314,15 +317,12 @@ func theProjectDirectoryShouldContainFile(ctx context.Context, filename string) 
 }
 
 func theProjectDirectoryShouldContainFileWith(ctx context.Context, filename, searchTerm string) error {
-	cmdStdOut := ctx.Value(cmdStdOutCtxKey{}).(string)
-	cmdStdErr := ctx.Value(cmdStdErrCtxKey{}).(string)
-
 	content, err := readProjectDirectoryFile(ctx, filename)
 	if err != nil {
-		return fmt.Errorf("%s\nstdout:\n%s\nstderr:\n%s\n", err, cmdStdOut, cmdStdErr)
+		return err
 	}
 	if !strings.Contains(content, searchTerm) {
-		return fmt.Errorf("substring %s not found in %s.\nstdout:\n%s\n\nstderr:\n%s\n", searchTerm, filename, cmdStdOut, cmdStdErr)
+		return fmt.Errorf("substring %s not found in %s", searchTerm, filename)
 	}
 	return nil
 }
@@ -378,12 +378,36 @@ func recipeIgnoresPattern(ctx context.Context, recipeName, pattern string) (cont
 	return ctx, nil
 }
 
-func noErrorsWerePrinted(ctx context.Context) (context.Context, error) {
-	cmdStdErr := ctx.Value(cmdStdErrCtxKey{}).(string)
-	if len(cmdStdErr) != 0 {
-		return ctx, fmt.Errorf("Expected stderr to be empty but was %s", cmdStdErr)
+func expectGivenOutput(ctx context.Context, expected string) error {
+	cmdStdOut := ctx.Value(cmdStdOutCtxKey{}).(*bytes.Buffer)
+
+	if matched, err := regexp.MatchString(expected, cmdStdOut.String()); !matched {
+		return fmt.Errorf("command produced unexpected output: Expected: '%s', Actual: '%s'", expected, cmdStdOut)
+	} else if err != nil {
+		return fmt.Errorf("regexp pattern matching caused an error: %w", err)
 	}
-	return ctx, nil
+
+	return nil
+}
+
+func expectGivenError(ctx context.Context, expectedError string) error {
+	cmdStdErr := ctx.Value(cmdStdErrCtxKey{}).(*bytes.Buffer)
+
+	if matched, err := regexp.MatchString(expectedError, cmdStdErr.String()); !matched {
+		return fmt.Errorf("command produced unexpected error: Expected: '%s', Actual: '%s'", expectedError, cmdStdErr)
+	} else if err != nil {
+		return fmt.Errorf("regexp pattern matching caused an error: %w", err)
+	}
+
+	return nil
+}
+
+func noErrorsWerePrinted(ctx context.Context) error {
+	cmdStdErr := ctx.Value(cmdStdErrCtxKey{}).(*bytes.Buffer)
+	if cmdStdErr.String() != "" {
+		return fmt.Errorf("Expected stderr to be empty but was '%s'", cmdStdErr)
+	}
+	return nil
 }
 
 // UTILS

@@ -165,9 +165,10 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) {
 					Message: path,
 					Default: true,
 				}
+				
 				err = survey.AskOne(prompt, &override)
 				if err != nil {
-					cmd.PrintErrf("Error: %s", err)
+					cmd.PrintErrf("Error when prompting for question: %s", err)
 					return
 				}
 

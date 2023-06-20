@@ -2,10 +2,7 @@ package cli
 
 import (
 	"context"
-	"errors"
-	"fmt"
 	"path/filepath"
-	"strings"
 
 	"github.com/spf13/pflag"
 )
@@ -20,7 +17,7 @@ func pushRecipe(ctx context.Context, recipeName string) (context.Context, error)
 	configDir, configFileExists := ctx.Value(dockerConfigDirectoryPathCtxKey{}).(string)
 	optionalFlagSet, flagsAreSet := ctx.Value(cmdFlagSetCtxKey{}).(*pflag.FlagSet)
 
-	cmd, cmdStdOut, cmdStdErr := wrapCmdOutputs(newPushCmd)
+	ctx, cmd := wrapCmdOutputs(ctx, newPushCmd)
 
 	cmd.SetArgs([]string{filepath.Join(recipesDir, recipeName), filepath.Join(ociRegistry.Resource.GetHostPort("5000/tcp"), recipeName)})
 
@@ -58,42 +55,9 @@ func pushRecipe(ctx context.Context, recipeName string) (context.Context, error)
 		return ctx, err
 	}
 
-	ctx = context.WithValue(ctx, cmdStdOutCtxKey{}, cmdStdOut.String())
-	ctx = context.WithValue(ctx, cmdStdErrCtxKey{}, cmdStdErr.String())
-
 	return ctx, nil
 }
 
 func pushOfTheRecipeWasSuccessful(ctx context.Context) (context.Context, error) {
-	cmdStdOut := ctx.Value(cmdStdOutCtxKey{}).(string)
-	cmdStdErr := ctx.Value(cmdStdErrCtxKey{}).(string)
-
-	if cmdStdErr != "" {
-		return ctx, fmt.Errorf("stderr was not empty: %s", cmdStdErr)
-	}
-
-	if cmdStdOut == "" { // TODO: Check stdout when we have proper message from CMD
-		return ctx, errors.New("stdout was empty")
-	}
-
-	return ctx, nil
-}
-
-func pushOfTheRecipeHasFailedWithError(ctx context.Context, errorMessage string) (context.Context, error) {
-	cmdStdOut := ctx.Value(cmdStdOutCtxKey{}).(string)
-	cmdStdErr := ctx.Value(cmdStdErrCtxKey{}).(string)
-
-	if cmdStdOut != "" {
-		return ctx, fmt.Errorf("stdout was not empty: %s", cmdStdErr)
-	}
-
-	if cmdStdErr == "" {
-		return ctx, errors.New("stderr was empty")
-	}
-
-	if strings.TrimSpace(cmdStdErr) != errorMessage {
-		return ctx, fmt.Errorf("error message did not match: expected '%s', found '%s", errorMessage, cmdStdErr)
-	}
-
-	return ctx, nil
+	return ctx, expectGivenOutput(ctx, "") // TODO
 }

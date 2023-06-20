@@ -12,7 +12,7 @@ Feature: Check for new recipe versions
     When I change recipe "foo" to version "v0.0.2"
     And I push the recipe "foo" to the local OCI repository
     And I check new versions for recipe "foo"
-    Then newer recipe versions were found
+    Then CLI produced an output "New versions found"
 
   Scenario: Unable to find newer recipe versions
     Given a project directory
@@ -27,4 +27,4 @@ Feature: Check for new recipe versions
     And I execute recipe "foo"
     Then execution of the recipe has succeeded
     And I check new versions for recipe "foo"
-    And no newer recipe versions were found
+    Then CLI produced an output "No new versions found"

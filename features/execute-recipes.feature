@@ -39,4 +39,4 @@ Feature: Execute recipes
     And no errors were printed
     Then execution of the recipe has succeeded
     When I execute recipe "quux"
-    Then execution of the recipe has failed with error "Taskfile.yml was already created by recipe bar"
+    Then CLI produced an error "file 'Taskfile.yml' was already created by recipe 'bar'"
