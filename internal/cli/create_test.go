@@ -1,14 +1,20 @@
 package cli_test
 
 import (
-	"testing"
+	"context"
 
 	"github.com/futurice/jalapeno/internal/cli"
 )
 
-func TestExampleRecipe(t *testing.T) {
-	recipe := cli.CreateExampleRecipe("foo")
-	if err := recipe.Validate(); err != nil {
-		t.Fatalf("failed to validate the example recipe: %s", err)
+func iCreateARecipe(ctx context.Context, recipe string) (context.Context, error) {
+	recipesDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
+
+	ctx, cmd := wrapCmdOutputs(ctx, cli.NewCreateCmd)
+
+	cmd.SetArgs([]string{recipe})
+	if err := cmd.Flags().Set("output", recipesDir); err != nil {
+		return ctx, err
 	}
+
+	return ctx, cmd.Execute()
 }

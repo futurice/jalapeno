@@ -55,11 +55,7 @@ func iPullRecipe(ctx context.Context, recipeName, repoName string) (context.Cont
 		cmd.Flags().AddFlagSet(optionalFlagSet)
 	}
 
-	if err := cmd.Execute(); err != nil {
-		return ctx, err
-	}
-
-	return ctx, nil
+	return ctx, cmd.Execute()
 }
 
 func pullOfTheRecipeWasSuccessful(ctx context.Context) (context.Context, error) {

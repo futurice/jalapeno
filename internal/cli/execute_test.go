@@ -24,11 +24,7 @@ func iExecuteRecipe(ctx context.Context, recipe string) (context.Context, error)
 		cmd.Flags().AddFlagSet(optionalFlagSet)
 	}
 
-	if err := cmd.Execute(); err != nil {
-		return ctx, err
-	}
-
-	return ctx, nil
+	return ctx, cmd.Execute()
 }
 
 func executionOfTheRecipeHasSucceeded(ctx context.Context) (context.Context, error) {

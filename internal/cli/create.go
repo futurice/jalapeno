@@ -10,6 +10,7 @@ import (
 
 type createOptions struct {
 	RecipeName string
+	option.Output
 	option.Common
 }
 
@@ -45,7 +46,7 @@ foo/
 }
 
 func runCreate(cmd *cobra.Command, opts createOptions) {
-	re := CreateExampleRecipe(opts.RecipeName)
+	re := createExampleRecipe(opts.RecipeName)
 
 	err := re.Validate()
 	if err != nil {
@@ -53,14 +54,14 @@ func runCreate(cmd *cobra.Command, opts createOptions) {
 		return
 	}
 
-	err = re.Save(".")
+	err = re.Save(opts.OutputPath)
 	if err != nil {
 		cmd.PrintErrf("Error: can not save recipe to the directory: %v\n", err)
 		return
 	}
 }
 
-func CreateExampleRecipe(name string) *recipe.Recipe {
+func createExampleRecipe(name string) *recipe.Recipe {
 	r := recipe.NewRecipe()
 	r.Metadata.Name = name
 	r.Metadata.Version = "v0.0.0"

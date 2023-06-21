@@ -52,11 +52,7 @@ func pushRecipe(ctx context.Context, recipeName string) (context.Context, error)
 		cmd.Flags().AddFlagSet(optionalFlagSet)
 	}
 
-	if err := cmd.Execute(); err != nil {
-		return ctx, err
-	}
-
-	return ctx, nil
+	return ctx, cmd.Execute()
 }
 
 func pushOfTheRecipeWasSuccessful(ctx context.Context) (context.Context, error) {
