@@ -20,6 +20,10 @@ const (
 	IgnoreFileName         = ".jalapenoignore"
 )
 
+var (
+	ErrSauceNotFound = errors.New("sauce not found")
+)
+
 // LoadRecipe a recipe from a path. The function does validate the recipe before returning it
 func LoadRecipe(path string) (*Recipe, error) {
 	rootDir, err := filepath.Abs(path)
@@ -174,4 +178,19 @@ func LoadSauces(projectDir string) ([]*Sauce, error) {
 	}
 
 	return sauces, nil
+}
+
+func LoadSauce(projectDir, recipeName string) (*Sauce, error) {
+	sauces, err := LoadSauces(projectDir)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, s := range sauces {
+		if s.Recipe.Name == recipeName {
+			return s, nil
+		}
+	}
+
+	return nil, ErrSauceNotFound
 }

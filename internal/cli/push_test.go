@@ -10,22 +10,22 @@ import (
 	"github.com/spf13/pflag"
 )
 
-func iPushRecipe(ctx context.Context, recipeName, repoName string) (context.Context, error) {
-	return pushRecipe(ctx, recipeName, repoName)
+func iPushRecipe(ctx context.Context, recipeName string) (context.Context, error) {
+	return pushRecipe(ctx, recipeName)
 }
 
-func pushRecipe(ctx context.Context, recipeName, repoName string) (context.Context, error) {
+func pushRecipe(ctx context.Context, recipeName string) (context.Context, error) {
 	recipesDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
-	registry := ctx.Value(ociRegistryCtxKey{}).(OCIRegistry)
+	ociRegistry := ctx.Value(ociRegistryCtxKey{}).(OCIRegistry)
 	configDir, configFileExists := ctx.Value(dockerConfigDirectoryPathCtxKey{}).(string)
 	optionalFlagSet, flagsAreSet := ctx.Value(cmdFlagSetCtxKey{}).(*pflag.FlagSet)
 
 	cmd, cmdStdOut, cmdStdErr := wrapCmdOutputs(newPushCmd)
 
-	cmd.SetArgs([]string{filepath.Join(recipesDir, recipeName), filepath.Join(registry.Resource.GetHostPort("5000/tcp"), repoName)})
+	cmd.SetArgs([]string{filepath.Join(recipesDir, recipeName), filepath.Join(ociRegistry.Resource.GetHostPort("5000/tcp"), recipeName)})
 
 	flags := cmd.Flags()
-	if registry.TLSEnabled {
+	if ociRegistry.TLSEnabled {
 		if err := flags.Set("insecure", "true"); err != nil {
 			return ctx, err
 		}
@@ -35,7 +35,7 @@ func pushRecipe(ctx context.Context, recipeName, repoName string) (context.Conte
 		}
 	}
 
-	if registry.AuthEnabled {
+	if ociRegistry.AuthEnabled {
 		if err := flags.Set("username", "foo"); err != nil {
 			return ctx, err
 		}

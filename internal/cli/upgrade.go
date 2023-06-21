@@ -2,6 +2,7 @@ package cli
 
 import (
 	"errors"
+	"fmt"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -53,20 +54,15 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) {
 		return
 	}
 
-	sauces, err := recipe.LoadSauces(opts.ProjectPath)
+	oldSauce, err := recipe.LoadSauce(opts.ProjectPath, re.Name)
 	if err != nil {
-		cmd.PrintErrf("Error: %s", err)
-		return
-	}
-	var oldSauce *recipe.Sauce
-	for _, s := range sauces {
-		if s.Recipe.Name == re.Name {
-			oldSauce = s
-			break
+		var msg string
+		if errors.Is(err, recipe.ErrSauceNotFound) {
+			msg = fmt.Sprintf("project '%s' does not contain sauce with recipe '%s'. Recipe name used in the project should match the recipe which is used for upgrading", opts.ProjectPath, re.Name)
+		} else {
+			msg = err.Error()
 		}
-	}
-	if oldSauce == nil {
-		cmd.PrintErrf("Error: project %s does not contain sauce %s. Recipe name used in the project should match the recipe which is used for upgrading", opts.ProjectPath, re.Name)
+		cmd.PrintErrf("Error: %s", msg)
 		return
 	}
 

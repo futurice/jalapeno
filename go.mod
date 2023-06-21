@@ -8,10 +8,10 @@ require (
 	github.com/cucumber/godog v0.12.6
 	github.com/docker/cli v23.0.0+incompatible
 	github.com/go-yaml/yaml v2.1.0+incompatible
-	github.com/opencontainers/image-spec v1.1.0-rc2
+	github.com/opencontainers/image-spec v1.1.0-rc3
 	github.com/spf13/cobra v1.7.0
 	golang.org/x/mod v0.8.0
-	oras.land/oras-go/v2 v2.0.2
+	oras.land/oras-go/v2 v2.2.0
 )
 
 require (
@@ -25,7 +25,7 @@ require (
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/stretchr/testify v1.8.1 // indirect
-	golang.org/x/sync v0.1.0 // indirect
+	golang.org/x/sync v0.2.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	gotest.tools v2.2.0+incompatible // indirect
 	gotest.tools/v3 v3.4.0 // indirect

@@ -21,6 +21,7 @@ func NewRootCmd() (*cobra.Command, error) {
 		newPushCmd(),
 		newPullCmd(),
 		newTestCmd(),
+		newCheckCmd(),
 	)
 
 	return cmd, nil
