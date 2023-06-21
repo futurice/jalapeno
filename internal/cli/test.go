@@ -14,7 +14,7 @@ type testOptions struct {
 	option.Common
 }
 
-func newTestCmd() *cobra.Command {
+func NewTestCmd() *cobra.Command {
 	var opts testOptions
 	var cmd = &cobra.Command{
 		Use:   "test RECIPE_PATH",

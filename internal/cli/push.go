@@ -19,7 +19,7 @@ type pushOptions struct {
 	option.Common
 }
 
-func newPushCmd() *cobra.Command {
+func NewPushCmd() *cobra.Command {
 	var opts pushOptions
 	var cmd = &cobra.Command{
 		Use:   "push RECIPE_PATH TARGET_URL",

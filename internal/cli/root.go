@@ -13,15 +13,15 @@ func NewRootCmd() (*cobra.Command, error) {
 	}
 
 	cmd.AddCommand(
-		newCreateCmd(),
-		newUpgradeCmd(),
-		newExecuteCmd(),
-		newValidateCmd(),
-		newEjectCmd(),
-		newPushCmd(),
-		newPullCmd(),
-		newTestCmd(),
-		newCheckCmd(),
+		NewCreateCmd(),
+		NewUpgradeCmd(),
+		NewExecuteCmd(),
+		NewValidateCmd(),
+		NewEjectCmd(),
+		NewPushCmd(),
+		NewPullCmd(),
+		NewTestCmd(),
+		NewCheckCmd(),
 	)
 
 	return cmd, nil

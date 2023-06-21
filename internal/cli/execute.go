@@ -17,7 +17,7 @@ type executeOptions struct {
 	option.Common
 }
 
-func newExecuteCmd() *cobra.Command {
+func NewExecuteCmd() *cobra.Command {
 	var opts executeOptions
 	var cmd = &cobra.Command{
 		Use:     "execute RECIPE_PATH",

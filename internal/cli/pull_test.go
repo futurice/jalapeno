@@ -1,4 +1,4 @@
-package cli
+package cli_test
 
 import (
 	"bytes"
@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/futurice/jalapeno/internal/cli"
 	"github.com/spf13/pflag"
 )
 
@@ -17,7 +18,7 @@ func iPullRecipe(ctx context.Context, recipeName, repoName string) (context.Cont
 	configDir, configFileExists := ctx.Value(dockerConfigDirectoryPathCtxKey{}).(string)
 	optionalFlagSet, flagsAreSet := ctx.Value(cmdFlagSetCtxKey{}).(*pflag.FlagSet)
 
-	ctx, cmd := wrapCmdOutputs(ctx, newPullCmd)
+	ctx, cmd := wrapCmdOutputs(ctx, cli.NewPullCmd)
 
 	cmd.SetArgs([]string{filepath.Join(registry.Resource.GetHostPort("5000/tcp"), repoName)})
 	flags := cmd.Flags()

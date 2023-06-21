@@ -23,7 +23,7 @@ type upgradeOptions struct {
 	option.Common
 }
 
-func newUpgradeCmd() *cobra.Command {
+func NewUpgradeCmd() *cobra.Command {
 	var opts upgradeOptions
 	var cmd = &cobra.Command{
 		Use:   "upgrade PROJECT_PATH RECIPE_PATH",
@@ -165,7 +165,7 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) {
 					Message: path,
 					Default: true,
 				}
-				
+
 				err = survey.AskOne(prompt, &override)
 				if err != nil {
 					cmd.PrintErrf("Error when prompting for question: %s", err)

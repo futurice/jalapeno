@@ -11,7 +11,7 @@ type validateOptions struct {
 	option.Common
 }
 
-func newValidateCmd() *cobra.Command {
+func NewValidateCmd() *cobra.Command {
 	var opts validateOptions
 	var cmd = &cobra.Command{
 		Use:   "validate RECIPE_PATH",

@@ -1,10 +1,11 @@
-package cli
+package cli_test
 
 import (
 	"context"
 	"fmt"
 	"path/filepath"
 
+	"github.com/futurice/jalapeno/internal/cli"
 	re "github.com/futurice/jalapeno/pkg/recipe"
 	"github.com/spf13/pflag"
 )
@@ -14,7 +15,7 @@ func iCheckRecipe(ctx context.Context, recipe string) (context.Context, error) {
 	ociRegistry := ctx.Value(ociRegistryCtxKey{}).(OCIRegistry)
 	optionalFlagSet, flagsAreSet := ctx.Value(cmdFlagSetCtxKey{}).(*pflag.FlagSet)
 
-	ctx, cmd := wrapCmdOutputs(ctx, newCheckCmd)
+	ctx, cmd := wrapCmdOutputs(ctx, cli.NewCheckCmd)
 
 	cmd.SetArgs([]string{projectDir, recipe})
 

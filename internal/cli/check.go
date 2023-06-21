@@ -17,7 +17,7 @@ type checkOptions struct {
 	option.OCIRepository
 }
 
-func newCheckCmd() *cobra.Command {
+func NewCheckCmd() *cobra.Command {
 	var opts checkOptions
 	var cmd = &cobra.Command{
 		Use:   "check PROJECT_PATH RECIPE_NAME",

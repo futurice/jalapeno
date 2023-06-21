@@ -13,7 +13,7 @@ type ejectOptions struct {
 	ProjectPath string
 }
 
-func newEjectCmd() *cobra.Command {
+func NewEjectCmd() *cobra.Command {
 	var opts ejectOptions
 	var cmd = &cobra.Command{
 		Use:   "eject (PROJECT_PATH)",

@@ -18,7 +18,7 @@ type pullOptions struct {
 	option.Common
 }
 
-func newPullCmd() *cobra.Command {
+func NewPullCmd() *cobra.Command {
 	var opts pullOptions
 	var cmd = &cobra.Command{
 		Use:   "pull URL",

@@ -1,9 +1,10 @@
-package cli
+package cli_test
 
 import (
 	"context"
 	"path/filepath"
 
+	"github.com/futurice/jalapeno/internal/cli"
 	"github.com/spf13/pflag"
 )
 
@@ -17,7 +18,7 @@ func pushRecipe(ctx context.Context, recipeName string) (context.Context, error)
 	configDir, configFileExists := ctx.Value(dockerConfigDirectoryPathCtxKey{}).(string)
 	optionalFlagSet, flagsAreSet := ctx.Value(cmdFlagSetCtxKey{}).(*pflag.FlagSet)
 
-	ctx, cmd := wrapCmdOutputs(ctx, newPushCmd)
+	ctx, cmd := wrapCmdOutputs(ctx, cli.NewPushCmd)
 
 	cmd.SetArgs([]string{filepath.Join(recipesDir, recipeName), filepath.Join(ociRegistry.Resource.GetHostPort("5000/tcp"), recipeName)})
 

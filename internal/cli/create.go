@@ -13,7 +13,7 @@ type createOptions struct {
 	option.Common
 }
 
-func newCreateCmd() *cobra.Command {
+func NewCreateCmd() *cobra.Command {
 	var opts createOptions
 	var cmd = &cobra.Command{
 		Use:   "create RECIPE_NAME",
@@ -45,7 +45,7 @@ foo/
 }
 
 func runCreate(cmd *cobra.Command, opts createOptions) {
-	re := createExampleRecipe(opts.RecipeName)
+	re := CreateExampleRecipe(opts.RecipeName)
 
 	err := re.Validate()
 	if err != nil {
@@ -60,7 +60,7 @@ func runCreate(cmd *cobra.Command, opts createOptions) {
 	}
 }
 
-func createExampleRecipe(name string) *recipe.Recipe {
+func CreateExampleRecipe(name string) *recipe.Recipe {
 	r := recipe.NewRecipe()
 	r.Metadata.Name = name
 	r.Metadata.Version = "v0.0.0"

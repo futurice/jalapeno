@@ -1,4 +1,4 @@
-package cli
+package cli_test
 
 import (
 	"bytes"
@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/futurice/jalapeno/internal/cli"
 	re "github.com/futurice/jalapeno/pkg/recipe"
 	"github.com/spf13/pflag"
 )
@@ -18,7 +19,7 @@ func iUpgradeSauce(ctx context.Context, recipe string) (context.Context, error) 
 	projectDir := ctx.Value(projectDirectoryPathCtxKey{}).(string)
 	optionalFlagSet, flagsAreSet := ctx.Value(cmdFlagSetCtxKey{}).(*pflag.FlagSet)
 
-	ctx, cmd := wrapCmdOutputs(ctx, newUpgradeCmd)
+	ctx, cmd := wrapCmdOutputs(ctx, cli.NewUpgradeCmd)
 
 	cmd.SetArgs([]string{projectDir, filepath.Join(recipesDir, recipe)})
 
