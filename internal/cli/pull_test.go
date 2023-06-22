@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"errors"
-	"fmt"
 	"os"
 	"path/filepath"
 
@@ -58,18 +57,16 @@ func iPullRecipe(ctx context.Context, recipeName, repoName string) (context.Cont
 	return ctx, cmd.Execute()
 }
 
-func pullOfTheRecipeWasSuccessful(ctx context.Context) (context.Context, error) {
+func pullOfTheRecipeWasSuccessful(ctx context.Context) error {
 	cmdStdOut := ctx.Value(cmdStdOutCtxKey{}).(*bytes.Buffer)
-	cmdStdErr := ctx.Value(cmdStdErrCtxKey{}).(*bytes.Buffer)
-	noErrorsWerePrinted(ctx)
-
-	if cmdStdErr.String() != "" {
-		return ctx, fmt.Errorf("stderr was not empty: %s", cmdStdErr)
+	err := noErrorsWerePrinted(ctx)
+	if err != nil {
+		return err
 	}
 
 	if cmdStdOut.String() == "" { // TODO: Check stdout when we have proper message from CMD
-		return ctx, errors.New("stdout was empty")
+		return errors.New("stdout was empty")
 	}
 
-	return ctx, nil
+	return nil
 }
