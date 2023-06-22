@@ -12,7 +12,7 @@ tasks:
   docs:gen:
     desc: Generate CLI documentation
     cmds:
-      - go run cmd/docs/main.go ./docs/docs/usage.md
+      - go run cmd/docs/main.go ./docs/docs/api.md
   mod:
     desc: Downloads and tidy Go modules
     cmds:

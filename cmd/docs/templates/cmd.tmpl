@@ -1,17 +1,26 @@
 {{- define "cmd" }}
-## `jalapeno {{.Name}}` {#{{.Name}}}
+## {{.Name}} {#{{.Name}}}
 
 {{.Description}}
 
-Usage: `jalapeno {{.Usage}}`
+#### Usage: `jalapeno {{.Usage}}`
+
+{{- if .Example }}
+
+#### Examples
+```
+{{.Example}}
+```
+{{- end}}
+
 {{- if len .Flags }}
 
 #### Options {#{{.Name}}-options}
 
-| Name | Default | Description |
-| --- | --- | --- |
+| Name | Type | Default | Description |
+| --- | --- | --- | --- |
 {{- range $flag := .Flags}}
-| `--{{$flag.Name}}`{{if $flag.Shorthand}}, `-{{$flag.Shorthand}}`{{end}} | {{if $flag.Default}}`{{ $flag.Default }}`{{- end }} | {{$flag.Description}} |
+| `--{{$flag.Name}}`{{if $flag.Shorthand}}, `-{{$flag.Shorthand}}`{{end}} | `{{.Type}}` | {{if $flag.Default}}`{{ $flag.Default }}`{{- end }} | {{$flag.Description}} |
 {{- end}}
 {{- end}}
 {{- end}}
