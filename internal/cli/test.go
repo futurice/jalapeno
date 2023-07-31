@@ -54,7 +54,7 @@ func runTest(cmd *cobra.Command, opts testOptions) {
 	if opts.UpdateSnapshots {
 		for i := range re.Tests {
 			test := &re.Tests[i]
-			sauce, err := re.Execute(test.Values, recipe.TestAnchor)
+			sauce, err := re.Execute(test.Values, recipe.TestID)
 			if err != nil {
 				cmd.PrintErrf("Error: failed to render templates: %s", err)
 				return

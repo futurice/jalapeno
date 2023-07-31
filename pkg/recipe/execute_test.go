@@ -56,7 +56,7 @@ func TestRecipeRenderChecksums(t *testing.T) {
 	}
 }
 
-func TestRecipeRenderAnchor(t *testing.T) {
+func TestRecipeRenderID(t *testing.T) {
 	recipe := NewRecipe()
 	recipe.Metadata.Name = "test"
 	recipe.Metadata.Version = "v1.0.0"
@@ -68,30 +68,30 @@ func TestRecipeRenderAnchor(t *testing.T) {
 		t.Fatalf("Failed to render recipe: %s", err)
 	}
 
-	if sauce.Anchor.IsNil() {
-		t.Fatal("Sauce anchor was empty")
+	if sauce.ID.IsNil() {
+		t.Fatal("Sauce ID was empty")
 	}
 }
 
-func TestRecipeRenderStaticAnchor(t *testing.T) {
+func TestRecipeRenderIDReuse(t *testing.T) {
 	recipe := NewRecipe()
 	recipe.Metadata.Name = "test"
 	recipe.Metadata.Version = "v1.0.0"
 
 	recipe.SetEngine(TestRenderEngine{})
 
-	sauce1, err := recipe.Execute(nil, TestAnchor)
+	sauce1, err := recipe.Execute(nil, TestID)
 	if err != nil {
 		t.Fatalf("Failed to render first recipe: %s", err)
 	}
 
-	sauce2, err := recipe.Execute(nil, TestAnchor)
+	sauce2, err := recipe.Execute(nil, TestID)
 	if err != nil {
 		t.Fatalf("Failed to render second recipe: %s", err)
 	}
 
-	if sauce1.Anchor != sauce2.Anchor {
-		t.Fatal("Anchors were not same when used static anchor on both exeutrions")
+	if sauce1.ID != sauce2.ID {
+		t.Fatal("IDs were not same when used static ID on both executions")
 	}
 }
 

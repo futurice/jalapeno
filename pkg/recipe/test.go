@@ -23,7 +23,7 @@ type Test struct {
 type TestFile []byte
 
 // Random hardcoded UUID
-var TestAnchor uuid.UUID = uuid.Must(uuid.FromString("12345678-1234-5678-1234-567812345678"))
+var TestID uuid.UUID = uuid.Must(uuid.FromString("12345678-1234-5678-1234-567812345678"))
 
 func (f TestFile) MarshalYAML() (interface{}, error) {
 	return b64.StdEncoding.EncodeToString(f), nil
@@ -63,7 +63,7 @@ func (t *Test) Validate() error {
 func (re *Recipe) RunTests() []error {
 	errors := make([]error, len(re.Tests))
 	for i, t := range re.Tests {
-		sauce, err := re.Execute(t.Values, TestAnchor)
+		sauce, err := re.Execute(t.Values, TestID)
 		if err != nil {
 			errors[i] = fmt.Errorf("%w", err)
 			continue

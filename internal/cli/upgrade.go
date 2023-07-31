@@ -109,7 +109,7 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) {
 		return
 	}
 
-	newSauce, err := re.Execute(recipeutil.MergeValues(values, oldSauce.Values, predefinedValues), oldSauce.Anchor)
+	newSauce, err := re.Execute(recipeutil.MergeValues(values, oldSauce.Values, predefinedValues), oldSauce.ID)
 	if err != nil {
 		cmd.PrintErrf("Error: %s", err)
 		return

@@ -18,10 +18,10 @@ type Sauce struct {
 	Values VariableValues  `yaml:"values,omitempty"`
 	Files  map[string]File `yaml:"files"`
 
-	// Random ID whose value is determined on first render and stays the same
+	// Random unique ID whose value is determined on first render and stays the same
 	// on subsequent re-renders (upgrades) of the sauce. Can be used for example as a seed
 	// for template random functions to provide same result on each template
-	Anchor uuid.UUID `yaml:"anchor"`
+	ID uuid.UUID `yaml:"id"`
 }
 
 type File struct {

@@ -9,7 +9,7 @@ Feature: Execute recipes
     Then execution of the recipe has succeeded
     And the project directory should contain file "README.md"
     And the sauce file contains a sauce in index 0 which should have property "name" with value "foo"
-    And the sauce file contains a sauce in index 0 which should have property "anchor" that is a valid UUID
+    And the sauce file contains a sauce in index 0 which should have property "id" that is a valid UUID
 
   Scenario: Execute multiple recipes
     Given a project directory

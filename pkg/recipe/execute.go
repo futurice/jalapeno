@@ -10,23 +10,23 @@ import (
 )
 
 // Renders recipe templates
-func (re *Recipe) Execute(values VariableValues, anchor uuid.UUID) (*Sauce, error) {
+func (re *Recipe) Execute(values VariableValues, id uuid.UUID) (*Sauce, error) {
 	if re.engine == nil {
 		return nil, errors.New("render engine has not been set")
 	}
 
-	if anchor.IsNil() {
-		return nil, errors.New("anchor was nil")
+	if id.IsNil() {
+		return nil, errors.New("ID was nil")
 	}
 
 	sauce := NewSauce()
 	sauce.Recipe = *re
 	sauce.Values = values
-	sauce.Anchor = anchor
+	sauce.ID = id
 
 	// Define the context which is available on templates
 	context := map[string]interface{}{
-		"Anchor":    sauce.Anchor,
+		"ID":        sauce.ID,
 		"Recipe":    re.Metadata,
 		"Variables": values,
 	}
