@@ -29,7 +29,7 @@ func TestRecipeTests(t *testing.T) {
 						Values: VariableValues{
 							"VAR": "var",
 						},
-						Files: map[string]TestFile{
+						Files: map[string][]byte{
 							"foo.txt":                []byte("foo"),
 							"var.txt":                []byte("var"),
 							"var_with_func_pipe.txt": []byte("e5b4e786e382d03c28e9edfab2d8149378ae69df"), // echo -n "var" | shasum -a 1
@@ -47,7 +47,7 @@ func TestRecipeTests(t *testing.T) {
 			[]TestWithExpectedOutcome{
 				{
 					Test: Test{
-						Files: map[string]TestFile{
+						Files: map[string][]byte{
 							"foo.txt": []byte("foo"),
 						},
 					},
@@ -55,7 +55,7 @@ func TestRecipeTests(t *testing.T) {
 				},
 				{
 					Test: Test{
-						Files: map[string]TestFile{
+						Files: map[string][]byte{
 							"foo.txt": []byte("bar"),
 						},
 					},
@@ -76,7 +76,7 @@ func TestRecipeTests(t *testing.T) {
 			[]TestWithExpectedOutcome{
 				{
 					Test: Test{
-						Files: map[string]TestFile{
+						Files: map[string][]byte{
 							"foo.txt": []byte("foo"),
 						},
 					},
@@ -92,7 +92,7 @@ func TestRecipeTests(t *testing.T) {
 			[]TestWithExpectedOutcome{
 				{
 					Test: Test{
-						Files: map[string]TestFile{
+						Files: map[string][]byte{
 							"foo.txt": []byte("foo"),
 							"bar.txt": []byte("bar"),
 						},
@@ -110,7 +110,7 @@ func TestRecipeTests(t *testing.T) {
 			[]TestWithExpectedOutcome{
 				{
 					Test: Test{
-						Files: map[string]TestFile{
+						Files: map[string][]byte{
 							"foo.txt": []byte("foo"),
 						},
 					},
@@ -127,7 +127,7 @@ func TestRecipeTests(t *testing.T) {
 			[]TestWithExpectedOutcome{
 				{
 					Test: Test{
-						Files: map[string]TestFile{
+						Files: map[string][]byte{
 							"foo.txt": []byte("foo"),
 							"bar.txt": []byte("bar"),
 						},

@@ -60,7 +60,7 @@ func runTest(cmd *cobra.Command, opts testOptions) {
 				return
 			}
 
-			test.Files = make(map[string]recipe.TestFile)
+			test.Files = make(map[string][]byte)
 			for filename, file := range sauce.Files {
 				test.Files[filename] = file.Content
 			}

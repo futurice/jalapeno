@@ -106,16 +106,21 @@ description: foo recipe
 		t.Fatal("cannot write recipe file", err)
 	}
 
-	testCase := `values: {}
-files:
-  "file.md": IyBmaWxl
-`
-	if err = os.MkdirAll(filepath.Join(dir, RecipeTestsDirName), 0755); err != nil {
+	testMetaFile := "values: {}"
+	if err = os.MkdirAll(filepath.Join(dir, RecipeTestsDirName, "test_foo"), 0755); err != nil {
 		t.Fatalf("cannot create test dir: %s", err)
 	}
 
-	if err = os.WriteFile(filepath.Join(dir, RecipeTestsDirName, "test_foo"+YAMLExtension), []byte(testCase), 0644); err != nil {
+	if err = os.WriteFile(filepath.Join(dir, RecipeTestsDirName, "test_foo", RecipeTestMetaFileName+YAMLExtension), []byte(testMetaFile), 0644); err != nil {
 		t.Fatalf("cannot write recipe test file: %s", err)
+	}
+
+	if err = os.MkdirAll(filepath.Join(dir, RecipeTestsDirName, "test_foo", RecipeTestFilesDirName), 0755); err != nil {
+		t.Fatalf("cannot create test file dir: %s", err)
+	}
+
+	if err = os.WriteFile(filepath.Join(dir, RecipeTestsDirName, "test_foo", RecipeTestFilesDirName, "file.md"), []byte(contents), 0644); err != nil {
+		t.Fatalf("cannot create test file dir: %s", err)
 	}
 
 	loaded, err := LoadRecipe(dir)
@@ -128,6 +133,6 @@ files:
 	}
 
 	if !bytes.Equal(loaded.Tests[0].Files["file.md"], []byte(contents)) {
-		t.Fatalf("loader did not decode recipe test files correctly, expected %s, actual %s", contents, loaded.Tests[0].Files["file.md"])
+		t.Fatalf("loader did not load recipe test file correctly, expected %s, actual %s", contents, loaded.Tests[0].Files["file.md"])
 	}
 }

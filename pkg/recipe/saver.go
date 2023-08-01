@@ -9,7 +9,9 @@ import (
 	"github.com/go-yaml/yaml"
 )
 
-const defaultFileMode os.FileMode = 0700
+const (
+	defaultFileMode os.FileMode = 0700
+)
 
 // Save saves recipe to given destination
 func (re *Recipe) Save(dest string) error {
@@ -57,26 +59,46 @@ func (re *Recipe) saveTests(dest string) error {
 		return nil
 	}
 
-	testDir := filepath.Join(dest, RecipeTestsDirName)
+	testRootDir := filepath.Join(dest, RecipeTestsDirName)
 
-	err := os.MkdirAll(testDir, defaultFileMode)
+	err := os.MkdirAll(testRootDir, defaultFileMode)
 	if err != nil {
 		return fmt.Errorf("can not create recipe test directory: %w", err)
 	}
 
 	for _, test := range re.Tests {
-		file, err := os.Create(filepath.Join(testDir, test.Name+YAMLExtension))
+		testDirPath := filepath.Join(testRootDir, test.Name)
+		err := os.MkdirAll(filepath.Join(testRootDir, test.Name), defaultFileMode)
+		if err != nil {
+			return fmt.Errorf("failed to create test directory for test '%s': %w", test.Name, err)
+		}
+
+		meta, err := os.Create(filepath.Join(testDirPath, RecipeTestMetaFileName+YAMLExtension))
 		if err != nil {
 			return fmt.Errorf("failed to create recipe test file: %w", err)
 		}
-		defer file.Close()
+		defer meta.Close()
 
-		encoder := yaml.NewEncoder(file)
+		encoder := yaml.NewEncoder(meta)
 		defer encoder.Close()
 
 		if err := encoder.Encode(test); err != nil {
 			return fmt.Errorf("failed to write recipe test to a file: %w", err)
 		}
+
+		testFileDirPath := filepath.Join(testDirPath, RecipeTestFilesDirName)
+		if len(test.Files) > 0 {
+			err := os.MkdirAll(testFileDirPath, defaultFileMode)
+			if err != nil {
+				return fmt.Errorf("failed to create test file directory for test '%s': %w", test.Name, err)
+			}
+		}
+
+		err = saveFileMap(test.Files, testFileDirPath)
+		if err != nil {
+			return fmt.Errorf("failed to save template files: %w", err)
+		}
+
 	}
 
 	return nil

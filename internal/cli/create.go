@@ -26,6 +26,11 @@ foo/
   ├── recipe.yml
   ├── templates/
   ├──── README.md
+	├── tests/
+	├──── defaults/
+	├────── test.yml
+	├────── files/
+	├──────── README.md
 %[1]s`, "```"),
 		Example: `jalapeno create my-recipe`,
 		Args:    cobra.ExactArgs(1),
@@ -59,18 +64,31 @@ func runCreate(cmd *cobra.Command, opts createOptions) {
 		cmd.PrintErrf("Error: can not save recipe to the directory: %v\n", err)
 		return
 	}
+
+	cmd.Printf("Recipe '%s' created!\n", opts.RecipeName)
 }
 
 func createExampleRecipe(name string) *recipe.Recipe {
+	defaultValue := "Hello World!"
+
 	r := recipe.NewRecipe()
 	r.Metadata.Name = name
 	r.Metadata.Version = "v0.0.0"
 	r.Metadata.Description = "Description about what the recipe is used for and what it contains. For example tech stack, cloud environments, tools"
 	r.Variables = []recipe.Variable{
-		{Name: "MY_VAR", Default: "Hello World!"},
+		{Name: "MY_VAR", Default: defaultValue},
 	}
 	r.Templates = map[string][]byte{
 		"README.md": []byte("{{ .Variables.MY_VAR }}"),
+	}
+	r.Tests = []recipe.Test{
+		{
+			Name:   "defaults",
+			Values: recipe.VariableValues{"MY_VAR": defaultValue},
+			Files: map[string][]byte{
+				"README.md": []byte(defaultValue),
+			},
+		},
 	}
 
 	return r

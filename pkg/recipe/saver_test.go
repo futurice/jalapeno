@@ -26,7 +26,9 @@ func TestSaveRecipe(t *testing.T) {
 	re.Tests = []Test{
 		{
 			Name: "baz_test",
-			Files: map[string]TestFile{
+			Files: map[string][]byte{
+				"foo.md":         []byte("foo"),
+				"foo/bar.md":     []byte("bar"),
 				"foo/bar/baz.md": []byte("baz"),
 			},
 		},
@@ -47,7 +49,10 @@ func TestSaveRecipe(t *testing.T) {
 		filepath.Join(dir, re.Name, "templates", "foo.md"),
 		filepath.Join(dir, re.Name, "templates", "foo", "bar.md"),
 		filepath.Join(dir, re.Name, "templates", "foo", "bar", "baz.md"),
-		filepath.Join(dir, re.Name, "tests", re.Tests[0].Name+YAMLExtension),
+		filepath.Join(dir, re.Name, "tests", re.Tests[0].Name, RecipeTestMetaFileName+YAMLExtension),
+		filepath.Join(dir, re.Name, "tests", re.Tests[0].Name, RecipeTestFilesDirName, "foo.md"),
+		filepath.Join(dir, re.Name, "tests", re.Tests[0].Name, RecipeTestFilesDirName, "foo", "bar.md"),
+		filepath.Join(dir, re.Name, "tests", re.Tests[0].Name, RecipeTestFilesDirName, "foo", "bar", "baz.md"),
 	}
 
 	// TODO: check that these are _only_ files existing
@@ -76,7 +81,7 @@ func TestSaveSauce(t *testing.T) {
 	re.Tests = []Test{
 		{
 			Name: "baz_test",
-			Files: map[string]TestFile{
+			Files: map[string][]byte{
 				"foo/bar/baz.md": []byte("baz"),
 			},
 		},

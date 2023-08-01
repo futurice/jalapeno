@@ -2,7 +2,6 @@ package recipe
 
 import (
 	"bytes"
-	b64 "encoding/base64"
 	"errors"
 	"fmt"
 
@@ -17,33 +16,11 @@ type Test struct {
 	Values VariableValues `yaml:"values"`
 
 	// Snapshots of the rendered templates which were rendered with the values specified in the test
-	Files map[string]TestFile `yaml:"files"`
+	Files map[string][]byte `yaml:"-"`
 }
-
-type TestFile []byte
 
 // Random hardcoded UUID
 var TestID uuid.UUID = uuid.Must(uuid.FromString("12345678-1234-5678-1234-567812345678"))
-
-func (f TestFile) MarshalYAML() (interface{}, error) {
-	return b64.StdEncoding.EncodeToString(f), nil
-}
-
-func (f *TestFile) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	var base64String string
-	err := unmarshal(&base64String)
-	if err != nil {
-		return err
-	}
-
-	file, err := b64.StdEncoding.DecodeString(base64String)
-	if err != nil {
-		return err
-	}
-
-	*f = file
-	return nil
-}
 
 var (
 	ErrNoTestsSpecified    error = errors.New("no tests specified")
