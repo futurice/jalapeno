@@ -78,7 +78,7 @@ func TestParsePredefinedValues(t *testing.T) {
 				defer os.Unsetenv(envName)
 			}
 
-			actual, err := ParsePredefinedValues(test.vars, test.flags)
+			actual, err := ParseProvidedValues(test.vars, test.flags)
 			if err != nil {
 				if test.expectedErr == nil {
 					t.Fatalf("parser returned error when not expected, error: %+v", err)
@@ -145,5 +145,43 @@ func TestMergeValues(t *testing.T) {
 }
 
 func TestFilterVariables(t *testing.T) {
+	tests := []struct {
+		name      string
+		variables []recipe.Variable
+		values    recipe.VariableValues
+		expected  []recipe.Variable
+	}{
+		{
+			name: "value_exists",
+			variables: []recipe.Variable{
+				{Name: "FOO"},
+			},
+			values: recipe.VariableValues{
+				"FOO": "foo",
+			},
+			expected: []recipe.Variable{},
+		},
+		{
+			name: "missing_value",
+			variables: []recipe.Variable{
+				{Name: "FOO"},
+			},
+			values: recipe.VariableValues{
+				"BAR": "bar",
+			},
+			expected: []recipe.Variable{
+				{Name: "FOO"},
+			},
+		},
+	}
 
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			actual := FilterVariablesWithoutValues(test.variables, test.values)
+
+			if !reflect.DeepEqual(test.expected, actual) {
+				t.Fatalf("Merged values had non-expected value, expected %+v, actual: %+v", test.expected, actual)
+			}
+		})
+	}
 }

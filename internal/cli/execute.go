@@ -59,29 +59,49 @@ func runExecute(cmd *cobra.Command, opts executeOptions) {
 		cmd.Printf("Description: %s\n", re.Metadata.Description)
 	}
 
-	predefinedValues, err := recipeutil.ParsePredefinedValues(re.Variables, opts.Values.Flags)
+	// Load all existing sauces
+	existingSauces, err := recipe.LoadSauces(opts.OutputPath)
+	if err != nil {
+		cmd.PrintErrf("Error: %s", err)
+		return
+	}
+
+	reusedValues := make(recipe.VariableValues)
+	if opts.ReuseSauceValues && len(existingSauces) > 0 {
+		for _, sauce := range existingSauces {
+			overlappingSauceValues := make(recipe.VariableValues)
+			for _, v := range re.Variables {
+				if val, found := sauce.Values[v.Name]; found {
+					overlappingSauceValues[v.Name] = val
+				}
+			}
+
+			if len(overlappingSauceValues) > 0 {
+				reusedValues = recipeutil.MergeValues(reusedValues, overlappingSauceValues)
+			}
+		}
+	}
+
+	providedValues, err := recipeutil.ParseProvidedValues(re.Variables, opts.Values.Flags)
 	if err != nil {
 		cmd.PrintErrf("Error when parsing provided values: %v\n", err)
 		return
 	}
 
-	values, err := recipeutil.PromptUserForValues(recipeutil.FilterVariables(re.Variables, predefinedValues))
+	predefinedValues := recipeutil.MergeValues(reusedValues, providedValues)
+
+	// Filter out variables which don't have value yet
+	filteredVariables := recipeutil.FilterVariablesWithoutValues(re.Variables, predefinedValues)
+	promptedValues, err := recipeutil.PromptUserForValues(filteredVariables)
 	if err != nil {
 		cmd.PrintErrf("Error when prompting for values: %v\n", err)
 		return
 	}
 
 	sauce, err := re.Execute(
-		recipeutil.MergeValues(values, predefinedValues),
+		recipeutil.MergeValues(predefinedValues, promptedValues),
 		uuid.Must(uuid.NewV4()),
 	)
-	if err != nil {
-		cmd.PrintErrf("Error: %s", err)
-		return
-	}
-
-	// Load all existing sauces
-	existingSauces, err := recipe.LoadSauces(opts.OutputPath)
 	if err != nil {
 		cmd.PrintErrf("Error: %s", err)
 		return
@@ -90,7 +110,7 @@ func runExecute(cmd *cobra.Command, opts executeOptions) {
 	// Check for conflicts
 	for _, s := range existingSauces {
 		if conflicts := s.Conflicts(sauce); conflicts != nil {
-			cmd.PrintErrf("conflict in recipe '%s': file '%s' was already created by recipe '%s'\n", re.Name, conflicts[0].Path, s.Recipe.Name)
+			cmd.PrintErrf("Error: conflict in recipe '%s': file '%s' was already created by recipe '%s'\n", re.Name, conflicts[0].Path, s.Recipe.Name)
 			return
 		}
 	}

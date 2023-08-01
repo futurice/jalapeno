@@ -15,7 +15,7 @@ var (
 	ErrVarNotDefinedInRecipe = errors.New("following variable does not exist in the recipe")
 )
 
-func ParsePredefinedValues(variables []recipe.Variable, flags []string) (recipe.VariableValues, error) {
+func ParseProvidedValues(variables []recipe.Variable, flags []string) (recipe.VariableValues, error) {
 	values := make(recipe.VariableValues)
 	for _, env := range os.Environ() {
 		if !strings.HasPrefix(env, ValueEnvVarPrefix) {
@@ -79,9 +79,9 @@ func MergeValues(valuesSlice ...recipe.VariableValues) recipe.VariableValues {
 	return merged
 }
 
-func FilterVariables(vars []recipe.Variable, values recipe.VariableValues) []recipe.Variable {
-	variablesWithoutValues := make([]recipe.Variable, 0, len(vars))
-	for _, variable := range vars {
+func FilterVariablesWithoutValues(variables []recipe.Variable, values recipe.VariableValues) []recipe.Variable {
+	variablesWithoutValues := make([]recipe.Variable, 0, len(variables))
+	for _, variable := range variables {
 		if _, exists := values[variable.Name]; !exists {
 			variablesWithoutValues = append(variablesWithoutValues, variable)
 		}

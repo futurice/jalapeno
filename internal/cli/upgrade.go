@@ -87,11 +87,39 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) {
 		}
 	}
 
-	predefinedValues, err := recipeutil.ParsePredefinedValues(re.Variables, opts.Values.Flags)
+	reusedValues := make(recipe.VariableValues)
+	if opts.ReuseSauceValues {
+		sauces, err := recipe.LoadSauces(opts.ProjectPath)
+		if err != nil {
+			cmd.PrintErrf("Error: %s", err)
+			return
+		}
+		for _, sauce := range sauces {
+			// Skip if the sauce is the one which is being upgraded
+			if sauce.Recipe.Name == re.Name {
+				continue
+			}
+
+			overlappingSauceValues := make(recipe.VariableValues)
+			for _, v := range re.Variables {
+				if val, found := sauce.Values[v.Name]; found {
+					overlappingSauceValues[v.Name] = val
+				}
+			}
+
+			if len(overlappingSauceValues) > 0 {
+				reusedValues = recipeutil.MergeValues(reusedValues, overlappingSauceValues)
+			}
+		}
+	}
+
+	providedValues, err := recipeutil.ParseProvidedValues(re.Variables, opts.Values.Flags)
 	if err != nil {
 		cmd.PrintErrf("Error when parsing provided values: %v\n", err)
 		return
 	}
+
+	predefinedValues := recipeutil.MergeValues(reusedValues, providedValues)
 
 	// Don't prompt variables which already has a value in existing sauce or is predefined
 	varsWithoutValues := make([]recipe.Variable, 0, len(re.Variables))
