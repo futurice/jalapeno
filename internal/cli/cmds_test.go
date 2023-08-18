@@ -22,23 +22,26 @@ import (
 	"time"
 
 	"github.com/cucumber/godog"
-	re "github.com/futurice/jalapeno/pkg/recipe"
 	"github.com/go-yaml/yaml"
 	"github.com/gofrs/uuid"
 	"github.com/ory/dockertest"
 	"github.com/spf13/cobra"
+
+	re "github.com/futurice/jalapeno/pkg/recipe"
 )
 
-type projectDirectoryPathCtxKey struct{}
-type recipesDirectoryPathCtxKey struct{}
-type certDirectoryPathCtxKey struct{}
-type htpasswdDirectoryPathCtxKey struct{}
-type dockerConfigDirectoryPathCtxKey struct{}
-type ociRegistryCtxKey struct{}
-type cmdStdOutCtxKey struct{}
-type cmdStdErrCtxKey struct{}
-type cmdFlagSetCtxKey struct{}
-type dockerResourcesCtxKey struct{}
+type (
+	projectDirectoryPathCtxKey      struct{}
+	recipesDirectoryPathCtxKey      struct{}
+	certDirectoryPathCtxKey         struct{}
+	htpasswdDirectoryPathCtxKey     struct{}
+	dockerConfigDirectoryPathCtxKey struct{}
+	ociRegistryCtxKey               struct{}
+	cmdStdOutCtxKey                 struct{}
+	cmdStdErrCtxKey                 struct{}
+	cmdFlagSetCtxKey                struct{}
+	dockerResourcesCtxKey           struct{}
+)
 
 type OCIRegistry struct {
 	TLSEnabled  bool
