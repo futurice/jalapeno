@@ -98,6 +98,8 @@ func TestFeatures(t *testing.T) {
 			s.Step(`^push of the recipe was successful$`, pushOfTheRecipeWasSuccessful)
 			s.Step(`^pull of the recipe was successful$`, pullOfTheRecipeWasSuccessful)
 			s.Step(`^the recipes directory should contain recipe "([^"]*)"$`, theRecipesDirectoryShouldContainRecipe)
+			s.Step(`^I eject$`, iEject)
+			s.Step(`^there should not be a \.jalapeno directory in the project directory$`, thereShouldNotBeAJalapenoDirectoryInTheProjectDirectory)
 			s.After(cleanDockerResources)
 			s.After(cleanTempDirs)
 		},
