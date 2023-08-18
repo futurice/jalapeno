@@ -20,7 +20,7 @@ func iEject(ctx context.Context) (context.Context, error) {
 	return ctx, cmd.Execute()
 }
 
-func thereShouldNotBeAJalapenoDirectoryInTheProjectDirectory(ctx context.Context) (context.Context, error) {
+func thereShouldNotBeASauceDirectoryInTheProjectDirectory(ctx context.Context) (context.Context, error) {
 	projectDir := ctx.Value(projectDirectoryPathCtxKey{}).(string)
 	_, err := os.Stat(filepath.Join(projectDir, recipe.SauceDirName))
 	if err != nil {

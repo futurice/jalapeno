@@ -7,4 +7,4 @@ Feature: Eject
     And a recipe "foo" that generates file "README.md"
     When I execute recipe "foo"
     And I eject
-    Then there should not be a .jalapeno directory in the project directory
+    Then there should not be a sauce directory in the project directory
