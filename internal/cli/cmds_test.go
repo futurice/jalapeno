@@ -22,23 +22,26 @@ import (
 	"time"
 
 	"github.com/cucumber/godog"
-	re "github.com/futurice/jalapeno/pkg/recipe"
 	"github.com/go-yaml/yaml"
 	"github.com/gofrs/uuid"
 	"github.com/ory/dockertest"
 	"github.com/spf13/cobra"
+
+	re "github.com/futurice/jalapeno/pkg/recipe"
 )
 
-type projectDirectoryPathCtxKey struct{}
-type recipesDirectoryPathCtxKey struct{}
-type certDirectoryPathCtxKey struct{}
-type htpasswdDirectoryPathCtxKey struct{}
-type dockerConfigDirectoryPathCtxKey struct{}
-type ociRegistryCtxKey struct{}
-type cmdStdOutCtxKey struct{}
-type cmdStdErrCtxKey struct{}
-type cmdFlagSetCtxKey struct{}
-type dockerResourcesCtxKey struct{}
+type (
+	projectDirectoryPathCtxKey      struct{}
+	recipesDirectoryPathCtxKey      struct{}
+	certDirectoryPathCtxKey         struct{}
+	htpasswdDirectoryPathCtxKey     struct{}
+	dockerConfigDirectoryPathCtxKey struct{}
+	ociRegistryCtxKey               struct{}
+	cmdStdOutCtxKey                 struct{}
+	cmdStdErrCtxKey                 struct{}
+	cmdFlagSetCtxKey                struct{}
+	dockerResourcesCtxKey           struct{}
+)
 
 type OCIRegistry struct {
 	TLSEnabled  bool
@@ -95,6 +98,8 @@ func TestFeatures(t *testing.T) {
 			s.Step(`^push of the recipe was successful$`, pushOfTheRecipeWasSuccessful)
 			s.Step(`^pull of the recipe was successful$`, pullOfTheRecipeWasSuccessful)
 			s.Step(`^the recipes directory should contain recipe "([^"]*)"$`, theRecipesDirectoryShouldContainRecipe)
+			s.Step(`^I eject$`, iEject)
+			s.Step(`^there should not be a sauce directory in the project directory$`, thereShouldNotBeASauceDirectoryInTheProjectDirectory)
 			s.After(cleanDockerResources)
 			s.After(cleanTempDirs)
 		},

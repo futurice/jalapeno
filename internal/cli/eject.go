@@ -21,7 +21,7 @@ func NewEjectCmd() *cobra.Command {
 		Long:  "Remove all the files and directories that are for Jalapeno internal use, and leave only the rendered project files.",
 		Args:  cobra.MaximumNArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			if len(args) >= 0 {
+			if len(args) > 0 {
 				opts.ProjectPath = args[0]
 			} else {
 				opts.ProjectPath = "."
