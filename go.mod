@@ -15,6 +15,7 @@ require (
 )
 
 require (
+	github.com/carlmjohnson/versioninfo v0.22.5 // indirect
 	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
 	github.com/creack/pty v1.1.18 // indirect
 	github.com/docker/docker v23.0.0+incompatible // indirect
