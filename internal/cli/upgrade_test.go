@@ -21,7 +21,10 @@ func iUpgradeSauce(ctx context.Context, recipe string) (context.Context, error) 
 
 	ctx, cmd := wrapCmdOutputs(ctx, cli.NewUpgradeCmd)
 
-	cmd.SetArgs([]string{projectDir, filepath.Join(recipesDir, recipe)})
+	cmd.SetArgs([]string{filepath.Join(recipesDir, recipe)})
+	if err := cmd.Flags().Set("dir", projectDir); err != nil {
+		return ctx, err
+	}
 
 	if flagsAreSet && optionalFlagSet != nil {
 		cmd.Flags().AddFlagSet(optionalFlagSet)

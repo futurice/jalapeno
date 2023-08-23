@@ -16,7 +16,7 @@ func iExecuteRecipe(ctx context.Context, recipe string) (context.Context, error)
 	ctx, cmd := wrapCmdOutputs(ctx, cli.NewExecuteCmd)
 
 	cmd.SetArgs([]string{filepath.Join(recipesDir, recipe)})
-	if err := cmd.Flags().Set("output", projectDir); err != nil {
+	if err := cmd.Flags().Set("dir", projectDir); err != nil {
 		return ctx, err
 	}
 

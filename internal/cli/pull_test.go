@@ -21,7 +21,7 @@ func iPullRecipe(ctx context.Context, recipeName, repoName string) (context.Cont
 
 	cmd.SetArgs([]string{filepath.Join(registry.Resource.GetHostPort("5000/tcp"), repoName)})
 	flags := cmd.Flags()
-	if err := flags.Set("output", recipesDir); err != nil {
+	if err := flags.Set("dir", recipesDir); err != nil {
 		return ctx, err
 	}
 	if registry.TLSEnabled {

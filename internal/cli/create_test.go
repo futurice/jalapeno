@@ -12,7 +12,7 @@ func iCreateARecipe(ctx context.Context, recipe string) (context.Context, error)
 	ctx, cmd := wrapCmdOutputs(ctx, cli.NewCreateCmd)
 
 	cmd.SetArgs([]string{recipe})
-	if err := cmd.Flags().Set("output", recipesDir); err != nil {
+	if err := cmd.Flags().Set("dir", recipesDir); err != nil {
 		return ctx, err
 	}
 

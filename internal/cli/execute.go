@@ -13,7 +13,7 @@ import (
 type executeOptions struct {
 	RecipePath string
 	option.Values
-	option.Output
+	option.WorkingDirectory
 	option.Common
 }
 
@@ -42,7 +42,7 @@ func NewExecuteCmd() *cobra.Command {
 }
 
 func runExecute(cmd *cobra.Command, opts executeOptions) {
-	if _, err := os.Stat(opts.OutputPath); os.IsNotExist(err) {
+	if _, err := os.Stat(opts.Dir); os.IsNotExist(err) {
 		cmd.PrintErrln("Error: output path does not exist")
 		return
 	}
@@ -60,7 +60,7 @@ func runExecute(cmd *cobra.Command, opts executeOptions) {
 	}
 
 	// Load all existing sauces
-	existingSauces, err := recipe.LoadSauces(opts.OutputPath)
+	existingSauces, err := recipe.LoadSauces(opts.Dir)
 	if err != nil {
 		cmd.PrintErrf("Error: %s", err)
 		return
@@ -115,7 +115,7 @@ func runExecute(cmd *cobra.Command, opts executeOptions) {
 		}
 	}
 
-	err = sauce.Save(opts.OutputPath)
+	err = sauce.Save(opts.Dir)
 	if err != nil {
 		cmd.PrintErrf("Error: %s", err)
 		return

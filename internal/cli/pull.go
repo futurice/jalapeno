@@ -13,7 +13,7 @@ import (
 type pullOptions struct {
 	TargetRef string
 
-	option.Output
+	option.WorkingDirectory
 	option.OCIRepository
 	option.Common
 }
@@ -53,7 +53,7 @@ func runPull(cmd *cobra.Command, opts pullOptions) {
 		return
 	}
 
-	dst, err := file.New(opts.OutputPath)
+	dst, err := file.New(opts.Dir)
 	if err != nil {
 		cmd.PrintErrf("Error: %s", err)
 		return

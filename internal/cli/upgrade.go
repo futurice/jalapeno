@@ -17,8 +17,8 @@ import (
 )
 
 type upgradeOptions struct {
-	ProjectPath string
-	SourcePath  string
+	SourcePath string
+	option.WorkingDirectory
 	option.Values
 	option.Common
 }
@@ -26,13 +26,12 @@ type upgradeOptions struct {
 func NewUpgradeCmd() *cobra.Command {
 	var opts upgradeOptions
 	var cmd = &cobra.Command{
-		Use:   "upgrade PROJECT_PATH RECIPE_PATH",
-		Short: "Upgrade sauce in a project",
+		Use:   "upgrade RECIPE_PATH",
+		Short: "Upgrade a recipe in a project",
 		Long:  "TODO",
-		Args:  cobra.ExactArgs(2),
+		Args:  cobra.ExactArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			opts.ProjectPath = args[0]
-			opts.SourcePath = args[1]
+			opts.SourcePath = args[0]
 			return option.Parse(&opts)
 		},
 		Run: func(cmd *cobra.Command, args []string) {
@@ -54,11 +53,11 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) {
 		return
 	}
 
-	oldSauce, err := recipe.LoadSauce(opts.ProjectPath, re.Name)
+	oldSauce, err := recipe.LoadSauce(opts.Dir, re.Name)
 	if err != nil {
 		var msg string
 		if errors.Is(err, recipe.ErrSauceNotFound) {
-			msg = fmt.Sprintf("project '%s' does not contain sauce with recipe '%s'. Recipe name used in the project should match the recipe which is used for upgrading", opts.ProjectPath, re.Name)
+			msg = fmt.Sprintf("project '%s' does not contain sauce with recipe '%s'. Recipe name used in the project should match the recipe which is used for upgrading", opts.Dir, re.Name)
 		} else {
 			msg = err.Error()
 		}
@@ -89,7 +88,7 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) {
 
 	reusedValues := make(recipe.VariableValues)
 	if opts.ReuseSauceValues {
-		sauces, err := recipe.LoadSauces(opts.ProjectPath)
+		sauces, err := recipe.LoadSauces(opts.Dir)
 		if err != nil {
 			cmd.PrintErrf("Error: %s", err)
 			return
@@ -145,7 +144,7 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) {
 
 	// read common ignore file if it exists
 	ignorePatterns := make([]string, 0)
-	if data, err := os.ReadFile(filepath.Join(opts.ProjectPath, recipe.IgnoreFileName)); err == nil {
+	if data, err := os.ReadFile(filepath.Join(opts.Dir, recipe.IgnoreFileName)); err == nil {
 		ignorePatterns = append(ignorePatterns, strings.Split(string(data), "\n")...)
 	} else if !errors.Is(err, fs.ErrNotExist) {
 		// something else happened than trying to read an ignore file that does not exist
@@ -176,7 +175,7 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) {
 
 		if prevFile, exists := oldSauce.Files[path]; exists {
 			// Check if file was modified after rendering
-			filePath := filepath.Join(opts.ProjectPath, path)
+			filePath := filepath.Join(opts.Dir, path)
 			if modified, err := recipeutil.IsFileModified(filePath, prevFile); err != nil {
 				cmd.PrintErrf("Error: %s", err)
 				return
@@ -214,7 +213,7 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) {
 
 	newSauce.Files = output
 
-	err = newSauce.Save(opts.ProjectPath)
+	err = newSauce.Save(opts.Dir)
 	if err != nil {
 		cmd.PrintErrf("Error: %s", err)
 		return

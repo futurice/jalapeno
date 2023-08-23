@@ -16,7 +16,10 @@ func iEject(ctx context.Context) (context.Context, error) {
 
 	ctx, cmd := wrapCmdOutputs(ctx, cli.NewEjectCmd)
 
-	cmd.SetArgs([]string{projectDir})
+	if err := cmd.Flags().Set("dir", projectDir); err != nil {
+		return ctx, err
+	}
+
 	return ctx, cmd.Execute()
 }
 
