@@ -1,7 +1,7 @@
 FROM golang:1.20 AS build
 
-ARG taskfileVersion="3.20.0"
-ARG taskfileChecksum="75cd08890ff18f6036255c7630aa17f9ea81bd6b6166747a3913bbb1cff1357c"
+ARG taskfileVersion="3.28.0"
+ARG taskfileChecksum="dfec009264d35411f893bc0618e924f82bb5188679f88de75169a2d20a1c34f5"
 
 WORKDIR /tmp
 RUN wget https://github.com/go-task/task/releases/download/v${taskfileVersion}/task_linux_amd64.deb \
