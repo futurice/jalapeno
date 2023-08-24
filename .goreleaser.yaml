@@ -1,5 +1,5 @@
 build:
-  dir: cmd
+  dir: cmd/jalapeno
   env:
     - CGO_ENABLED=0
   goos:

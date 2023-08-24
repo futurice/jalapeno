@@ -29,12 +29,13 @@ jobs:
             ${{ runner.os }}-golang-
 
       - name: Release binaries
-        uses: goreleaser/goreleaser-action@v2
+        uses: goreleaser/goreleaser-action@v4
         with:
+          distribution: goreleaser
           version: latest
-          args: release --rm-dist
+          args: release --clean
         env:
-          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   containerImage:
     name: Build container image
