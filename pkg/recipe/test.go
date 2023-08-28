@@ -17,6 +17,9 @@ type Test struct {
 
 	// Snapshots of the rendered templates which were rendered with the values specified in the test
 	Files map[string][]byte `yaml:"-"`
+
+	// If true, test will not fail if the templates generates more files than the test specifies
+	IgnoreExtraFiles bool `yaml:"ignoreExtraFiles"`
 }
 
 // Random hardcoded UUID
@@ -46,7 +49,7 @@ func (re *Recipe) RunTests() []error {
 			continue
 		}
 
-		if len(t.Files) != len(sauce.Files) {
+		if (t.IgnoreExtraFiles && len(t.Files) > len(sauce.Files)) || (!t.IgnoreExtraFiles && len(t.Files) != len(sauce.Files)) {
 			// TODO: show which files were missing/extra
 			errors[i] = ErrTestWrongFileAmount
 			continue

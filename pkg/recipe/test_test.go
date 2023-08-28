@@ -136,6 +136,46 @@ func TestRecipeTests(t *testing.T) {
 				},
 			},
 		},
+		{
+			"skip_extra_files",
+			map[string][]byte{
+				"foo.txt":   []byte("foo"),
+				"bar.txt":   []byte("bar"),
+				"extra.txt": []byte("extra"),
+			},
+			[]TestWithExpectedOutcome{
+				{
+					Test: Test{
+						Files: map[string][]byte{
+							"foo.txt": []byte("foo"),
+							"bar.txt": []byte("bar"),
+						},
+						IgnoreExtraFiles: true,
+					},
+					ExpectedError: nil,
+				},
+			},
+		},
+		{
+			"missing_file_with_skip_extra_files_enabled",
+			map[string][]byte{
+				"foo.txt": []byte("foo"),
+				"bar.txt": []byte("bar"),
+			},
+			[]TestWithExpectedOutcome{
+				{
+					Test: Test{
+						Files: map[string][]byte{
+							"foo.txt":   []byte("foo"),
+							"bar.txt":   []byte("bar"),
+							"extra.txt": []byte("extra"),
+						},
+						IgnoreExtraFiles: true,
+					},
+					ExpectedError: ErrTestWrongFileAmount,
+				},
+			},
+		},
 	}
 
 	for _, scenario := range scenarios {
