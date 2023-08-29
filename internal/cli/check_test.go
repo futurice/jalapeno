@@ -7,13 +7,12 @@ import (
 
 	"github.com/futurice/jalapeno/internal/cli"
 	re "github.com/futurice/jalapeno/pkg/recipe"
-	"github.com/spf13/pflag"
 )
 
 func iRunCheck(ctx context.Context, recipe string) (context.Context, error) {
 	projectDir := ctx.Value(projectDirectoryPathCtxKey{}).(string)
 	ociRegistry := ctx.Value(ociRegistryCtxKey{}).(OCIRegistry)
-	optionalFlagSet, flagsAreSet := ctx.Value(cmdOptionalFlagsCtxKey{}).(*pflag.FlagSet)
+	optionalFlags, flagsAreSet := ctx.Value(cmdOptionalFlagsCtxKey{}).(map[string]string)
 
 	ctx, cmd := wrapCmdOutputs(ctx, cli.NewCheckCmd)
 
@@ -30,8 +29,10 @@ func iRunCheck(ctx context.Context, recipe string) (context.Context, error) {
 		}
 	}
 
-	if flagsAreSet && optionalFlagSet != nil {
-		cmd.Flags().AddFlagSet(optionalFlagSet)
+	if flagsAreSet && optionalFlags != nil {
+		for name, value := range optionalFlags {
+			flags.Set(name, value)
+		}
 	}
 
 	return ctx, cmd.Execute()
