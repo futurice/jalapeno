@@ -11,6 +11,7 @@ import (
 type testOptions struct {
 	RecipePath      string
 	UpdateSnapshots bool
+	Create          bool
 	option.Common
 }
 
@@ -18,7 +19,7 @@ func NewTestCmd() *cobra.Command {
 	var opts testOptions
 	var cmd = &cobra.Command{
 		Use:   "test RECIPE_PATH",
-		Short: "Test a recipe",
+		Short: "Run tests for the recipe",
 		Long:  "TODO",
 		Args:  cobra.ExactArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
@@ -30,7 +31,8 @@ func NewTestCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().BoolVarP(&opts.UpdateSnapshots, "update-snapshots", "u", false, "Update file snapshots")
+	cmd.Flags().BoolVarP(&opts.UpdateSnapshots, "update-snapshots", "u", false, "Update test file snapshots")
+	cmd.Flags().BoolVarP(&opts.Create, "create", "c", false, "Create a new test case")
 
 	if err := option.ApplyFlags(&opts, cmd.Flags()); err != nil {
 		return nil
@@ -43,6 +45,27 @@ func runTest(cmd *cobra.Command, opts testOptions) {
 	re, err := recipe.LoadRecipe(opts.RecipePath)
 	if err != nil {
 		cmd.PrintErrf("Can't load the recipe: %v\n", err)
+		return
+	}
+
+	if opts.Create {
+		test := recipe.Test{
+			Name: "example",
+		}
+
+		if len(re.Tests) > 0 {
+			re.Tests = append(re.Tests, test)
+		} else {
+			re.Tests = []recipe.Test{test}
+		}
+
+		err := re.Save(filepath.Dir(opts.RecipePath))
+		if err != nil {
+			cmd.PrintErrf("Error: failed to save recipe: %s", err)
+			return
+		}
+
+		cmd.Println("Test created")
 		return
 	}
 
@@ -73,7 +96,7 @@ func runTest(cmd *cobra.Command, opts testOptions) {
 		}
 
 		// TODO: Show which tests were modified
-		cmd.Println("Recipe tests updated successfully!")
+		cmd.Println("Recipe tests updated successfully")
 		return
 	}
 
@@ -89,6 +112,6 @@ func runTest(cmd *cobra.Command, opts testOptions) {
 
 	if !errFound {
 		// TODO: Show pass for each test
-		cmd.Println("Tests passed successfully!")
+		cmd.Println("Tests passed successfully")
 	}
 }

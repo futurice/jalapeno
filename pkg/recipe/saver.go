@@ -92,13 +92,12 @@ func (re *Recipe) saveTests(dest string) error {
 			if err != nil {
 				return fmt.Errorf("failed to create test file directory for test '%s': %w", test.Name, err)
 			}
-		}
 
-		err = saveFileMap(test.Files, testFileDirPath)
-		if err != nil {
-			return fmt.Errorf("failed to save template files: %w", err)
+			err = saveFileMap(test.Files, testFileDirPath)
+			if err != nil {
+				return fmt.Errorf("failed to save template files: %w", err)
+			}
 		}
-
 	}
 
 	return nil
@@ -173,6 +172,10 @@ func (s *Sauce) Save(dest string) error {
 }
 
 func saveFileMap(files map[string][]byte, dest string) error {
+	if len(files) == 0 {
+		return nil
+	}
+
 	if _, err := os.Stat(dest); os.IsNotExist(err) {
 		return errors.New("destination path does not exist")
 	}

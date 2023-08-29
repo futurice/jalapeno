@@ -66,7 +66,9 @@ func TestFeatures(t *testing.T) {
 			s.Step(`^a project directory$`, aProjectDirectory)
 			s.Step(`^a recipes directory$`, aRecipesDirectory)
 			s.Step(`^a recipe "([^"]*)" that generates file "([^"]*)"$`, aRecipeThatGeneratesFile)
-			s.Step(`^I execute recipe "([^"]*)"$`, iExecuteRecipe)
+			s.Step(`^the file "([^"]*)" exist in the recipe "([^"]*)"$`, theFileExistInTheRecipe)
+			s.Step(`^I run tests for recipe "([^"]*)"$`, iRunTest)
+			s.Step(`^I create a placeholder test for recipe "([^"]*)" using the CLI$`, iCreateRecipeTestUsingCLI)
 			s.Step(`^I execute recipe "([^"]*)"$`, iRunExecute)
 			s.Step(`^the project directory should contain file "([^"]*)"$`, theProjectDirectoryShouldContainFile)
 			s.Step(`^the project directory should contain file "([^"]*)" with "([^"]*)"$`, theProjectDirectoryShouldContainFileWith)
@@ -568,6 +570,19 @@ func generateDockerConfigFileAndSetDefaultConfig(ctx context.Context) (context.C
 	err = os.Setenv("DOCKER_CONFIG", ctx.Value(dockerConfigDirectoryPathCtxKey{}).(string))
 	if err != nil {
 		return ctx, err
+	}
+
+	return ctx, nil
+}
+
+func theFileExistInTheRecipe(ctx context.Context, file, recipe string) (context.Context, error) {
+	recipesDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
+
+	path := filepath.Join(recipesDir, recipe, file)
+	if info, err := os.Stat(path); os.IsNotExist(err) {
+		return ctx, fmt.Errorf("the file %s does not exist", file)
+	} else if info.IsDir() {
+		return ctx, errors.New("the path contained a directory instead of a file")
 	}
 
 	return ctx, nil
