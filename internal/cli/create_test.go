@@ -6,7 +6,7 @@ import (
 	"github.com/futurice/jalapeno/internal/cli"
 )
 
-func iCreateARecipe(ctx context.Context, recipe string) (context.Context, error) {
+func iRunCreate(ctx context.Context, recipe string) (context.Context, error) {
 	recipesDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
 
 	ctx, cmd := wrapCmdOutputs(ctx, cli.NewCreateCmd)

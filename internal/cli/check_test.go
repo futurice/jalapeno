@@ -10,10 +10,10 @@ import (
 	"github.com/spf13/pflag"
 )
 
-func iCheckRecipe(ctx context.Context, recipe string) (context.Context, error) {
+func iRunCheck(ctx context.Context, recipe string) (context.Context, error) {
 	projectDir := ctx.Value(projectDirectoryPathCtxKey{}).(string)
 	ociRegistry := ctx.Value(ociRegistryCtxKey{}).(OCIRegistry)
-	optionalFlagSet, flagsAreSet := ctx.Value(cmdFlagSetCtxKey{}).(*pflag.FlagSet)
+	optionalFlagSet, flagsAreSet := ctx.Value(cmdOptionalFlagsCtxKey{}).(*pflag.FlagSet)
 
 	ctx, cmd := wrapCmdOutputs(ctx, cli.NewCheckCmd)
 

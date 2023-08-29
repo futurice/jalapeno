@@ -121,7 +121,7 @@ func runExecute(cmd *cobra.Command, opts executeOptions) {
 		return
 	}
 
-	cmd.Println("\nRecipe executed successfully!")
+	cmd.Println("\nRecipe executed successfully")
 
 	if re.InitHelp != "" {
 		cmd.Printf("Next up: %s\n", re.InitHelp)

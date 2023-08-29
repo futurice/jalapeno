@@ -11,7 +11,7 @@ import (
 	"github.com/futurice/jalapeno/pkg/recipe"
 )
 
-func iEject(ctx context.Context) (context.Context, error) {
+func iRunEject(ctx context.Context) (context.Context, error) {
 	projectDir := ctx.Value(projectDirectoryPathCtxKey{}).(string)
 
 	ctx, cmd := wrapCmdOutputs(ctx, cli.NewEjectCmd)

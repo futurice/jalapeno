@@ -5,18 +5,13 @@ import (
 	"path/filepath"
 
 	"github.com/futurice/jalapeno/internal/cli"
-	"github.com/spf13/pflag"
 )
 
-func iPushRecipe(ctx context.Context, recipeName string) (context.Context, error) {
-	return pushRecipe(ctx, recipeName)
-}
-
-func pushRecipe(ctx context.Context, recipeName string) (context.Context, error) {
+func iRunPush(ctx context.Context, recipeName string) (context.Context, error) {
 	recipesDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
 	ociRegistry := ctx.Value(ociRegistryCtxKey{}).(OCIRegistry)
 	configDir, configFileExists := ctx.Value(dockerConfigDirectoryPathCtxKey{}).(string)
-	optionalFlagSet, flagsAreSet := ctx.Value(cmdFlagSetCtxKey{}).(*pflag.FlagSet)
+	optionalFlags, flagsAreSet := ctx.Value(cmdOptionalFlagsCtxKey{}).(map[string]string)
 
 	ctx, cmd := wrapCmdOutputs(ctx, cli.NewPushCmd)
 
@@ -48,8 +43,10 @@ func pushRecipe(ctx context.Context, recipeName string) (context.Context, error)
 		}
 	}
 
-	if flagsAreSet && optionalFlagSet != nil {
-		cmd.Flags().AddFlagSet(optionalFlagSet)
+	if flagsAreSet && optionalFlags != nil {
+		for name, value := range optionalFlags {
+			cmd.Flags().Set(name, value)
+		}
 	}
 
 	return ctx, cmd.Execute()

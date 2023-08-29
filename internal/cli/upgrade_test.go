@@ -11,13 +11,12 @@ import (
 
 	"github.com/futurice/jalapeno/internal/cli"
 	re "github.com/futurice/jalapeno/pkg/recipe"
-	"github.com/spf13/pflag"
 )
 
-func iUpgradeSauce(ctx context.Context, recipe string) (context.Context, error) {
+func iRunUpgrade(ctx context.Context, recipe string) (context.Context, error) {
 	recipesDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
 	projectDir := ctx.Value(projectDirectoryPathCtxKey{}).(string)
-	optionalFlagSet, flagsAreSet := ctx.Value(cmdFlagSetCtxKey{}).(*pflag.FlagSet)
+	optionalFlags, flagsAreSet := ctx.Value(cmdOptionalFlagsCtxKey{}).(map[string]string)
 
 	ctx, cmd := wrapCmdOutputs(ctx, cli.NewUpgradeCmd)
 
@@ -26,8 +25,10 @@ func iUpgradeSauce(ctx context.Context, recipe string) (context.Context, error) 
 		return ctx, err
 	}
 
-	if flagsAreSet && optionalFlagSet != nil {
-		cmd.Flags().AddFlagSet(optionalFlagSet)
+	if flagsAreSet && optionalFlags != nil {
+		for name, value := range optionalFlags {
+			cmd.Flags().Set(name, value)
+		}
 	}
 
 	return ctx, cmd.Execute()

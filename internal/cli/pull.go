@@ -69,5 +69,5 @@ func runPull(cmd *cobra.Command, opts pullOptions) {
 		return
 	}
 
-	cmd.Println("Recipe pulled successfully!")
+	cmd.Println("Recipe pulled successfully")
 }

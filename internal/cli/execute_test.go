@@ -5,13 +5,12 @@ import (
 	"path/filepath"
 
 	"github.com/futurice/jalapeno/internal/cli"
-	"github.com/spf13/pflag"
 )
 
-func iExecuteRecipe(ctx context.Context, recipe string) (context.Context, error) {
+func iRunExecute(ctx context.Context, recipe string) (context.Context, error) {
 	projectDir := ctx.Value(projectDirectoryPathCtxKey{}).(string)
 	recipesDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
-	optionalFlagSet, flagsAreSet := ctx.Value(cmdFlagSetCtxKey{}).(*pflag.FlagSet)
+	optionalFlags, flagsAreSet := ctx.Value(cmdOptionalFlagsCtxKey{}).(map[string]string)
 
 	ctx, cmd := wrapCmdOutputs(ctx, cli.NewExecuteCmd)
 
@@ -20,8 +19,10 @@ func iExecuteRecipe(ctx context.Context, recipe string) (context.Context, error)
 		return ctx, err
 	}
 
-	if flagsAreSet && optionalFlagSet != nil {
-		cmd.Flags().AddFlagSet(optionalFlagSet)
+	if flagsAreSet && optionalFlags != nil {
+		for name, value := range optionalFlags {
+			cmd.Flags().Set(name, value)
+		}
 	}
 
 	return ctx, cmd.Execute()

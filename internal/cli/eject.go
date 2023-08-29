@@ -54,5 +54,5 @@ func runEject(cmd *cobra.Command, opts ejectOptions) {
 		return
 	}
 
-	cmd.Println("\nEjected successfully!")
+	cmd.Println("\nEjected successfully")
 }

@@ -39,7 +39,7 @@ type (
 	ociRegistryCtxKey               struct{}
 	cmdStdOutCtxKey                 struct{}
 	cmdStdErrCtxKey                 struct{}
-	cmdFlagSetCtxKey                struct{}
+	cmdOptionalFlagsCtxKey          struct{}
 	dockerResourcesCtxKey           struct{}
 )
 
@@ -67,6 +67,7 @@ func TestFeatures(t *testing.T) {
 			s.Step(`^a recipes directory$`, aRecipesDirectory)
 			s.Step(`^a recipe "([^"]*)" that generates file "([^"]*)"$`, aRecipeThatGeneratesFile)
 			s.Step(`^I execute recipe "([^"]*)"$`, iExecuteRecipe)
+			s.Step(`^I execute recipe "([^"]*)"$`, iRunExecute)
 			s.Step(`^the project directory should contain file "([^"]*)"$`, theProjectDirectoryShouldContainFile)
 			s.Step(`^the project directory should contain file "([^"]*)" with "([^"]*)"$`, theProjectDirectoryShouldContainFileWith)
 			s.Step(`^the sauce file contains a sauce in index (\d) which should have property "([^"]*)" with value "([^"]*)"$`, theSauceFileShouldHavePropertyWithValue)
@@ -75,11 +76,11 @@ func TestFeatures(t *testing.T) {
 			s.Step(`^CLI produced an output "([^"]*)"$`, expectGivenOutput)
 			s.Step(`^CLI produced an error "([^"]*)"$`, expectGivenError)
 			s.Step(`^I change recipe "([^"]*)" to version "([^"]*)"$`, iChangeRecipeToVersion)
-			s.Step(`^I check new versions for recipe "([^"]*)"$`, iCheckRecipe)
+			s.Step(`^I check new versions for recipe "([^"]*)"$`, iRunCheck)
 			s.Step(`^newer recipe versions were found`, newRecipeVersionsWereFound)
 			s.Step(`^no newer recipe versions were found`, noNewRecipeVersionsWereFound)
-			s.Step(`^I upgrade sauce "([^"]*)"$`, iUpgradeSauce)
-			s.Step(`^I create a recipe with name "([^"]*)"$`, iCreateARecipe)
+			s.Step(`^I upgrade sauce "([^"]*)"$`, iRunUpgrade)
+			s.Step(`^I create a recipe with name "([^"]*)"$`, iRunCreate)
 			s.Step(`^recipe "([^"]*)" ignores pattern "([^"]*)"$`, recipeIgnoresPattern)
 			s.Step(`^the source of the recipe "([^"]*)" is in the local OCI registry$`, sourceOfTheRecipeIsTheLocalOCIRegistry)
 			s.Step(`^I change project file "([^"]*)" to contain "([^"]*)"$`, iChangeProjectFileToContain)
@@ -92,13 +93,13 @@ func TestFeatures(t *testing.T) {
 			s.Step(`^registry credentials are not provided by the command$`, credentialsAreNotProvidedByTheCommand)
 			s.Step(`^registry credentials are provided by config file$`, generateDockerConfigFile)
 			s.Step(`^registry credentials are provided by default config file$`, generateDockerConfigFileAndSetDefaultConfig)
-			s.Step(`^I push the recipe "([^"]*)" to the local OCI repository$`, iPushRecipe)
+			s.Step(`^I push the recipe "([^"]*)" to the local OCI repository$`, iRunPush)
+			s.Step(`^the recipe "([^"]*)" is pushed to the local OCI repository "([^"]*)"$`, iRunPush)
 			s.Step(`^I pull the recipe "([^"]*)" from the local OCI repository "([^"]*)"$`, iPullRecipe)
-			s.Step(`^the recipe "([^"]*)" is pushed to the local OCI repository "([^"]*)"$`, pushRecipe)
 			s.Step(`^push of the recipe was successful$`, pushOfTheRecipeWasSuccessful)
 			s.Step(`^pull of the recipe was successful$`, pullOfTheRecipeWasSuccessful)
 			s.Step(`^the recipes directory should contain recipe "([^"]*)"$`, theRecipesDirectoryShouldContainRecipe)
-			s.Step(`^I eject$`, iEject)
+			s.Step(`^I eject$`, iRunEject)
 			s.Step(`^there should not be a sauce directory in the project directory$`, thereShouldNotBeASauceDirectoryInTheProjectDirectory)
 			s.After(cleanDockerResources)
 			s.After(cleanTempDirs)
