@@ -15,9 +15,10 @@ func iRunTest(ctx context.Context, recipe string) (context.Context, error) {
 
 	cmd.SetArgs([]string{filepath.Join(recipesDir, recipe)})
 
+	flags := cmd.Flags()
 	if flagsAreSet && optionalFlags != nil {
 		for name, value := range optionalFlags {
-			cmd.Flags().Set(name, value)
+			flags.Set(name, value)
 		}
 	}
 

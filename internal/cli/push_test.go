@@ -45,7 +45,7 @@ func iRunPush(ctx context.Context, recipeName string) (context.Context, error) {
 
 	if flagsAreSet && optionalFlags != nil {
 		for name, value := range optionalFlags {
-			cmd.Flags().Set(name, value)
+			flags.Set(name, value)
 		}
 	}
 

@@ -19,6 +19,7 @@ func iPullRecipe(ctx context.Context, recipeName, repoName string) (context.Cont
 	ctx, cmd := wrapCmdOutputs(ctx, cli.NewPullCmd)
 
 	cmd.SetArgs([]string{filepath.Join(registry.Resource.GetHostPort("5000/tcp"), repoName)})
+
 	flags := cmd.Flags()
 	if err := flags.Set("dir", recipesDir); err != nil {
 		return ctx, err
@@ -51,7 +52,7 @@ func iPullRecipe(ctx context.Context, recipeName, repoName string) (context.Cont
 
 	if flagsAreSet && optionalFlags != nil {
 		for name, value := range optionalFlags {
-			cmd.Flags().Set(name, value)
+			flags.Set(name, value)
 		}
 	}
 

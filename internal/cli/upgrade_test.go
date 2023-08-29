@@ -21,13 +21,15 @@ func iRunUpgrade(ctx context.Context, recipe string) (context.Context, error) {
 	ctx, cmd := wrapCmdOutputs(ctx, cli.NewUpgradeCmd)
 
 	cmd.SetArgs([]string{filepath.Join(recipesDir, recipe)})
-	if err := cmd.Flags().Set("dir", projectDir); err != nil {
+
+	flags := cmd.Flags()
+	if err := flags.Set("dir", projectDir); err != nil {
 		return ctx, err
 	}
 
 	if flagsAreSet && optionalFlags != nil {
 		for name, value := range optionalFlags {
-			cmd.Flags().Set(name, value)
+			flags.Set(name, value)
 		}
 	}
 
