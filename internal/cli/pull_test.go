@@ -52,7 +52,9 @@ func iPullRecipe(ctx context.Context, recipeName, repoName string) (context.Cont
 
 	if flagsAreSet && optionalFlags != nil {
 		for name, value := range optionalFlags {
-			flags.Set(name, value)
+			if err := flags.Set(name, value); err != nil {
+				return ctx, err
+			}
 		}
 	}
 

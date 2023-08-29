@@ -18,7 +18,9 @@ func iRunTest(ctx context.Context, recipe string) (context.Context, error) {
 	flags := cmd.Flags()
 	if flagsAreSet && optionalFlags != nil {
 		for name, value := range optionalFlags {
-			flags.Set(name, value)
+			if err := flags.Set(name, value); err != nil {
+				return ctx, err
+			}
 		}
 	}
 
