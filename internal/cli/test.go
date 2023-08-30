@@ -5,6 +5,7 @@ import (
 
 	"github.com/futurice/jalapeno/internal/cli/internal/option"
 	"github.com/futurice/jalapeno/pkg/recipe"
+	"github.com/futurice/jalapeno/pkg/recipeutil"
 	"github.com/spf13/cobra"
 )
 
@@ -49,9 +50,7 @@ func runTest(cmd *cobra.Command, opts testOptions) {
 	}
 
 	if opts.Create {
-		test := recipe.Test{
-			Name: "example",
-		}
+		test := *recipeutil.CreateExampleTest()
 
 		if len(re.Tests) > 0 {
 			re.Tests = append(re.Tests, test)

@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/futurice/jalapeno/internal/cli/internal/option"
-	"github.com/futurice/jalapeno/pkg/recipe"
+	"github.com/futurice/jalapeno/pkg/recipeutil"
 	"github.com/spf13/cobra"
 )
 
@@ -52,7 +52,7 @@ foo/
 }
 
 func runCreate(cmd *cobra.Command, opts createOptions) {
-	re := createExampleRecipe(opts.RecipeName)
+	re := recipeutil.CreateExampleRecipe(opts.RecipeName)
 
 	err := re.Validate()
 	if err != nil {
@@ -67,32 +67,4 @@ func runCreate(cmd *cobra.Command, opts createOptions) {
 	}
 
 	cmd.Printf("Recipe '%s' created!\n", opts.RecipeName)
-}
-
-func createExampleRecipe(name string) *recipe.Recipe {
-	r := recipe.NewRecipe()
-
-	variableName := "MY_VAR"
-	defaultValue := "Hello World!"
-
-	r.Metadata.Name = name
-	r.Metadata.Version = "v0.0.0"
-	r.Metadata.Description = "Description about what the recipe is used for and what it contains. For example tech stack, cloud environments, tools"
-	r.Variables = []recipe.Variable{
-		{Name: variableName, Default: defaultValue},
-	}
-	r.Templates = map[string][]byte{
-		"README.md": []byte("{{ .Variables.MY_VAR }}"),
-	}
-	r.Tests = []recipe.Test{
-		{
-			Name:   "defaults",
-			Values: recipe.VariableValues{variableName: defaultValue},
-			Files: map[string][]byte{
-				"README.md": []byte(defaultValue),
-			},
-		},
-	}
-
-	return r
 }
