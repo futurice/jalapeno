@@ -16,9 +16,12 @@ func iRunCheck(ctx context.Context, recipe string) (context.Context, error) {
 
 	ctx, cmd := wrapCmdOutputs(ctx, cli.NewCheckCmd)
 
-	cmd.SetArgs([]string{projectDir, recipe})
+	cmd.SetArgs([]string{recipe})
 
 	flags := cmd.Flags()
+	if err := flags.Set("dir", projectDir); err != nil {
+		return ctx, err
+	}
 	if ociRegistry.TLSEnabled {
 		if err := flags.Set("insecure", "true"); err != nil {
 			return ctx, err

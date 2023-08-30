@@ -11,22 +11,21 @@ import (
 )
 
 type checkOptions struct {
-	ProjectPath string
-	RecipeName  string
+	RecipeName string
 	option.Common
+	option.WorkingDirectory
 	option.OCIRepository
 }
 
 func NewCheckCmd() *cobra.Command {
 	var opts checkOptions
 	var cmd = &cobra.Command{
-		Use:   "check PROJECT_PATH RECIPE_NAME",
+		Use:   "check RECIPE_NAME",
 		Short: "Check if there are new versions for a recipe",
 		Long:  "", // TODO
-		Args:  cobra.ExactArgs(2),
+		Args:  cobra.ExactArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			opts.ProjectPath = args[0]
-			opts.RecipeName = args[1]
+			opts.RecipeName = args[0]
 			return option.Parse(&opts)
 		},
 		Run: func(cmd *cobra.Command, args []string) {
@@ -42,10 +41,10 @@ func NewCheckCmd() *cobra.Command {
 }
 
 func runCheck(cmd *cobra.Command, opts checkOptions) {
-	sauce, err := re.LoadSauce(opts.ProjectPath, opts.RecipeName)
+	sauce, err := re.LoadSauce(opts.Dir, opts.RecipeName)
 	if err != nil {
 		if errors.Is(err, re.ErrSauceNotFound) {
-			cmd.PrintErrf("Error: project %s does not contain sauce with recipe %s. Recipe name used in the project should match the recipe which is used for upgrading", opts.ProjectPath, opts.RecipeName)
+			cmd.PrintErrf("Error: project %s does not contain sauce with recipe %s. Recipe name used in the project should match the recipe which is used for upgrading", opts.Dir, opts.RecipeName)
 		} else {
 			cmd.PrintErrf("Error: %s", err)
 		}
