@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/futurice/jalapeno/internal/cli/internal/option"
+	"github.com/futurice/jalapeno/pkg/recipe"
 	"github.com/futurice/jalapeno/pkg/recipeutil"
 	"github.com/spf13/cobra"
 )
@@ -23,16 +24,23 @@ func NewCreateCmd() *cobra.Command {
 		Long: fmt.Sprintf(`TODO
 
 %[1]s
-foo/
-  ├── recipe.yml
-  ├── templates/
+my-recipe/
+  ├── %[2]s
+  ├── %[3]s/
   ├──── README.md
-	├── tests/
+	├── %[4]s/
 	├──── defaults/
-	├────── test.yml
-	├────── files/
+	├────── %[5]s
+	├────── %[6]s/
 	├──────── README.md
-%[1]s`, "```"),
+%[1]s`,
+			"```",
+			recipe.RecipeFileName+recipe.YAMLExtension,
+			recipe.RecipeTemplatesDirName,
+			recipe.RecipeTestsDirName,
+			recipe.RecipeTestMetaFileName+recipe.YAMLExtension,
+			recipe.RecipeTestFilesDirName,
+		),
 		Example: `jalapeno create my-recipe`,
 		Args:    cobra.ExactArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {

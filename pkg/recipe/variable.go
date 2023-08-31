@@ -43,7 +43,7 @@ func (v *Variable) Validate() error {
 		return errors.New("variable name is required")
 	}
 	if v.Confirm && len(v.Options) > 0 {
-		return errors.New("`cofirm` and `options` properties can not be defined at the same time")
+		return errors.New("`confirm` and `options` properties can not be defined at the same time")
 	}
 	if v.RegExp.Pattern != "" {
 		if _, err := regexp.Compile(v.RegExp.Pattern); err != nil {

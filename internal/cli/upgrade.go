@@ -28,7 +28,7 @@ func NewUpgradeCmd() *cobra.Command {
 	var cmd = &cobra.Command{
 		Use:   "upgrade RECIPE_PATH",
 		Short: "Upgrade a recipe in a project",
-		Long:  "TODO",
+		Long:  "Upgrade a recipe in a project with a newer version.",
 		Args:  cobra.ExactArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			opts.SourcePath = args[0]
@@ -79,6 +79,7 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) {
 		for _, variable := range re.Variables {
 			if variable.Name == valueName {
 				found = true
+				break
 			}
 		}
 		if !found {
