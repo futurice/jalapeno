@@ -52,16 +52,12 @@ jobs:
         id: meta
         uses: docker/metadata-action@v4
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          images: futurice/jalapeno
-          tags: |
-            type=ref,event=tag
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
+          images: ghcr.io/futurice/jalapeno
 
       - name: Build and push
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v4
         with:
           context: .
+          push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
