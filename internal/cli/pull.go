@@ -4,7 +4,8 @@ import (
 	"context"
 	"strings"
 
-	"github.com/futurice/jalapeno/internal/cli/internal/option"
+	"github.com/futurice/jalapeno/internal/cli/option"
+	"github.com/futurice/jalapeno/pkg/oci"
 	"github.com/spf13/cobra"
 	"oras.land/oras-go/v2"
 	"oras.land/oras-go/v2/content/file"
@@ -47,7 +48,20 @@ asd
 func runPull(cmd *cobra.Command, opts pullOptions) {
 	ctx := context.Background()
 
-	repo, err := opts.NewRepository(opts.TargetRef, opts.Common)
+	repo, err := oci.NewRepository(oci.Repository{
+		Reference: opts.TargetRef,
+		PlainHTTP: opts.PlainHTTP,
+		Credentials: oci.Credentials{
+			Username:      opts.Username,
+			Password:      opts.Password,
+			DockerConfigs: opts.Configs,
+		},
+		TLS: oci.TLSConfig{
+			CACertFilePath: opts.CACertFilePath,
+			Insecure:       opts.Insecure,
+		},
+	})
+
 	if err != nil {
 		cmd.PrintErrf("Error: %s", err)
 		return

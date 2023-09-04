@@ -4,7 +4,8 @@ import (
 	"context"
 	"strings"
 
-	"github.com/futurice/jalapeno/internal/cli/internal/option"
+	"github.com/futurice/jalapeno/internal/cli/option"
+	"github.com/futurice/jalapeno/pkg/oci"
 	"github.com/futurice/jalapeno/pkg/recipe"
 	v1 "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
@@ -78,7 +79,20 @@ func runPush(cmd *cobra.Command, opts pushOptions) {
 		return
 	}
 
-	repo, err := opts.NewRepository(opts.TargetRef, opts.Common)
+	repo, err := oci.NewRepository(oci.Repository{
+		Reference: opts.TargetRef,
+		PlainHTTP: opts.PlainHTTP,
+		Credentials: oci.Credentials{
+			Username:      opts.Username,
+			Password:      opts.Password,
+			DockerConfigs: opts.Configs,
+		},
+		TLS: oci.TLSConfig{
+			CACertFilePath: opts.CACertFilePath,
+			Insecure:       opts.Insecure,
+		},
+	})
+
 	if err != nil {
 		cmd.PrintErrf("Error: %s", err)
 		return
