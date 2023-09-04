@@ -103,6 +103,7 @@ func TestFeatures(t *testing.T) {
 			s.Step(`^the recipes directory should contain recipe "([^"]*)"$`, theRecipesDirectoryShouldContainRecipe)
 			s.Step(`^I eject$`, iRunEject)
 			s.Step(`^there should not be a sauce directory in the project directory$`, thereShouldNotBeASauceDirectoryInTheProjectDirectory)
+			s.Step(`I check why the file "([^"]*)" is created$`, iRunWhy)
 			s.After(cleanDockerResources)
 			s.After(cleanTempDirs)
 		},
@@ -242,7 +243,14 @@ description: %[1]s
 	if err := os.WriteFile(filepath.Join(dir, recipe, re.RecipeFileName+re.YAMLExtension), []byte(fmt.Sprintf(template, recipe)), 0644); err != nil {
 		return ctx, err
 	}
-	if err := os.WriteFile(filepath.Join(dir, recipe, "templates", filename), []byte(recipe), 0644); err != nil {
+
+	templateDir := filepath.Join(dir, recipe, re.RecipeTemplatesDirName)
+	err := os.MkdirAll(filepath.Join(templateDir, filepath.Dir(filename)), 0755)
+	if err != nil {
+		return ctx, err
+	}
+
+	if err := os.WriteFile(filepath.Join(templateDir, filename), []byte(recipe), 0644); err != nil {
 		return ctx, err
 	}
 	return context.WithValue(ctx, recipesDirectoryPathCtxKey{}, dir), nil

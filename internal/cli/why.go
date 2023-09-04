@@ -50,7 +50,7 @@ func runWhy(cmd *cobra.Command, opts whyOptions) {
 
 	fileinfo, err := os.Stat(filepath.Join(opts.Dir, opts.Filepath))
 	if os.IsNotExist(err) {
-		cmd.PrintErrf("File \"%s\" does not exist\n", filepath.Join(opts.Dir, opts.Filepath))
+		cmd.PrintErrf("File '%s' does not exist\n", filepath.Join(opts.Dir, opts.Filepath))
 		return
 	}
 
@@ -61,12 +61,18 @@ func runWhy(cmd *cobra.Command, opts whyOptions) {
 	}
 
 	if len(sauces) == 0 {
-		cmd.PrintErrf("Error: \"%s\" is not a project directory", opts.Dir)
+		cmd.PrintErrf("Error: '%s' is not a project directory", opts.Dir)
 		return
 	}
 
-	if filepath.Base(opts.Filepath) == ".jalapeno" {
-		cmd.Printf("File \"%s\" is created by Jalapeno\n", opts.Filepath)
+	if opts.Filepath == recipe.SauceDirName {
+		cmd.Printf("Directory '%s' is created by Jalapeno\n", opts.Filepath)
+		return
+
+	}
+
+	if strings.Split(opts.Filepath, string(filepath.Separator))[0] == recipe.SauceDirName {
+		cmd.Printf("File '%s' is created by Jalapeno\n", opts.Filepath)
 		return
 	}
 
@@ -74,12 +80,12 @@ func runWhy(cmd *cobra.Command, opts whyOptions) {
 		for file := range sauce.Files {
 			if fileinfo.IsDir() {
 				if strings.HasPrefix(file, opts.Filepath) {
-					cmd.Printf("Directory \"%s\" is created by the recipe \"%s\"\n", opts.Filepath, sauce.Recipe.Name)
+					cmd.Printf("Directory '%s' is created by the recipe '%s'\n", opts.Filepath, sauce.Recipe.Name)
 					return
 				}
 			}
 			if opts.Filepath == file {
-				cmd.Printf("File \"%s\" is created by the recipe \"%s\"\n", opts.Filepath, sauce.Recipe.Name)
+				cmd.Printf("File '%s' is created by the recipe '%s'\n", opts.Filepath, sauce.Recipe.Name)
 				return
 			}
 		}
