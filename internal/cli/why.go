@@ -21,7 +21,7 @@ func NewWhyCmd() *cobra.Command {
 	var cmd = &cobra.Command{
 		Use:   "why FILEPATH",
 		Short: "Explains where a file comes from",
-		Long:  "Explains where a file comes from in the project, e.g. which file is recipe or user created",
+		Long:  "Explains where a file comes from in the project, e.g. is the file create by a recipe or user",
 		Args:  cobra.ExactArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			opts.Filepath = filepath.Clean(args[0])
@@ -61,7 +61,7 @@ func runWhy(cmd *cobra.Command, opts whyOptions) {
 	}
 
 	if len(sauces) == 0 {
-		cmd.PrintErrf("Error: '%s' is not a project directory", opts.Dir)
+		cmd.PrintErrf("Error: '%s' is not a project directory\n", opts.Dir)
 		return
 	}
 
@@ -85,6 +85,7 @@ func runWhy(cmd *cobra.Command, opts whyOptions) {
 				}
 			}
 			if opts.Filepath == file {
+				// TODO: Check if the file is modified by the user by comparing hashes
 				cmd.Printf("File '%s' is created by the recipe '%s'\n", opts.Filepath, sauce.Recipe.Name)
 				return
 			}
