@@ -49,7 +49,7 @@ func runExecute(cmd *cobra.Command, opts executeOptions) {
 
 	re, err := recipe.LoadRecipe(opts.RecipePath)
 	if err != nil {
-		cmd.PrintErrf("Error: can't load the recipe: %s\n", err)
+		cmd.PrintErrf("Error: can not load the recipe: %s\n", err)
 		return
 	}
 

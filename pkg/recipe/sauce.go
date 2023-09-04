@@ -115,7 +115,7 @@ func LoadSauces(projectDir string) ([]*Sauce, error) {
 		}
 
 		if err := sauce.Validate(); err != nil {
-			return nil, fmt.Errorf("failed to validate recipe: %w", err)
+			return nil, fmt.Errorf("failed to validate sauce: %w", err)
 		}
 
 		sauces = append(sauces, sauce)

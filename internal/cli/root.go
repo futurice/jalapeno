@@ -33,6 +33,7 @@ func NewRootCmd() (*cobra.Command, error) {
 		NewPullCmd(),
 		NewTestCmd(),
 		NewCheckCmd(),
+		NewWhyCmd(),
 	)
 
 	return cmd, nil
