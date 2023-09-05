@@ -4,10 +4,9 @@ import (
 	"context"
 	"strings"
 
-	"github.com/futurice/jalapeno/internal/cli/internal/option"
+	"github.com/futurice/jalapeno/internal/cli/option"
+	"github.com/futurice/jalapeno/pkg/oci"
 	"github.com/spf13/cobra"
-	"oras.land/oras-go/v2"
-	"oras.land/oras-go/v2/content/file"
 )
 
 type pullOptions struct {
@@ -47,24 +46,27 @@ asd
 func runPull(cmd *cobra.Command, opts pullOptions) {
 	ctx := context.Background()
 
-	repo, err := opts.NewRepository(opts.TargetRef, opts.Common)
-	if err != nil {
-		cmd.PrintErrf("Error: %s", err)
-		return
-	}
+	err := oci.SaveRemoteRecipe(ctx, opts.Dir,
+		oci.Repository{
+			Reference: opts.TargetRef,
+			PlainHTTP: opts.PlainHTTP,
+			Credentials: oci.Credentials{
+				Username:      opts.Username,
+				Password:      opts.Password,
+				DockerConfigs: opts.Configs,
+			},
+			TLS: oci.TLSConfig{
+				CACertFilePath: opts.CACertFilePath,
+				Insecure:       opts.Insecure,
+			},
+		},
+	)
 
-	dst, err := file.New(opts.Dir)
-	if err != nil {
-		cmd.PrintErrf("Error: %s", err)
-		return
-	}
-
-	_, err = oras.Copy(ctx, repo, repo.Reference.Reference, dst, repo.Reference.Reference, oras.DefaultCopyOptions)
 	if err != nil {
 		if strings.Contains(err.Error(), "not found") {
 			cmd.PrintErrln("Error: recipe not found") // TODO: Give more descriptive error message
 		} else {
-			cmd.PrintErrf("Error: unexpected error happened: %s", err)
+			cmd.PrintErrf("Error: %s", err)
 		}
 		return
 	}

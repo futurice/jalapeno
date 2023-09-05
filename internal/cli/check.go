@@ -4,7 +4,8 @@ import (
 	"context"
 	"errors"
 
-	"github.com/futurice/jalapeno/internal/cli/internal/option"
+	"github.com/futurice/jalapeno/internal/cli/option"
+	"github.com/futurice/jalapeno/pkg/oci"
 	re "github.com/futurice/jalapeno/pkg/recipe"
 	"github.com/spf13/cobra"
 	"golang.org/x/mod/semver"
@@ -62,7 +63,20 @@ func runCheck(cmd *cobra.Command, opts checkOptions) {
 
 	// TODO: How to handle multiple sources?
 
-	repo, err := opts.NewRepository(recipe.Sources[0], opts.Common)
+	repo, err := oci.NewRepository(oci.Repository{
+		Reference: recipe.Sources[0],
+		PlainHTTP: opts.PlainHTTP,
+		Credentials: oci.Credentials{
+			Username:      opts.Username,
+			Password:      opts.Password,
+			DockerConfigs: opts.Configs,
+		},
+		TLS: oci.TLSConfig{
+			CACertFilePath: opts.CACertFilePath,
+			Insecure:       opts.Insecure,
+		},
+	})
+
 	if err != nil {
 		cmd.PrintErrf("Error: %s", err)
 		return

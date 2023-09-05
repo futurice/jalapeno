@@ -2,14 +2,10 @@ package cli
 
 import (
 	"context"
-	"strings"
 
-	"github.com/futurice/jalapeno/internal/cli/internal/option"
-	"github.com/futurice/jalapeno/pkg/recipe"
-	v1 "github.com/opencontainers/image-spec/specs-go/v1"
+	"github.com/futurice/jalapeno/internal/cli/option"
+	"github.com/futurice/jalapeno/pkg/oci"
 	"github.com/spf13/cobra"
-	"oras.land/oras-go/v2"
-	"oras.land/oras-go/v2/content/file"
 )
 
 type pushOptions struct {
@@ -46,51 +42,22 @@ func NewPushCmd() *cobra.Command {
 func runPush(cmd *cobra.Command, opts pushOptions) {
 	ctx := context.Background()
 
-	re, err := recipe.LoadRecipe(opts.RecipePath)
-	if err != nil {
-		cmd.PrintErrf("Error: can't load the recipe: %s\n", err)
-		return
-	}
+	err := oci.PushRecipe(ctx, opts.RecipePath, oci.Repository{
+		Reference: opts.TargetRef,
+		PlainHTTP: opts.PlainHTTP,
+		Credentials: oci.Credentials{
+			Username:      opts.Username,
+			Password:      opts.Password,
+			DockerConfigs: opts.Configs,
+		},
+		TLS: oci.TLSConfig{
+			CACertFilePath: opts.CACertFilePath,
+			Insecure:       opts.Insecure,
+		},
+	})
 
-	store, err := file.New("")
 	if err != nil {
-		cmd.PrintErrf("Error: %s", err)
-		return
-	}
-
-	defer store.Close()
-
-	desc, err := store.Add(ctx, re.Name, "application/x.futurice.jalapeno.recipe.v1", opts.RecipePath)
-	if err != nil {
-		cmd.PrintErrf("Error: %s", err)
-		return
-	}
-
-	root, err := oras.Pack(ctx, store, "", []v1.Descriptor{desc}, oras.PackOptions{PackImageManifest: true})
-	if err != nil {
-		cmd.PrintErrf("Error: %s", err)
-		return
-	}
-
-	err = store.Tag(ctx, root, re.Version)
-	if err != nil {
-		cmd.PrintErrf("Error: %s", err)
-		return
-	}
-
-	repo, err := opts.NewRepository(opts.TargetRef, opts.Common)
-	if err != nil {
-		cmd.PrintErrf("Error: %s", err)
-		return
-	}
-
-	_, err = oras.Copy(ctx, store, re.Version, repo, re.Version, oras.DefaultCopyOptions)
-	if err != nil {
-		if strings.Contains(err.Error(), "credential required") {
-			cmd.PrintErrln("Error: failed to authorize: 401 Unauthorized")
-		} else {
-			cmd.PrintErrf("Error: unexpected error happened: %s\n", err)
-		}
+		cmd.PrintErrf("Error: %s\n", err)
 		return
 	}
 

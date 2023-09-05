@@ -40,7 +40,7 @@ Feature: Recipes as OCI artifacts
 	 	And a local OCI registry with authentication
 	 	And registry credentials are not provided by the command
 		When I push the recipe "foo" to the local OCI repository
-		Then CLI produced an error "Error: failed to authorize: 401 Unauthorized"
+		Then CLI produced an error "Error: unauthorized"
 
 	Scenario: Try to pull a recipe from OCI repository which not exist
 		Given a recipes directory
