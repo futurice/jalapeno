@@ -1,9 +1,12 @@
 package cli
 
 import (
+	"context"
 	"os"
+	"strings"
 
 	"github.com/futurice/jalapeno/internal/cli/option"
+	"github.com/futurice/jalapeno/pkg/oci"
 	"github.com/futurice/jalapeno/pkg/recipe"
 	"github.com/futurice/jalapeno/pkg/recipeutil"
 	"github.com/gofrs/uuid"
@@ -13,6 +16,7 @@ import (
 type executeOptions struct {
 	RecipePath string
 	option.Values
+	option.OCIRepository
 	option.WorkingDirectory
 	option.Common
 }
@@ -47,7 +51,29 @@ func runExecute(cmd *cobra.Command, opts executeOptions) {
 		return
 	}
 
-	re, err := recipe.LoadRecipe(opts.RecipePath)
+	var re *recipe.Recipe
+	var err error
+	if strings.HasPrefix(opts.RecipePath, "oci://") {
+		ctx := context.Background()
+		re, err = oci.PullRecipe(ctx,
+			oci.Repository{
+				Reference: strings.TrimPrefix(opts.RecipePath, "oci://"),
+				PlainHTTP: opts.PlainHTTP,
+				Credentials: oci.Credentials{
+					Username:      opts.Username,
+					Password:      opts.Password,
+					DockerConfigs: opts.Configs,
+				},
+				TLS: oci.TLSConfig{
+					CACertFilePath: opts.CACertFilePath,
+					Insecure:       opts.Insecure,
+				},
+			})
+
+	} else {
+		re, err = recipe.LoadRecipe(opts.RecipePath)
+	}
+
 	if err != nil {
 		cmd.PrintErrf("Error: can not load the recipe: %s\n", err)
 		return

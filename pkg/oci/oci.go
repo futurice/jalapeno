@@ -72,7 +72,7 @@ func NewRepository(opts Repository) (*remote.Repository, error) {
 		Cache: auth.NewCache(),
 	}
 
-	if client.Credential, err = GetCredentials(repo.Reference.Reference, opts.Credentials); err != nil {
+	if client.Credential, err = GetCredentials(repo.Reference.Registry, opts.Credentials); err != nil {
 		return nil, err
 	}
 
