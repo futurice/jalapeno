@@ -70,6 +70,7 @@ func TestFeatures(t *testing.T) {
 			s.Step(`^I run tests for recipe "([^"]*)"$`, iRunTest)
 			s.Step(`^I create a placeholder test for recipe "([^"]*)" using the CLI$`, iCreateRecipeTestUsingCLI)
 			s.Step(`^I execute recipe "([^"]*)"$`, iRunExecute)
+			s.Step(`^I execute the recipe from the local OCI repository "([^"]*)"$`, iExecuteRemoteRecipe)
 			s.Step(`^the project directory should contain file "([^"]*)"$`, theProjectDirectoryShouldContainFile)
 			s.Step(`^the project directory should contain file "([^"]*)" with "([^"]*)"$`, theProjectDirectoryShouldContainFileWith)
 			s.Step(`^the sauce file contains a sauce in index (\d) which should have property "([^"]*)" with value "([^"]*)"$`, theSauceFileShouldHavePropertyWithValue)

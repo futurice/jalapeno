@@ -11,6 +11,17 @@ Feature: Execute recipes
     And the sauce file contains a sauce in index 0 which should have property "name" with value "foo"
     And the sauce file contains a sauce in index 0 which should have property "id" that is a valid UUID
 
+  Scenario: Execute single recipe from remote registry
+    Given a project directory
+    And a recipes directory
+    And a recipe "foo" that generates file "README.md"
+    And a local OCI registry
+    And the recipe "foo" is pushed to the local OCI repository "foo:v0.0.1"
+    When I execute the recipe from the local OCI repository "foo:v0.0.1"
+    Then execution of the recipe has succeeded
+    And no errors were printed
+    And the project directory should contain file "README.md"
+
   Scenario: Execute multiple recipes
     Given a project directory
     And a recipes directory
