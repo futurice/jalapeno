@@ -28,7 +28,7 @@ mv jalapeno /usr/local/bin/jalapeno
 
 ## Use via Docker
 
-Is it possible to use jalapeno via Docker without installing it locally. Jalapeno image is available
+It is possible to use jalapeno via Docker without installing it locally. Jalapeno image is available
 from the GitHub Container Registry, and thus the following command on a *nix system is equivalent
 to running `jalapeno` locally:
 
