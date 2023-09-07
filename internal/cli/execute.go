@@ -150,7 +150,7 @@ func runExecute(cmd *cobra.Command, opts executeOptions) {
 	cmd.Println("\nRecipe executed successfully!")
 
 	tree := recipeutil.CreateFileTree(opts.Dir, sauce.Files)
-	cmd.Printf("The following files has been created:\n\n%s", tree)
+	cmd.Printf("The following files were created:\n\n%s", tree)
 
 	if re.InitHelp != "" {
 		cmd.Printf("\nNext up: %s\n", re.InitHelp)

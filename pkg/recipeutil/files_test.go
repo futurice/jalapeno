@@ -8,7 +8,7 @@ import (
 )
 
 func TestCreateFileTree(t *testing.T) {
-	tests := []struct {
+	testCases := []struct {
 		Name     string
 		Root     string
 		Input    map[string]recipe.File
@@ -105,10 +105,12 @@ func TestCreateFileTree(t *testing.T) {
 		},
 	}
 
-	for _, test := range tests {
-		actual := recipeutil.CreateFileTree(test.Root, test.Input)
-		if actual != test.Expected {
-			t.Errorf("expected:\n%s\nactual:\n%s", test.Expected, actual)
-		}
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			actual := recipeutil.CreateFileTree(tc.Root, tc.Input)
+			if actual != tc.Expected {
+				t.Errorf("expected:\n%s\nactual:\n%s", tc.Expected, actual)
+			}
+		})
 	}
 }
