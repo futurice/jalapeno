@@ -77,7 +77,7 @@ func (s *Sauce) Conflicts(other *Sauce) []RecipeConflict {
 	return conflicts
 }
 
-// Load all sauces from a project directory
+// Load all sauces from a project directory. Returns empty slice if the project directory did not contain any sayces
 func LoadSauces(projectDir string) ([]*Sauce, error) {
 	var sauces []*Sauce
 

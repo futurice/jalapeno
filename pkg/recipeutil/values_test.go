@@ -1,4 +1,4 @@
-package recipeutil
+package recipeutil_test
 
 import (
 	"errors"
@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/futurice/jalapeno/pkg/recipe"
+	"github.com/futurice/jalapeno/pkg/recipeutil"
 )
 
 func TestParsePredefinedValues(t *testing.T) {
@@ -38,13 +39,13 @@ func TestParsePredefinedValues(t *testing.T) {
 			name:        "unknown_var_flag",
 			vars:        []recipe.Variable{},
 			flags:       []string{"test_var=value"},
-			expectedErr: ErrVarNotDefinedInRecipe,
+			expectedErr: recipeutil.ErrVarNotDefinedInRecipe,
 		},
 		{
 			name:        "unknown_var_env",
 			vars:        []recipe.Variable{},
 			envs:        [][2]string{{"test_var", "value"}},
-			expectedErr: ErrVarNotDefinedInRecipe,
+			expectedErr: recipeutil.ErrVarNotDefinedInRecipe,
 		},
 		{
 			name:  "flag_overrides_env",
@@ -70,7 +71,7 @@ func TestParsePredefinedValues(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			for _, env := range test.envs {
-				envName := ValueEnvVarPrefix + env[0]
+				envName := recipeutil.ValueEnvVarPrefix + env[0]
 				err := os.Setenv(envName, env[1])
 				if err != nil {
 					t.Fatal("failed to set environment variable")
@@ -78,7 +79,7 @@ func TestParsePredefinedValues(t *testing.T) {
 				defer os.Unsetenv(envName)
 			}
 
-			actual, err := ParseProvidedValues(test.vars, test.flags)
+			actual, err := recipeutil.ParseProvidedValues(test.vars, test.flags)
 			if err != nil {
 				if test.expectedErr == nil {
 					t.Fatalf("parser returned error when not expected, error: %+v", err)
@@ -134,7 +135,7 @@ func TestMergeValues(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			actual := MergeValues(test.a, test.b)
+			actual := recipeutil.MergeValues(test.a, test.b)
 
 			if !reflect.DeepEqual(test.expected, actual) {
 				t.Fatalf("Merged values had non-expected value, expected %+v, actual: %+v", test.expected, actual)
@@ -177,7 +178,7 @@ func TestFilterVariables(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			actual := FilterVariablesWithoutValues(test.variables, test.values)
+			actual := recipeutil.FilterVariablesWithoutValues(test.variables, test.values)
 
 			if !reflect.DeepEqual(test.expected, actual) {
 				t.Fatalf("Merged values had non-expected value, expected %+v, actual: %+v", test.expected, actual)

@@ -24,6 +24,7 @@ require (
 	github.com/lib/pq v0.0.0-20180327071824-d34b9ff171c2 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/stretchr/testify v1.8.1 // indirect
+	github.com/xlab/treeprint v1.2.0 // indirect
 	golang.org/x/sync v0.2.0 // indirect
 	gotest.tools v2.2.0+incompatible // indirect
 	gotest.tools/v3 v3.4.0 // indirect
