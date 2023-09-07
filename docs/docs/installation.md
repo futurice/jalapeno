@@ -18,7 +18,7 @@ for your platform
 2. Make the binary executable
 3. Rename and move the binary to proper location
 
-For example on MacOS this can be done with:
+For example on MacOS (running on Apple Silicon) this can be done with:
 
 ```bash
 curl -L https://github.com/futurice/jalapeno/releases/latest/download/jalapeno-darwin-arm64 -o jalapeno
