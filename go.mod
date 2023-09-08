@@ -5,17 +5,18 @@ go 1.21
 require (
 	github.com/AlecAivazis/survey/v2 v2.3.6
 	github.com/Masterminds/sprig v2.22.0+incompatible
+	github.com/carlmjohnson/versioninfo v0.22.5
 	github.com/cucumber/godog v0.12.6
 	github.com/docker/cli v23.0.0+incompatible
 	github.com/go-yaml/yaml v2.1.0+incompatible
 	github.com/opencontainers/image-spec v1.1.0-rc3
 	github.com/spf13/cobra v1.7.0
+	github.com/xlab/treeprint v1.2.0
 	golang.org/x/mod v0.8.0
 	oras.land/oras-go/v2 v2.2.0
 )
 
 require (
-	github.com/carlmjohnson/versioninfo v0.22.5 // indirect
 	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
 	github.com/creack/pty v1.1.18 // indirect
 	github.com/docker/docker v23.0.0+incompatible // indirect
@@ -24,7 +25,6 @@ require (
 	github.com/lib/pq v0.0.0-20180327071824-d34b9ff171c2 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/stretchr/testify v1.8.1 // indirect
-	github.com/xlab/treeprint v1.2.0 // indirect
 	golang.org/x/sync v0.2.0 // indirect
 	gotest.tools v2.2.0+incompatible // indirect
 	gotest.tools/v3 v3.4.0 // indirect
