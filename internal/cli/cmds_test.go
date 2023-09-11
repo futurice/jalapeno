@@ -24,7 +24,7 @@ import (
 	"github.com/cucumber/godog"
 	"github.com/go-yaml/yaml"
 	"github.com/gofrs/uuid"
-	"github.com/ory/dockertest"
+	"github.com/ory/dockertest/v3"
 	"github.com/spf13/cobra"
 
 	re "github.com/futurice/jalapeno/pkg/recipe"
