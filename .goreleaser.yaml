@@ -34,10 +34,12 @@ changelog:
 brews:
   - name: jalapeno
     # GitHub repository
-    tap:
+    repository:
       owner: futurice
       name: homebrew-jalapeno
-      token: "{{ .Env.GITHUB_TOKEN_FOR_HOMEBREW_TAP }}"
+      git:
+        url: "ssh://git@github.com:futurice/homebrew-jalapeno.git"
+        private_key: "{{ .Env.HOMEBREW_TAP_PRIVATE_KEY }}"
     # metadata
     homepage: "https://futurice.github.io/jalapeno/"
     description: "Jalapeno is a CLI for creating, managing and sharing spiced up project templates"
