@@ -38,7 +38,7 @@ brews:
       owner: futurice
       name: homebrew-jalapeno
       git:
-        url: "ssh://git@github.com:futurice/homebrew-jalapeno.git"
+        url: "git@github.com:futurice/homebrew-jalapeno.git"
         private_key: "{{ .Env.HOMEBREW_TAP_PRIVATE_KEY }}"
     # metadata
     homepage: "https://futurice.github.io/jalapeno/"
