@@ -28,6 +28,7 @@ jobs:
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HOMEBREW_TAP_PRIVATE_KEY: ${{ secrets.HOMEBREW_TAP_PRIVATE_KEY }}
 
   containerImage:
     name: Build container image
