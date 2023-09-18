@@ -1,5 +1,6 @@
 builds:
-  - dir: cmd/jalapeno
+  - id: jalapeno
+    dir: cmd/jalapeno
     env:
       - CGO_ENABLED=0
     goos:
@@ -9,17 +10,43 @@ builds:
     goarch:
       - amd64
       - arm64
+
 archives:
-  - id: archives
-    format: binary
+  - id: jalapeno
     name_template: "{{ .ProjectName }}-{{ .Os }}-{{ .Arch }}"
+    format_overrides:
+      - goos: windows
+        format: zip
+
 checksum:
   name_template: "{{ .ProjectName }}-checksums.txt"
+
 snapshot:
   name_template: "{{ incpatch .Version }}-next"
+
 changelog:
   sort: asc
   filters:
     exclude:
       - "^docs:"
       - "^test:"
+
+brews:
+  - name: jalapeno
+    # GitHub repository
+    repository:
+      owner: futurice
+      name: homebrew-jalapeno
+      git:
+        url: "ssh://git@github.com:futurice/homebrew-jalapeno.git"
+        private_key: "{{ .Env.HOMEBREW_TAP_PRIVATE_KEY }}"
+    # metadata
+    homepage: "https://futurice.github.io/jalapeno/"
+    description: "Jalapeno is a CLI for creating, managing and sharing spiced up project templates"
+    license: "Apache-2.0"
+    # how release is being downloaded/used
+    download_strategy: CurlDownloadStrategy
+    # actual formula things
+    commit_msg_template: "Brew formula update for jalapeno version {{ .Tag }}"
+    test: |
+      system "#{bin}/jalapeno --version"

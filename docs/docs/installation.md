@@ -6,6 +6,15 @@ title: Installation
 
 # Installation
 
+## Via package managers
+
+### `homebrew` (MacOS and Linux)
+
+```bash
+brew tap futurice/jalapeno
+brew install jalapeno
+```
+
 ## From the Binary Releases
 
 Cross-platform binaries are provided with each release of Jalapeno. These can manually be
@@ -15,13 +24,15 @@ In short the process is:
 
 1. Download [the latest version of jalapeno](https://github.com/futurice/jalapeno/releases/latest)
 for your platform
-2. Make the binary executable
+2. Extract the archive
+3. Make the binary executable
 3. Rename and move the binary to proper location
 
 For example on MacOS (running on Apple Silicon) this can be done with:
 
 ```bash
-curl -L https://github.com/futurice/jalapeno/releases/latest/download/jalapeno-darwin-arm64 -o jalapeno
+curl -L https://github.com/futurice/jalapeno/releases/latest/download/jalapeno-darwin-arm64.tar.gz -o jalapeno.tar.gz
+tar -xvf jalapeno.tar.gz
 chmod +x jalapeno
 mv jalapeno /usr/local/bin/jalapeno
 ```
