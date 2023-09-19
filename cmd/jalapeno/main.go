@@ -22,10 +22,10 @@ func main() {
 	}
 
 	if version != "" {
-		cmd.Version = fmt.Sprintf("Jalapeno version %s", version)
+		cmd.Version = version
 	} else {
 		cmd.Version = fmt.Sprintf(
-			"Jalapeno version %s (Built on %s from Git SHA %s)",
+			"%s (Built on %s from Git SHA %s)",
 			versioninfo.Version,
 			versioninfo.Revision,
 			versioninfo.LastCommit.Format(time.RFC3339),
