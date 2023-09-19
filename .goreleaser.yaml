@@ -17,6 +17,8 @@ kos:
     tags:
       - latest
       - "v{{.Version}}"
+      - "v{{.Major}}"
+      - "v{{.Major}}.{{.Minor}}"
     sbom: none
     bare: true
     preserve_import_paths: false
