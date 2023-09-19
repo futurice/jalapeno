@@ -11,6 +11,28 @@ builds:
       - amd64
       - arm64
 
+kos:
+  - repository: ghcr.io/futurice/jalapeno
+    base_image: alpine
+    tags:
+      - latest
+      - "v{{.Version}}"
+    sbom: none
+    bare: true
+    preserve_import_paths: false
+    platforms:
+      - linux/amd64
+      - linux/arm64
+    labels:
+      org.opencontainers.image.authors: "Jalapeno contributors <github.com/futurice/jalapeno>"
+      org.opencontainers.image.licenses: "Apache-2.0"
+      org.opencontainers.image.vendor: "Futurice"
+      org.opencontainers.image.title: "Jalapeno"
+      org.opencontainers.image.description: "Jalapeno is a CLI for creating, managing and sharing spiced up project templates."
+      org.opencontainers.image.url: "https://github.com/futurice/jalapeno"
+      org.opencontainers.image.source: "https://github.com/futurice/jalapeno"
+      org.opencontainers.image.documentation: "https://futurice.github.io/jalapeno/"
+
 archives:
   - id: jalapeno
     name_template: "{{ .ProjectName }}-{{ .Os }}-{{ .Arch }}"
