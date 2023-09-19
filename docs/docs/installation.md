@@ -6,11 +6,11 @@ title: Installation
 
 # Installation
 
-## Via package managers
+## Using a package manager
 
-### `homebrew` (MacOS and Linux)
+### Homebrew
 
-```bash
+```bash tab={"label":"Homebrew"}
 brew tap futurice/jalapeno
 brew install jalapeno
 ```
@@ -43,21 +43,15 @@ It is possible to use jalapeno via Docker without installing it locally. Jalapen
 from the GitHub Container Registry, and thus the following command on a *nix system is equivalent
 to running `jalapeno` locally:
 
-MacOS and Linux:
-
-```bash
+```bash tab={"label":"MacOS and Linux"}
 docker run -it --rm -v $(pwd):/workdir ghcr.io/futurice/jalapeno:v0.1.4
 ```
 
-Windows Command Line:
-
-```batch
+```batch tab={"label":"Windows Command Line"}
 docker run -it --rm -v %cd%:/workdir ghcr.io/futurice/jalapeno:v0.1.4
 ```
 
-PowerShell:
-
-```powershell
+```powershell tab={"label":"PowerShell"}
 docker run -it --rm -v ${PWD}:/workdir ghcr.io/futurice/jalapeno:v0.1.4
 ```
 
@@ -75,3 +69,12 @@ task build
 ```
 
 After this the binary is available on path `./bin/jalapeno`.
+
+## Updating your jalapeno version
+
+### Homebrew
+
+```bash tab={"label":"Homebrew"}
+brew update
+brew upgrade jalapeno
+```

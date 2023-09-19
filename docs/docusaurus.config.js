@@ -3,6 +3,7 @@
 
 const lightCodeTheme = require("prism-react-renderer/themes/github");
 const darkCodeTheme = require("prism-react-renderer/themes/dracula");
+const tabBlocksRemarkPlugin = require("docusaurus-remark-plugin-tab-blocks");
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
@@ -41,6 +42,9 @@ const config = {
           routeBasePath: "/",
           sidebarPath: require.resolve("./sidebars.js"),
           editUrl: "https://github.com/futurice/jalapeno/tree/main/docs/",
+          remarkPlugins: [
+            tabBlocksRemarkPlugin
+          ],
         },
         blog: false,
         theme: {
