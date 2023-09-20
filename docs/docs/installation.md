@@ -8,11 +8,13 @@ title: Installation
 
 ## Using a package manager
 
-### Homebrew
-
 ```bash tab={"label":"Homebrew"}
 brew tap futurice/jalapeno
 brew install jalapeno
+```
+
+```powershell tab={"label":"Winget"}
+winget install jalapeno
 ```
 
 ## From the Binary Releases
@@ -72,9 +74,11 @@ After this the binary is available on path `./bin/jalapeno`.
 
 ## Updating your Jalapeno version
 
-### Homebrew
-
 ```bash tab={"label":"Homebrew"}
 brew update
 brew upgrade jalapeno
+```
+
+```powershell tab={"label":"Winget"}
+winget upgrade jalapeno
 ```
