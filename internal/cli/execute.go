@@ -26,7 +26,7 @@ func NewExecuteCmd() *cobra.Command {
 	var cmd = &cobra.Command{
 		Use:     "execute RECIPE_PATH",
 		Aliases: []string{"exec", "e"},
-		Short:   "Execute a given recipe and save output to path",
+		Short:   "Execute a recipe",
 		Long:    "TODO",
 		Args:    cobra.ExactArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
