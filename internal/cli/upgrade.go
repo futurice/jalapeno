@@ -131,7 +131,7 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) {
 		}
 	}
 
-	values, err := recipeutil.PromptUserForValues(varsWithoutValues)
+	values, err := recipeutil.PromptUserForValues(varsWithoutValues, predefinedValues)
 	if err != nil {
 		cmd.PrintErrf("Error: %s", err)
 		return

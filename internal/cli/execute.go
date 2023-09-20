@@ -120,7 +120,7 @@ func runExecute(cmd *cobra.Command, opts executeOptions) {
 
 	// Filter out variables which don't have value yet
 	filteredVariables := recipeutil.FilterVariablesWithoutValues(re.Variables, predefinedValues)
-	promptedValues, err := recipeutil.PromptUserForValues(filteredVariables)
+	promptedValues, err := recipeutil.PromptUserForValues(filteredVariables, predefinedValues)
 	if err != nil {
 		cmd.PrintErrf("Error when prompting for values: %v\n", err)
 		return
