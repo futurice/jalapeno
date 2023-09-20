@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/go-yaml/yaml"
+	"gopkg.in/yaml.v3"
 )
 
 const (
@@ -24,13 +24,8 @@ var (
 	ErrSauceNotFound = errors.New("sauce not found")
 )
 
-func LoadRecipe(url string) (*Recipe, error) {
-	// TODO: Check the protocol and choose the correct loader
-	return loadRecipeFromDir(url)
-}
-
-// loadRecipeFromDir loads a recipe from a file path
-func loadRecipeFromDir(path string) (*Recipe, error) {
+// LoadRecipe reads a recipe from a given path
+func LoadRecipe(path string) (*Recipe, error) {
 	rootDir, err := filepath.Abs(path)
 	if err != nil {
 		return nil, err

@@ -22,10 +22,10 @@ import (
 	"time"
 
 	"github.com/cucumber/godog"
-	"github.com/go-yaml/yaml"
 	"github.com/gofrs/uuid"
 	"github.com/ory/dockertest/v3"
 	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v3"
 
 	re "github.com/futurice/jalapeno/pkg/recipe"
 )
