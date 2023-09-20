@@ -22,6 +22,9 @@ type Sauce struct {
 	// on subsequent re-renders (upgrades) of the sauce. Can be used for example as a seed
 	// for template random functions to provide same result on each template
 	ID uuid.UUID `yaml:"id"`
+
+	// CheckForm defines the repository where updates should be checked for the recipe
+	CheckFrom string `yaml:"from"`
 }
 
 type File struct {

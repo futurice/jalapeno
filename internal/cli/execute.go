@@ -14,7 +14,7 @@ import (
 )
 
 type executeOptions struct {
-	RecipePath string
+	RecipeURL string
 	option.Values
 	option.OCIRepository
 	option.WorkingDirectory
@@ -30,7 +30,7 @@ func NewExecuteCmd() *cobra.Command {
 		Long:    "TODO",
 		Args:    cobra.ExactArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			opts.RecipePath = args[0]
+			opts.RecipeURL = args[0]
 			return option.Parse(&opts)
 		},
 		Run: func(cmd *cobra.Command, args []string) {
@@ -53,11 +53,13 @@ func runExecute(cmd *cobra.Command, opts executeOptions) {
 
 	var re *recipe.Recipe
 	var err error
-	if strings.HasPrefix(opts.RecipePath, "oci://") {
+	var wasRemoteRecipe bool
+	if strings.HasPrefix(opts.RecipeURL, "oci://") {
+		wasRemoteRecipe = true
 		ctx := context.Background()
 		re, err = oci.PullRecipe(ctx,
 			oci.Repository{
-				Reference: strings.TrimPrefix(opts.RecipePath, "oci://"),
+				Reference: strings.TrimPrefix(opts.RecipeURL, "oci://"),
 				PlainHTTP: opts.PlainHTTP,
 				Credentials: oci.Credentials{
 					Username:      opts.Username,
@@ -71,7 +73,7 @@ func runExecute(cmd *cobra.Command, opts executeOptions) {
 			})
 
 	} else {
-		re, err = recipe.LoadRecipe(opts.RecipePath)
+		re, err = recipe.LoadRecipe(opts.RecipeURL)
 	}
 
 	if err != nil {
@@ -139,6 +141,11 @@ func runExecute(cmd *cobra.Command, opts executeOptions) {
 			cmd.PrintErrf("Error: conflict in recipe '%s': file '%s' was already created by recipe '%s'\n", re.Name, conflicts[0].Path, s.Recipe.Name)
 			return
 		}
+	}
+
+	// Automatically add recipe origin if the recipe was remote
+	if wasRemoteRecipe {
+		sauce.CheckFrom = opts.RecipeURL
 	}
 
 	err = sauce.Save(opts.Dir)

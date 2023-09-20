@@ -3,7 +3,6 @@ package cli_test
 import (
 	"context"
 	"fmt"
-	"path/filepath"
 
 	"github.com/futurice/jalapeno/internal/cli"
 	re "github.com/futurice/jalapeno/pkg/recipe"
@@ -51,18 +50,24 @@ func noNewRecipeVersionsWereFound(ctx context.Context) (context.Context, error) 
 	return ctx, expectGivenOutput(ctx, "No new versions found")
 }
 
-func sourceOfTheRecipeIsTheLocalOCIRegistry(ctx context.Context, recipeName string) (context.Context, error) {
-	recipesDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
+func sourceOfTheSauceIsTheLocalOCIRegistry(ctx context.Context, recipeName string) (context.Context, error) {
+	projectDir := ctx.Value(projectDirectoryPathCtxKey{}).(string)
 	ociRegistry := ctx.Value(ociRegistryCtxKey{}).(OCIRegistry)
-	recipePath := filepath.Join(recipesDir, recipeName)
-	recipe, err := re.LoadRecipe(recipePath)
+	sauces, err := re.LoadSauces(projectDir)
 	if err != nil {
 		return ctx, err
 	}
 
-	url := fmt.Sprintf("%s/%s", ociRegistry.Resource.GetHostPort("5000/tcp"), recipe.Name)
-	recipe.Sources = append(recipe.Sources, url)
-	err = recipe.Save(recipesDir)
+	var sauce *re.Sauce
+	for _, s := range sauces {
+		if s.Recipe.Name == recipeName {
+			sauce = s
+			break
+		}
+	}
+
+	sauce.CheckFrom = fmt.Sprintf("oci://%s/%s", ociRegistry.Resource.GetHostPort("5000/tcp"), sauce.Recipe.Name)
+	err = sauce.Save(projectDir)
 	if err != nil {
 		return ctx, err
 	}

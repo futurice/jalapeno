@@ -85,7 +85,7 @@ func TestFeatures(t *testing.T) {
 			s.Step(`^I upgrade sauce "([^"]*)"$`, iRunUpgrade)
 			s.Step(`^I create a recipe with name "([^"]*)"$`, iRunCreate)
 			s.Step(`^recipe "([^"]*)" ignores pattern "([^"]*)"$`, recipeIgnoresPattern)
-			s.Step(`^the source of the recipe "([^"]*)" is in the local OCI registry$`, sourceOfTheRecipeIsTheLocalOCIRegistry)
+			s.Step(`^the source of the sauce with recipe "([^"]*)" is in the local OCI registry$`, sourceOfTheSauceIsTheLocalOCIRegistry)
 			s.Step(`^I change project file "([^"]*)" to contain "([^"]*)"$`, iChangeProjectFileToContain)
 			s.Step(`^no conflicts were reported$`, noConflictsWereReported)
 			s.Step(`^conflicts are reported$`, conflictsAreReported)

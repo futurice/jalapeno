@@ -11,14 +11,14 @@ import (
 	"oras.land/oras-go/v2/content/file"
 )
 
-func PullRecipe(ctx context.Context, opts Repository) (*recipe.Recipe, error) {
+func PullRecipe(ctx context.Context, repo Repository) (*recipe.Recipe, error) {
 	dir, err := os.MkdirTemp("", "jalapeno-remote-recipe")
 	if err != nil {
 		return nil, err
 	}
 	defer os.RemoveAll(dir)
 
-	err = SaveRemoteRecipe(ctx, dir, opts)
+	err = SaveRemoteRecipe(ctx, dir, repo)
 	if err != nil {
 		return nil, err
 	}

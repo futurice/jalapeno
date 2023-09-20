@@ -3,6 +3,7 @@ package cli
 import (
 	"context"
 	"errors"
+	"strings"
 
 	"github.com/futurice/jalapeno/internal/cli/option"
 	"github.com/futurice/jalapeno/pkg/oci"
@@ -52,19 +53,15 @@ func runCheck(cmd *cobra.Command, opts checkOptions) {
 		return
 	}
 
-	recipe := sauce.Recipe
-
-	if len(recipe.Sources) == 0 {
-		cmd.PrintErr("Error: source of the recipe is undefined, can not check for new versions")
+	if sauce.CheckFrom == "" {
+		cmd.PrintErr("Error: source of the sauce is undefined, can not check for new versions")
 		return
 	}
 
 	ctx := context.Background()
 
-	// TODO: How to handle multiple sources?
-
 	repo, err := oci.NewRepository(oci.Repository{
-		Reference: recipe.Sources[0],
+		Reference: strings.TrimPrefix(sauce.CheckFrom, "oci://"),
 		PlainHTTP: opts.PlainHTTP,
 		Credentials: oci.Credentials{
 			Username:      opts.Username,
@@ -85,7 +82,7 @@ func runCheck(cmd *cobra.Command, opts checkOptions) {
 	newTags := []string{}
 	err = repo.Tags(ctx, "", func(tags []string) error {
 		for _, tag := range tags {
-			if semver.IsValid(tag) && semver.Compare(tag, recipe.Version) > 0 {
+			if semver.IsValid(tag) && semver.Compare(tag, sauce.Recipe.Version) > 0 {
 				newTags = append(newTags, tag)
 			}
 		}
