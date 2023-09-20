@@ -33,12 +33,22 @@ func PushRecipe(ctx context.Context, path string, opts Repository) error {
 
 	defer store.Close()
 
-	desc, err := store.Add(ctx, re.Name, "application/x.futurice.jalapeno.recipe.v1", path)
+	// TODO: Add each file separately so media types can be set correctly
+	mediaType := "inode/directory"
+	desc, err := store.Add(ctx, re.Name, mediaType, path)
 	if err != nil {
 		return err
 	}
+	fileDescriptors := []v1.Descriptor{desc}
 
-	root, err := oras.Pack(ctx, store, "", []v1.Descriptor{desc}, oras.PackOptions{PackImageManifest: true})
+	root, err := oras.PackManifest(
+		ctx,
+		store,
+		oras.PackManifestVersion1_1_RC4,
+		"application/x.futurice.jalapeno.recipe.v1",
+		oras.PackManifestOptions{
+			Layers: fileDescriptors,
+		})
 	if err != nil {
 		return err
 	}
