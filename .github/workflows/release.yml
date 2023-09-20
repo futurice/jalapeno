@@ -39,3 +39,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           HOMEBREW_TAP_PRIVATE_KEY: ${{ secrets.HOMEBREW_TAP_PRIVATE_KEY }}
+          WINGET_PKGS_PRIVATE_KEY: ${{ secrets.WINGET_PKGS_PRIVATE_KEY }}
