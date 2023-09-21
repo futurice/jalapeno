@@ -23,8 +23,8 @@ type Sauce struct {
 	// for template random functions to provide same result on each template
 	ID uuid.UUID `yaml:"id"`
 
-	// CheckForm defines the repository where updates should be checked for the recipe
-	CheckFrom string `yaml:"from"`
+	// CheckFrom defines the repository where updates should be checked for the recipe
+	CheckFrom string `yaml:"from,omitempty"`
 }
 
 type File struct {
