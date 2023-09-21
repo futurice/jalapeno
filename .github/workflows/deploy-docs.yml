@@ -21,11 +21,21 @@ jobs:
         with:
           go-version: "1.21"
 
+      - name: Setup Golang caches
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-golang-${{ hashFiles('go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-golang-
+
       - uses: actions/setup-node@v3
         with:
           node-version: 18
           cache: npm
-          cache-dependency-path: docs/package-lock.json
+          cache-dependency-path: docs/site/package-lock.json
 
       - uses: arduino/setup-task@v1
         with:
@@ -33,17 +43,12 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }} # https://github.com/arduino/setup-task#repo-token
 
       - name: Install dependencies
-        working-directory: docs
+        working-directory: docs/site
         run: npm ci
-
-      - name: Generate dynamic docs
-        run: task docs:gen
 
       - name: Build website
         run: task docs:build
 
-      # Popular action to deploy to GitHub Pages:
-      # Docs: https://github.com/peaceiris/actions-gh-pages#%EF%B8%8F-docusaurus
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:

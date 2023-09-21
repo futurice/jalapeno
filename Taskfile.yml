@@ -2,17 +2,13 @@ version: "3"
 
 includes:
   docs:
-    taskfile: ./docs
-    dir: ./docs
+    taskfile: ./docs/site
+    dir: ./docs/site
 
 vars:
   ENTRYPOINT: ./cmd/jalapeno # Path to main package
 
 tasks:
-  docs:gen:
-    desc: Generate CLI documentation
-    cmds:
-      - go run cmd/docs/main.go ./docs/docs/api.md
   mod:
     desc: Downloads and tidy Go modules
     cmds:
