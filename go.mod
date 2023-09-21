@@ -4,6 +4,7 @@ go 1.21
 
 require (
 	github.com/AlecAivazis/survey/v2 v2.3.7
+	github.com/Knetic/govaluate v3.0.0+incompatible
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/carlmjohnson/versioninfo v0.22.5
 	github.com/cucumber/godog v0.13.0

@@ -4,10 +4,11 @@ import (
 	"fmt"
 
 	"github.com/AlecAivazis/survey/v2"
+	"github.com/Knetic/govaluate"
 	"github.com/futurice/jalapeno/pkg/recipe"
 )
 
-func PromptUserForValues(variables []recipe.Variable) (recipe.VariableValues, error) {
+func PromptUserForValues(variables []recipe.Variable, existingValues recipe.VariableValues) (recipe.VariableValues, error) {
 	// TODO: This command does not respect stdio defined by the Cobra cmd, so
 	// capturing and examining the output of this function does not work at the moment
 	values := recipe.VariableValues{}
@@ -21,6 +22,28 @@ func PromptUserForValues(variables []recipe.Variable) (recipe.VariableValues, er
 
 		var prompt survey.Prompt
 		var askFunc AskFunc = askString
+
+		if variable.If != "" {
+			expression, err := govaluate.NewEvaluableExpression(variable.If)
+			if err != nil {
+				// NOTE: This shouldn't happen since variables should've validated by now
+				return nil, err
+			}
+
+			result, err := expression.Evaluate(MergeValues(existingValues, values))
+			if err != nil {
+				return nil, fmt.Errorf("error when evaluating 'if' expression: %w", err)
+			}
+
+			variableShouldBePrompted, ok := result.(bool)
+			if !ok {
+				return nil, fmt.Errorf("result of 'if' expression was not a boolean value, was %T instead", result)
+			}
+
+			if !variableShouldBePrompted {
+				continue
+			}
+		}
 
 		// Select with predefined options
 		if len(variable.Options) != 0 {

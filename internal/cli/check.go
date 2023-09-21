@@ -24,7 +24,7 @@ func NewCheckCmd() *cobra.Command {
 	var cmd = &cobra.Command{
 		Use:   "check RECIPE_NAME",
 		Short: "Check if there are new versions for a recipe",
-		Long:  "", // TODO
+		Long:  "TODO",
 		Args:  cobra.ExactArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			opts.RecipeName = args[0]

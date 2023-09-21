@@ -1,6 +1,6 @@
 <div align="center">
   <a href="https://futurice.github.io/jalapeno">
-    <img src="docs/static/img/logo.png" width="400px"/>
+    <img src="docs/site/static/img/logo.png" width="400px"/>
   </a>
 
   <br>
