@@ -11,6 +11,7 @@ import (
 
 const (
 	defaultFileMode os.FileMode = 0700
+	yamlIndent      int         = 2
 )
 
 // Save saves recipe to given destination
@@ -30,6 +31,7 @@ func (re *Recipe) Save(dest string) error {
 	}
 
 	encoder := yaml.NewEncoder(file)
+	encoder.SetIndent(yamlIndent)
 	if err := encoder.Encode(re); err != nil {
 		return fmt.Errorf("failed to write recipe test to a file: %w", err)
 	}
@@ -80,6 +82,7 @@ func (re *Recipe) saveTests(dest string) error {
 		defer meta.Close()
 
 		encoder := yaml.NewEncoder(meta)
+		encoder.SetIndent(yamlIndent)
 		defer encoder.Close()
 
 		if err := encoder.Encode(test); err != nil {
@@ -150,6 +153,7 @@ func (s *Sauce) Save(dest string) error {
 	defer file.Close()
 
 	encoder := yaml.NewEncoder(file)
+	encoder.SetIndent(yamlIndent)
 	defer encoder.Close()
 
 	for _, sauce := range sauces {
