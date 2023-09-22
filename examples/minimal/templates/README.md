@@ -1,1 +1,1 @@
-# minimal recipes, version {{ .Recipe.Version }}
+# minimal recipe, version {{ .Recipe.Version }}
