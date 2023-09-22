@@ -96,9 +96,9 @@ winget:
     owner: futurice
     name: winget-pkgs
     branch: "{{.ProjectName}}-{{.Version}}"
-    git:
-      url: "git@github.com:futurice/winget-pkgs.git#{{.ProjectName}}-{{.Version}}"
-      private_key: "{{ .Env.WINGET_PKGS_PRIVATE_KEY }}"
+    #git:
+    #  url: "git@github.com:futurice/winget-pkgs.git#{{.ProjectName}}-{{.Version}}"
+    #  private_key: "{{ .Env.WINGET_PKGS_PRIVATE_KEY }}"
     pull_request:
       enabled: true
       base:
