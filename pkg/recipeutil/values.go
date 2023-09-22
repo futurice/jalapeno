@@ -1,6 +1,7 @@
 package recipeutil
 
 import (
+	"encoding/csv"
 	"errors"
 	"fmt"
 	"os"
@@ -29,39 +30,51 @@ func ParseProvidedValues(variables []recipe.Variable, flags []string) (recipe.Va
 	for _, flag := range flags {
 		splitted := strings.SplitN(flag, "=", 2)
 		if len(splitted) != 2 {
-			return nil, fmt.Errorf("TODO %s", flag)
+			return nil, fmt.Errorf("invalid format on flag '%s'. Use format 'MY_VAR=VALUE'", flag)
 		}
 		varName := splitted[0]
 		varValue := splitted[1]
 
-		if varValue == "true" {
-			values[varName] = true
-		} else if varValue == "false" {
-			values[varName] = false
-		} else {
-			values[varName] = varValue
-		}
-	}
-
-	for varName, value := range values {
-		found := false
+		var targetedVariable *recipe.Variable
 		for _, variable := range variables {
 			if variable.Name != varName {
 				continue
+			} else {
+				targetedVariable = &variable
+				break
 			}
-
-			found = true
-			if variable.RegExp.Pattern != "" {
-				validator := variable.RegExp.CreateValidatorFunc()
-				if err := validator(value); err != nil {
-					return nil, fmt.Errorf("validator failed for value '%s=%s': %w", varName, value, err)
-				}
-			}
-			break
 		}
 
-		if !found {
+		if targetedVariable == nil {
 			return nil, fmt.Errorf("%w: %s", ErrVarNotDefinedInRecipe, varName)
+		}
+
+		if targetedVariable.RegExp.Pattern != "" {
+			validator := targetedVariable.RegExp.CreateValidatorFunc()
+			if err := validator(varValue); err != nil {
+				return nil, fmt.Errorf("validator failed for value '%s=%s': %w", varName, varValue, err)
+			}
+		}
+
+		switch {
+		case targetedVariable.Confirm:
+			if varValue == "true" {
+				values[varName] = true
+			} else if varValue == "false" {
+				values[varName] = false
+			} else {
+				return nil, fmt.Errorf("value provided for variable '%s' was not a boolean", varName)
+			}
+		case len(targetedVariable.Columns) > 0:
+			varValue = strings.ReplaceAll(varValue, "\\n", "\n")
+			table, err := CSVToTable(targetedVariable.Columns, varValue)
+			if err != nil {
+				return nil, fmt.Errorf("failed to parse table from CSV for variable '%s': %w", varName, err)
+			}
+			values[varName] = table
+
+		default:
+			values[varName] = varValue
 		}
 	}
 
@@ -88,4 +101,26 @@ func FilterVariablesWithoutValues(variables []recipe.Variable, values recipe.Var
 	}
 
 	return variablesWithoutValues
+}
+
+func CSVToTable(columns []string, str string) ([]map[string]string, error) {
+	reader := csv.NewReader(strings.NewReader(str))
+	reader.FieldsPerRecord = len(columns)
+	reader.Comma = ';'
+	reader.TrimLeadingSpace = true
+
+	rows, err := reader.ReadAll()
+	if err != nil {
+		return nil, err
+	}
+
+	table := make([]map[string]string, len(rows))
+	for i, row := range rows {
+		table[i] = make(map[string]string)
+		for j, cell := range row {
+			table[i][columns[j]] = cell
+		}
+	}
+
+	return table, nil
 }

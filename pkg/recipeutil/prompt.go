@@ -2,6 +2,7 @@ package recipeutil
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/antonmedv/expr"
@@ -56,6 +57,14 @@ func PromptUserForValues(variables []recipe.Variable, existingValues recipe.Vari
 			}
 			askFunc = askBool
 
+			// NOTE: The multiline prompt works quite poorly to provide values for the table,
+			//       and for some reason the "help" field does not work
+		} else if len(variable.Columns) > 0 {
+			prompt = &survey.Multiline{
+				Message: fmt.Sprintf("%s as CSV (columns: %s)", variable.Name, strings.Join(variable.Columns, ", ")),
+				Help:    variable.Description,
+			}
+
 			// Free input question
 		} else {
 			prompt = &survey.Input{
@@ -79,6 +88,14 @@ func PromptUserForValues(variables []recipe.Variable, existingValues recipe.Vari
 		answer, err := askFunc(prompt, opts)
 		if err != nil {
 			return nil, err
+		}
+
+		if len(variable.Columns) > 0 {
+			raw := answer.(string)
+			answer, err = CSVToTable(variable.Columns, raw)
+			if err != nil {
+				return nil, err
+			}
 		}
 
 		values[variable.Name] = answer

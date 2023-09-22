@@ -30,6 +30,9 @@ type Variable struct {
 
 	// Makes the variable conditional based on the result of the expression. The result of the evaluation needs to be a boolean value. Uses https://github.com/antonmedv/expr
 	If string `yaml:"if,omitempty"`
+
+	// Set the variable as a table type with columns defined by this property
+	Columns []string `yaml:"columns,omitempty"`
 }
 
 type VariableRegExpValidator struct {
@@ -40,26 +43,34 @@ type VariableRegExpValidator struct {
 	Help string `yaml:"help,omitempty"`
 }
 
-// VariableValues stores values for each variable. In practice the value can bee either string or boolean.
+// VariableValues stores values for each variable
 type VariableValues map[string]interface{}
 
 func (v *Variable) Validate() error {
 	if v.Name == "" {
 		return errors.New("variable name is required")
 	}
-	if v.Confirm && len(v.Options) > 0 {
-		return errors.New("`confirm` and `options` properties can not be defined at the same time")
+
+	if v.Confirm {
+		if len(v.Options) > 0 {
+			return errors.New("`confirm` and `options` properties can not be defined at the same time")
+		} else if len(v.Columns) > 0 {
+			return errors.New("`confirm` and `columns` properties can not be defined at the same time")
+		}
 	}
+
 	if v.RegExp.Pattern != "" {
 		if _, err := regexp.Compile(v.RegExp.Pattern); err != nil {
 			return fmt.Errorf("invalid variable regexp pattern: %w", err)
 		}
 	}
+
 	if v.If != "" {
 		if _, err := expr.Compile(v.If); err != nil {
 			return fmt.Errorf("invalid variable 'if' expression: %w", err)
 		}
 	}
+
 	return nil
 }
 
