@@ -56,7 +56,7 @@ func (s *Sauce) Validate() error {
 	}
 
 	for _, variable := range s.Recipe.Variables {
-		if _, found := s.Values[variable.Name]; !variable.Optional && !found {
+		if _, found := s.Values[variable.Name]; !(variable.Optional || variable.If != "") && !found {
 			return fmt.Errorf("sauce did not have value for required variable '%s'", variable.Name)
 		}
 	}

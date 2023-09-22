@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/Knetic/govaluate"
+	"github.com/antonmedv/expr"
 )
 
 type Variable struct {
@@ -28,7 +28,7 @@ type Variable struct {
 	// Regular expression validator for the variable value
 	RegExp VariableRegExpValidator `yaml:"regexp,omitempty"`
 
-	// Makes the variable conditional based on the result of the expression. The result of the evaluation needs to be a boolean value. Uses https://github.com/Knetic/govaluate
+	// Makes the variable conditional based on the result of the expression. The result of the evaluation needs to be a boolean value. Uses https://github.com/antonmedv/expr
 	If string `yaml:"if,omitempty"`
 }
 
@@ -56,7 +56,7 @@ func (v *Variable) Validate() error {
 		}
 	}
 	if v.If != "" {
-		if _, err := govaluate.NewEvaluableExpression(v.If); err != nil {
+		if _, err := expr.Compile(v.If); err != nil {
 			return fmt.Errorf("invalid variable 'if' expression: %w", err)
 		}
 	}

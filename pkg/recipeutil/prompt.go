@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/AlecAivazis/survey/v2"
-	"github.com/Knetic/govaluate"
+	"github.com/antonmedv/expr"
 	"github.com/futurice/jalapeno/pkg/recipe"
 )
 
@@ -24,13 +24,7 @@ func PromptUserForValues(variables []recipe.Variable, existingValues recipe.Vari
 		var askFunc AskFunc = askString
 
 		if variable.If != "" {
-			expression, err := govaluate.NewEvaluableExpression(variable.If)
-			if err != nil {
-				// NOTE: This shouldn't happen since variables should've validated by now
-				return nil, err
-			}
-
-			result, err := expression.Evaluate(MergeValues(existingValues, values))
+			result, err := expr.Eval(variable.If, MergeValues(existingValues, values))
 			if err != nil {
 				return nil, fmt.Errorf("error when evaluating 'if' expression: %w", err)
 			}
@@ -73,7 +67,7 @@ func PromptUserForValues(variables []recipe.Variable, existingValues recipe.Vari
 
 		opts := make([]survey.AskOpt, 0)
 
-		if !variable.Optional {
+		if !(variable.Optional || variable.If != "") {
 			opts = append(opts, survey.WithValidator(survey.Required))
 		}
 
