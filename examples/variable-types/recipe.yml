@@ -1,0 +1,69 @@
+apiVersion: v1
+name: variable-types
+description: |
+  This recipe demonstrates all different variable types and additional properties which can be set for a variable.
+version: v0.0.0
+vars:
+  ### Variable types
+  #
+  - name: STRING_VAR
+    description: |
+      Simple string variable
+
+  - name: BOOLEAN_VAR
+    description: |
+      Boolean variable can have value either `true` or `false`. 
+
+      Defined by: `confirm: true`.
+    confirm: true
+
+  - name: SELECT_VAR
+    description: |
+      User chooses one value from the predefined values in `options` property.
+
+      Defined by: non-empty `options` property.
+    options:
+      - option_1
+      - option_2
+
+  - name: TABLE_VAR
+    description: |
+      On templates you can access the cells by getting the row by the index and column by the name, like: 
+      {{ .Variables.TABLE_VAR[0].COLUMN_1 }}
+
+      You can pre-set the table variable by using CSV with having '\n' between the rows, for example:
+      `jalapeno execute examples/variables `--set 'TABLE_VAR=a;b;c\nx;y;z'`
+
+      Defined by: non-empty `columns` property.
+    columns: [COLUMN_1, COLUMN_2, COLUMN_3]
+
+  ### Additional variable properties
+  #
+  - name: DEFAULT_VALUE_VAR
+    description: |
+      Default value for a variable can be set with `default` property
+
+      Defined by: non-empty `columns` property.
+    default: "foo"
+
+  - name: OPTIONAL_VAR
+    description: |
+      Optional variables can be left empty
+
+      Defined by: `optional: true`.
+    optional: true
+
+  - name: CONDITIONAL_VAR
+    description: |
+      Conditional variable which depends on one value in the table.
+      You can read the syntax documentation here: https://expr.medv.io/docs/Language-Definition
+    if: SELECT_VAR == "option_1"
+    # To access cells in table variables:
+    # if: TABLE_VAR[0].COLUMN_1 == "foo"
+
+  - name: VAR_WITH_VALIDATOR
+    description: |
+      Regular expression validators can be set for a variable by defining `regexp` property
+    regexp:
+      pattern: ".*"
+      help: "If the check doesn't pass, this help message will be shown"

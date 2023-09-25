@@ -61,7 +61,7 @@ func PromptUserForValues(variables []recipe.Variable, existingValues recipe.Vari
 			//       and for some reason the "help" field does not work
 		} else if len(variable.Columns) > 0 {
 			prompt = &survey.Multiline{
-				Message: fmt.Sprintf("%s as CSV (columns: %s)", variable.Name, strings.Join(variable.Columns, ", ")),
+				Message: fmt.Sprintf("%s [EXPERIMENTAL] (columns: %s)", variable.Name, strings.Join(variable.Columns, ", ")),
 				Help:    variable.Description,
 			}
 
