@@ -75,33 +75,36 @@ brews:
     test: |
       system "#{bin}/jalapeno --version"
 
-winget:
-- name: jalapeno
-  publisher: Futurice
-  publisher_url: https://www.futurice.com
-  publisher_support_url: https://github.com/futurice/jalapeno/issues/new
-  short_description: Jalapeno is a CLI for creating, managing and sharing spiced up project templates
-  license: "Apache-2.0"
-  homepage: https://futurice.github.io/jalapeno/
-  license_url: https://github.com/futurice/jalapeno/blob/main/LICENCE
-  release_notes: '{{ .Changelog }}'
-  release_notes_url: 'https://github.com/futurice/jalapeno/releases/tag/{{ .Tag }}'
-  tags:
-  - cli
-  - configuration
-  - project
-  - bootstrap
-  - templates
-  repository:
-    owner: futurice
-    name: winget-pkgs
-    branch: "{{.ProjectName}}-{{.Version}}"
-    #git:
-    #  url: "git@github.com:futurice/winget-pkgs.git#{{.ProjectName}}-{{.Version}}"
-    #  private_key: "{{ .Env.WINGET_PKGS_PRIVATE_KEY }}"
-    pull_request:
-      enabled: true
-      base:
-        owner: microsoft
-        name: winget-pkgs
-        branch: master
+# Winget commented away until we wait for the goreleaser v1.22.0 to be released and available
+# See https://github.com/orgs/goreleaser/discussions/4321 and
+# https://github.com/goreleaser/goreleaser/milestone/24 for more information
+# winget:
+# - name: jalapeno
+#   publisher: Futurice
+#   publisher_url: https://www.futurice.com
+#   publisher_support_url: https://github.com/futurice/jalapeno/issues/new
+#   short_description: Jalapeno is a CLI for creating, managing and sharing spiced up project templates
+#   license: "Apache-2.0"
+#   homepage: https://futurice.github.io/jalapeno/
+#   license_url: https://github.com/futurice/jalapeno/blob/main/LICENCE
+#   release_notes: '{{ .Changelog }}'
+#   release_notes_url: 'https://github.com/futurice/jalapeno/releases/tag/{{ .Tag }}'
+#   tags:
+#   - cli
+#   - configuration
+#   - project
+#   - bootstrap
+#   - templates
+#   repository:
+#     owner: futurice
+#     name: winget-pkgs
+#     branch: "{{.ProjectName}}-{{.Version}}"
+#     git:
+#       url: "git@github.com:futurice/winget-pkgs.git#{{.ProjectName}}-{{.Version}}"
+#       private_key: "{{ .Env.WINGET_PKGS_PRIVATE_KEY }}"
+#     pull_request:
+#       enabled: true
+#       base:
+#         owner: microsoft
+#         name: winget-pkgs
+#         branch: master
