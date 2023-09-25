@@ -1,14 +1,12 @@
-{{- $environments := splitList "," .Variables.ENVIRONMENTS -}}
 version: "3"
 
 tasks:
   init:
     cmds:
-      {{- range $index, $env := $environments }}
+      {{- range $_, $env := .Variables.ENVIRONMENTS }}
       - task: tf:init-environment
         vars:
-          environment: {{ $env | quote }}
-          storage_account_name: {{ (printf "tfs%.11s" (regexReplaceAll "[^a-z0-9]" (.Variables.SERVICE_NAME | lower) "")) }}{{ stableRandomAlphanumeric 6 .Recipe.Anchor }}{{ $env }}
+          environment: {{ $env.NAME | quote }}
       {{- end }}
   tf:init-environment:
     deps: [az:login]
@@ -46,7 +44,7 @@ tasks:
     cmds:
       - task: tf:init-environment
         vars:
-          environment: {{ `{{.CLI_ARGS}}` }}
+          environment: {{ `"{{.CLI_ARGS}}"` }}
   az:login:
     cmds:
       - az login

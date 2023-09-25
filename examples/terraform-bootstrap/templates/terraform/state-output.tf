@@ -1,5 +1,7 @@
+{{- $rgRef := ternary "resource" "data" .Variables.CREATE_RESOURCE_GROUPS -}}
+
 output "resource_group_name" {
-  value = data.azurerm_resource_group.main.name
+  value = {{ $rgRef }}.azurerm_resource_group.main.name
 }
 
 output "tfstate_storage_account_name" {
