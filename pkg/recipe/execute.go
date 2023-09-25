@@ -26,7 +26,7 @@ func (re *Recipe) Execute(values VariableValues, id uuid.UUID) (*Sauce, error) {
 
 	// Define the context which is available on templates
 	context := map[string]interface{}{
-		"ID":        sauce.ID,
+		"ID":        sauce.ID.String(),
 		"Recipe":    re.Metadata,
 		"Variables": values,
 	}

@@ -12,12 +12,14 @@ func TestStableRandomAlpha(t *testing.T) {
 		t.Error(err)
 	}
 
-	val1 := stableRandomAlphanumeric(6, u)
+	s := u.String()
+
+	val1 := stableRandomAlphanumeric(6, s)
 	if len(val1) != 6 {
 		t.Errorf("Expected 6 alphanumeric, got '%s'", val1)
 	}
 
-	val2 := stableRandomAlphanumeric(6, u)
+	val2 := stableRandomAlphanumeric(6, s)
 	if len(val2) != 6 {
 		t.Errorf("Expected 6 alphanumeric, got '%s'", val2)
 	}
@@ -27,7 +29,7 @@ func TestStableRandomAlpha(t *testing.T) {
 
 	resetRngs()
 
-	val3 := stableRandomAlphanumeric(6, u)
+	val3 := stableRandomAlphanumeric(6, s)
 	if val3 != val1 {
 		t.Error("Expected the same sequence after reset")
 	}
