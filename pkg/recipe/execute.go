@@ -43,6 +43,12 @@ func (re *Recipe) Execute(values VariableValues, id uuid.UUID) (*Sauce, error) {
 		if len(strings.TrimSpace(string(content))) == 0 {
 			continue
 		}
+
+		// Skip files starting with "_"
+		if strings.HasPrefix(filename, "_") {
+			continue
+		}
+
 		sum := sha256.Sum256(content)
 		sauce.Files[filename] = File{Content: content, Checksum: fmt.Sprintf("sha256:%x", sum)}
 		idx += 1
