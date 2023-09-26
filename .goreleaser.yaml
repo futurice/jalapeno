@@ -61,6 +61,7 @@ brews:
     repository:
       owner: futurice
       name: homebrew-jalapeno
+      branch: main
       git:
         url: "git@github.com:futurice/homebrew-jalapeno.git"
         private_key: "{{ .Env.HOMEBREW_TAP_PRIVATE_KEY }}"
