@@ -16,13 +16,17 @@ func (e Engine) Render(templates map[string][]byte, values map[string]interface{
 
 	rendered := make(map[string][]byte)
 
+	// Parse all templates first
 	for name, data := range templates {
 		_, err := t.New(name).Parse(string(data))
 		if err != nil {
 			// TODO: Inner error message includes prefix "template: ", which does not good when printing this error
 			return nil, fmt.Errorf("failed to parse template: %w", err)
 		}
+	}
 
+	// Execute each template seperately
+	for name := range templates {
 		var buf strings.Builder
 		if err := t.ExecuteTemplate(&buf, name, values); err != nil {
 			// TODO: Inner error message includes prefix "template: ", which does not good when printing this error

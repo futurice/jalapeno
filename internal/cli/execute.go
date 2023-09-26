@@ -51,9 +51,12 @@ func runExecute(cmd *cobra.Command, opts executeOptions) {
 		return
 	}
 
-	var re *recipe.Recipe
-	var err error
-	var wasRemoteRecipe bool
+	var (
+		re              *recipe.Recipe
+		err             error
+		wasRemoteRecipe bool
+	)
+
 	if strings.HasPrefix(opts.RecipeURL, "oci://") {
 		wasRemoteRecipe = true
 		ctx := context.Background()
