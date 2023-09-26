@@ -14,5 +14,5 @@
 
 | COLUMN_1 | COLUMN_2 | COLUMN_3 |
 {{- range $val := .Variables.TABLE_VAR }}
-| {{ $val.COLUMN_1 }} | {{ $val.COLUMN_1 }} | {{ $val.COLUMN_1 }} |
+| {{ $val.COLUMN_1 }} | {{ $val.COLUMN_2 }} | {{ $val.COLUMN_3 }} |
 {{- end}}
