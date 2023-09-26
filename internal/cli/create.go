@@ -24,15 +24,15 @@ func NewCreateCmd() *cobra.Command {
 		Long: fmt.Sprintf(`TODO
 
 %[1]s
-my-recipe/
-  ├── %[2]s
-  ├── %[3]s/
-  ├──── README.md
-  ├── %[4]s/
-  ├──── defaults/
-  ├────── %[5]s
-  ├────── %[6]s/
-  ├──────── README.md
+my-recipe
+├── %[2]s
+├── %[3]s
+│   └── README.md
+└── %[4]s
+    └── defaults
+        ├── %[5]s
+        └── %[6]s
+            └── README.md
 %[1]s`,
 			"```",
 			recipe.RecipeFileName+recipe.YAMLExtension,
