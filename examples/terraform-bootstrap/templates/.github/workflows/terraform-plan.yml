@@ -1,0 +1,92 @@
+{{- if .Variables.CREATE_GITHUB_ACTIONS_PIPELINE }}
+name: Terraform Plan
+
+on:
+  workflow_call:
+    inputs:
+      ENVIRONMENT:
+        required: true
+        type: string
+      TERRAFORM_VERSION:
+        required: true
+        type: string
+      TERRAFORM_BACKEND_STORAGE_NAME:
+        required: true
+        type: string
+      RESOURCE_GROUP_NAME:
+        required: true
+        type: string
+      ARM_SUBSCRIPTION_ID:
+        required: true
+        type: string
+      ARM_TENANT_ID:
+        required: true
+        type: string
+    secrets:
+      ARM_CLIENT_ID:
+        required: true
+      ARM_CLIENT_SECRET:
+        required: true
+
+env:
+  TF_IN_AUTOMATION: "true"
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    env:
+      ARM_CLIENT_ID: {{ "${{ secrets.ARM_CLIENT_ID }}" }}
+      ARM_CLIENT_SECRET: {{ "${{ secrets.ARM_CLIENT_SECRET }}" }}
+      ARM_SUBSCRIPTION_ID: {{ "${{ inputs.ARM_SUBSCRIPTION_ID }}" }}
+      ARM_TENANT_ID: {{ "${{ inputs.ARM_TENANT_ID }}" }}
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v2
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: {{ "${{ inputs.TERRAFORM_VERSION }}" }}
+
+      - name: Terraform Format
+        id: fmt
+        run: terraform fmt -check
+        working-directory: ./terraform
+
+      - name: Terraform Init
+        id: init
+        run: >-
+          terraform init
+          --backend-config="resource_group_name={{ "${{ inputs.RESOURCE_GROUP_NAME }}" }}"
+          --backend-config="storage_account_name={{ "${{ inputs.TERRAFORM_BACKEND_STORAGE_NAME }}" }}"
+        working-directory: ./terraform
+
+      - name: Terraform Workspace
+        id: workspace
+        run: terraform workspace select {{ "${{ inputs.ENVIRONMENT }}" }}
+        working-directory: ./terraform
+
+      - name: Terraform Validate
+        id: validate
+        run: terraform validate -no-color
+        working-directory: ./terraform
+
+      - name: Terraform Plan
+        id: plan
+        run: terraform plan -out=terraform.tfplan -no-color
+        working-directory: ./terraform
+        continue-on-error: true
+        env:
+          TF_VAR_resource_group_name: {{ "${{ inputs.RESOURCE_GROUP_NAME }}" }}
+
+      - name: Terraform Plan Status
+        if: steps.plan.outcome == 'failure'
+        run: exit 1
+
+      - name: Archive Terraform plan
+        uses: actions/upload-artifact@v2
+        with:
+          name: terraform-plan-{{ "${{ inputs.ENVIRONMENT }}" }}
+          path: ./terraform
+          retention-days: 7
+{{- end }}

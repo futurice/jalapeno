@@ -1,0 +1,42 @@
+{{- if .Variables.CREATE_GITHUB_ACTIONS_PIPELINE -}}
+name: Terraform CI/CD
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "terraform/**"
+      - ".github/workflows/terraform*.yml"
+
+jobs:
+  {{- range $_, $env := .Variables.ENVIRONMENTS }}
+
+  build-{{ $env.NAME }}:
+    name: Build for {{ $env.NAME | upper }}
+    uses: ./.github/workflows/terraform-plan.yml
+    with:
+      ENVIRONMENT: {{ $env.NAME }}
+      TERRAFORM_VERSION: 1.2.5
+      TERRAFORM_BACKEND_STORAGE_NAME: {{ template "storage_account_name_prefix" $ }}{{ $env.NAME }}
+      RESOURCE_GROUP_NAME: {{ $env.RESOURCE_GROUP_NAME }}
+      ARM_SUBSCRIPTION_ID: TODO
+      ARM_TENANT_ID: TODO
+    secrets:
+      ARM_CLIENT_ID: {{ printf "${{ secrets.ARM_CLIENT_ID_%s }}" ($env.NAME | upper) }}
+      ARM_CLIENT_SECRET: {{ printf "${{ secrets.ARM_CLIENT_SECRET_%s }}" ($env.NAME | upper) }}
+
+  deploy-{{ $env.NAME }}:
+    name: Deploy to {{ $env.NAME | upper }}
+    needs: build-{{ $env.NAME }}
+    uses: ./.github/workflows/terraform-apply.yml
+    with:
+      ENVIRONMENT: {{ $env.NAME }}
+      TERRAFORM_VERSION: 1.2.5
+      ARM_SUBSCRIPTION_ID: TODO
+      ARM_TENANT_ID: TODO
+    secrets:
+      ARM_CLIENT_ID: {{ printf "${{ secrets.ARM_CLIENT_ID_%s }}" ($env.NAME | upper) }}
+      ARM_CLIENT_SECRET: {{ printf "${{ secrets.ARM_CLIENT_SECRET_%s }}" ($env.NAME | upper) }}
+
+  {{- end }}
+{{- end -}}

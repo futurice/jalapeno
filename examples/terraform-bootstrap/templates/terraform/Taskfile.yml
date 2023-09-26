@@ -1,19 +1,30 @@
 version: "3"
 
+{{- $envs := list }}
+{{- range $_, $env := .Variables.ENVIRONMENTS -}}
+{{- $envs = append $envs $env.NAME -}}
+{{- end }}
+
+vars:
+  ENVIRONMENTS: {{ $envs | join "," }}
+
 tasks:
   init:
     cmds:
-      {{- range $_, $env := .Variables.ENVIRONMENTS }}
-      - task: tf:init-environment
+      - for: { var: ENVIRONMENTS, split: "," }
+        task: init-environment
         vars:
-          environment: {{ $env.NAME | quote }}
-      {{- end }}
-  tf:init-environment:
+          ENVIRONMENT: "{{ "{{ .ITEM }}" }}"
+
+  init-environment:
     deps: [az:login]
+    requires:
+      vars:
+        - ENVIRONMENT
     cmds:
       - rm -Rf .terraform/terraform.tfstate backend.tf # Remove backend from previous run
       - terraform init
-      - terraform workspace new {{ `{{.environment}}` }}
+      - terraform workspace new {{ `{{ .ENVIRONMENT }}` }}
       - >-
         terraform apply
         -target azurerm_storage_container.tfstate
@@ -40,11 +51,13 @@ tasks:
         -backend-config="container_name=$STORAGE_CONTAINER_NAME"
         -backend-config="key=tfstate_";
       - rm -Rf terraform.tfstate.d # Remove local state files
-  tf:select-environment:
+
+  select-environment:
     cmds:
       - task: tf:init-environment
         vars:
-          environment: {{ `"{{.CLI_ARGS}}"` }}
+          environment: "{{ `{{.CLI_ARGS}}` }}"
+
   az:login:
     cmds:
       - az login

@@ -1,4 +1,10 @@
-{{- $rgRef := ternary "resource" "data" .Variables.CREATE_RESOURCE_GROUPS -}}
+{{- define "rg_block_type" -}}
+{{- ternary "resource" "data" .Variables.CREATE_RESOURCE_GROUPS -}}
+{{- end -}}
+
+{{- define "storage_account_name_prefix" -}}
+{{- printf "tfs%.11s%.6s" (regexReplaceAll "[^a-z0-9]" (.Variables.SERVICE_NAME | lower) "") (sha1sum .ID) -}}
+{{- end -}}
 
 locals {
   resource_groups = {
@@ -24,9 +30,9 @@ data "azurerm_resource_group" "main" {
 {{- end }}
 
 resource "azurerm_storage_account" "tfstate" {
-  name                     = "{{ (printf "tfs%.11s" (regexReplaceAll "[^a-z0-9]" (.Variables.SERVICE_NAME | lower) "")) }}{{ stableRandomAlphanumeric 6 .ID }}${terraform.workspace}"
-  resource_group_name      = {{ $rgRef }}.azurerm_resource_group.main.name
-  location                 = {{ $rgRef }}.azurerm_resource_group.main.location
+  name                     = "{{ template "storage_account_name_prefix" . }}${terraform.workspace}"
+  resource_group_name      = {{ template "rg_block_type" . }}.azurerm_resource_group.main.name
+  location                 = {{ template "rg_block_type" . }}.azurerm_resource_group.main.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
   min_tls_version          = "TLS1_2"
