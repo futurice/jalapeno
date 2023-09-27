@@ -1,7 +1,7 @@
 version: "3"
 
 {{- $envs := list }}
-{{- range $_, $env := .Variables.ENVIRONMENTS -}}
+{{- range $env := .Variables.ENVIRONMENTS -}}
 {{- $envs = append $envs $env.NAME -}}
 {{- end }}
 
@@ -15,6 +15,9 @@ tasks:
         task: init-environment
         vars:
           ENVIRONMENT: "{{ "{{ .ITEM }}" }}"
+      {{- if .Variables.CREATE_GITHUB_ACTIONS_PIPELINE }}
+      - task: gh:add-ci-service-principals
+      {{- end }}
 
   init-environment:
     deps: [az:login]
@@ -52,22 +55,28 @@ tasks:
         -backend-config="key=tfstate_";
       - rm -Rf terraform.tfstate.d # Remove local state files
 
-  select-environment:
-    cmds:
-      - task: tf:init-environment
-        vars:
-          environment: "{{ `{{.CLI_ARGS}}` }}"
-
   az:login:
     cmds:
       - az login
     status:
       - az account show
+
+  gh:login:
+    cmds:
+      - gh auth login
+    status:
+      - gh auth token
+
+  {{ if .Variables.CREATE_GITHUB_ACTIONS_PIPELINE -}}
+  gh:add-ci-service-principals:
+    deps: [gh:login]
+    cmds:
+      {{- range $env := .Variables.ENVIRONMENTS }}
+      - gh secret set ARM_CLIENT_ID_{{ $env.NAME | upper }}
+      - gh secret set ARM_CLIENT_SECRET_{{ $env.NAME | upper }}
+      - gh secret set ARM_SUBSCRIPTION_ID_{{ $env.NAME | upper }}
+      - gh secret set ARM_TENANT_ID_{{ $env.NAME | upper }}
+      {{- end }}
+  {{ end }}
 # TODO: task to delete state resources for a particular env
 # TODO: validate resource group name when prompting
-# TODO: Setup CI pipeline
-#   - inject SP credentials to GH actions secrets
-#   - add GH action that installs terraform and task
-#   - template out tasks in this taskfile that
-#     1. do terraform init with proper backend config for the env
-#   - add GH action that runs those tasks
