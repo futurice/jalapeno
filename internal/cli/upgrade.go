@@ -133,6 +133,10 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) {
 
 	values, err := survey.PromptUserForValues(cmd.InOrStdin(), cmd.OutOrStdout(), varsWithoutValues, predefinedValues)
 	if err != nil {
+		if err == survey.ErrUserAborted {
+			return
+		}
+
 		cmd.PrintErrf("Error: %s", err)
 		return
 	}

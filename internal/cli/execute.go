@@ -129,6 +129,9 @@ func runExecute(cmd *cobra.Command, opts executeOptions) {
 	filteredVariables := recipeutil.FilterVariablesWithoutValues(re.Variables, predefinedValues)
 	promptedValues, err := survey.PromptUserForValues(cmd.InOrStdin(), cmd.OutOrStdout(), filteredVariables, predefinedValues)
 	if err != nil {
+		if err == survey.ErrUserAborted {
+			return
+		}
 		cmd.PrintErrf("Error when prompting for values: %v\n", err)
 		return
 	}
