@@ -8,10 +8,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/AlecAivazis/survey/v2"
 	"github.com/futurice/jalapeno/internal/cli/option"
 	"github.com/futurice/jalapeno/pkg/recipe"
 	"github.com/futurice/jalapeno/pkg/recipeutil"
+	"github.com/futurice/jalapeno/pkg/survey"
 	"github.com/spf13/cobra"
 	"golang.org/x/mod/semver"
 )
@@ -131,7 +131,7 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) {
 		}
 	}
 
-	values, err := recipeutil.PromptUserForValues(varsWithoutValues, predefinedValues)
+	values, err := survey.PromptUserForValues(cmd.InOrStdin(), cmd.OutOrStdout(), varsWithoutValues, predefinedValues)
 	if err != nil {
 		cmd.PrintErrf("Error: %s", err)
 		return
@@ -189,12 +189,12 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) {
 
 				// TODO: We could do better in terms of merge conflict management. Like show the diff or something
 				var override bool
-				prompt := &survey.Confirm{
-					Message: path,
-					Default: true,
-				}
+				// prompt := &survey.Confirm{
+				// 	Message: path,
+				// 	Default: true,
+				// }
 
-				err = survey.AskOne(prompt, &override)
+				// err = survey.AskOne(prompt, &override)
 				if err != nil {
 					cmd.PrintErrf("Error when prompting for question: %s", err)
 					return

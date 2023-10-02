@@ -9,7 +9,7 @@ import (
 	"github.com/gofrs/uuid"
 )
 
-// Renders recipe templates
+// Execute executes the recipe and returns a sauce
 func (re *Recipe) Execute(values VariableValues, id uuid.UUID) (*Sauce, error) {
 	if re.engine == nil {
 		return nil, errors.New("render engine has not been set")

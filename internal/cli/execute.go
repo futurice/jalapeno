@@ -5,10 +5,12 @@ import (
 	"os"
 	"strings"
 
+	"github.com/charmbracelet/lipgloss"
 	"github.com/futurice/jalapeno/internal/cli/option"
 	"github.com/futurice/jalapeno/pkg/oci"
 	"github.com/futurice/jalapeno/pkg/recipe"
 	"github.com/futurice/jalapeno/pkg/recipeutil"
+	"github.com/futurice/jalapeno/pkg/survey"
 	"github.com/gofrs/uuid"
 	"github.com/spf13/cobra"
 )
@@ -16,6 +18,7 @@ import (
 type executeOptions struct {
 	RecipeURL string
 	option.Values
+	option.Styles
 	option.OCIRepository
 	option.WorkingDirectory
 	option.Common
@@ -84,10 +87,11 @@ func runExecute(cmd *cobra.Command, opts executeOptions) {
 		return
 	}
 
-	cmd.Printf("Recipe name: %s\n", re.Metadata.Name)
+	style := lipgloss.NewStyle().Foreground(opts.Colors.Primary)
+	cmd.Printf("%s: %s\n", style.Render("Recipe name"), re.Metadata.Name)
 
 	if re.Metadata.Description != "" {
-		cmd.Printf("Description: %s\n", re.Metadata.Description)
+		cmd.Printf("%s: %s\n", style.Render("Description"), re.Metadata.Description)
 	}
 
 	// Load all existing sauces
@@ -123,7 +127,7 @@ func runExecute(cmd *cobra.Command, opts executeOptions) {
 
 	// Filter out variables which don't have value yet
 	filteredVariables := recipeutil.FilterVariablesWithoutValues(re.Variables, predefinedValues)
-	promptedValues, err := recipeutil.PromptUserForValues(filteredVariables, predefinedValues)
+	promptedValues, err := survey.PromptUserForValues(cmd.InOrStdin(), cmd.OutOrStdout(), filteredVariables, predefinedValues)
 	if err != nil {
 		cmd.PrintErrf("Error when prompting for values: %v\n", err)
 		return
