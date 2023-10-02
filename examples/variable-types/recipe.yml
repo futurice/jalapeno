@@ -32,7 +32,7 @@ vars:
       {{ .Variables.TABLE_VAR[0].COLUMN_1 }}
 
       You can pre-set the table variable by using CSV with having '\n' between the rows, for example:
-      `jalapeno execute examples/variables `--set 'TABLE_VAR=a;b;c\nx;y;z'`
+      `jalapeno execute examples/variables `--set 'TABLE_VAR=a,b,c\nx,y,z'`
 
       Defined by: non-empty `columns` property.
     columns: [COLUMN_1, COLUMN_2, COLUMN_3]

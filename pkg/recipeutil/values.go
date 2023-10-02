@@ -16,7 +16,7 @@ var (
 	ErrVarNotDefinedInRecipe = errors.New("following variable does not exist in the recipe")
 )
 
-func ParseProvidedValues(variables []recipe.Variable, flags []string) (recipe.VariableValues, error) {
+func ParseProvidedValues(variables []recipe.Variable, flags []string, delimiter rune) (recipe.VariableValues, error) {
 	values := make(recipe.VariableValues)
 	for _, env := range os.Environ() {
 		if !strings.HasPrefix(env, ValueEnvVarPrefix) {
@@ -67,7 +67,7 @@ func ParseProvidedValues(variables []recipe.Variable, flags []string) (recipe.Va
 			}
 		case len(targetedVariable.Columns) > 0:
 			varValue = strings.ReplaceAll(varValue, "\\n", "\n")
-			table, err := CSVToTable(targetedVariable.Columns, varValue)
+			table, err := CSVToTable(targetedVariable.Columns, varValue, delimiter)
 			if err != nil {
 				return nil, fmt.Errorf("failed to parse table from CSV for variable '%s': %w", varName, err)
 			}
@@ -103,10 +103,10 @@ func FilterVariablesWithoutValues(variables []recipe.Variable, values recipe.Var
 	return variablesWithoutValues
 }
 
-func CSVToTable(columns []string, str string) ([]map[string]string, error) {
+func CSVToTable(columns []string, str string, delimiter rune) ([]map[string]string, error) {
 	reader := csv.NewReader(strings.NewReader(str))
 	reader.FieldsPerRecord = len(columns)
-	reader.Comma = ';'
+	reader.Comma = delimiter
 	reader.TrimLeadingSpace = true
 
 	rows, err := reader.ReadAll()

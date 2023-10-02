@@ -117,7 +117,7 @@ func runExecute(cmd *cobra.Command, opts executeOptions) {
 		}
 	}
 
-	providedValues, err := recipeutil.ParseProvidedValues(re.Variables, opts.Values.Flags)
+	providedValues, err := recipeutil.ParseProvidedValues(re.Variables, opts.Values.Flags, opts.Values.CSVDelimiter)
 	if err != nil {
 		cmd.PrintErrf("Error when parsing provided values: %v\n", err)
 		return
