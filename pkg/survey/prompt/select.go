@@ -29,6 +29,10 @@ func (m SelectModel) View() string {
 	return ""
 }
 
+func (m SelectModel) Name() string {
+	return m.variable.Name
+}
+
 func (m SelectModel) Value() interface{} {
 	return ""
 }

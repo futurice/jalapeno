@@ -29,6 +29,10 @@ func (m ConfirmModel) View() string {
 	return ""
 }
 
+func (m ConfirmModel) Name() string {
+	return m.variable.Name
+}
+
 func (m ConfirmModel) Value() interface{} {
 	return true
 }

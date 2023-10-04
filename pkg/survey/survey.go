@@ -2,8 +2,10 @@ package survey
 
 import (
 	"errors"
+	"fmt"
 	"io"
 
+	"github.com/antonmedv/expr"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/futurice/jalapeno/pkg/recipe"
 	"github.com/futurice/jalapeno/pkg/survey/prompt"
@@ -15,6 +17,7 @@ type SurveyModel struct {
 	submitted bool
 	variables []recipe.Variable
 	prompts   []prompt.Model
+	err       error
 }
 
 var (
@@ -27,21 +30,12 @@ func NewSurveyModel(variables []recipe.Variable) SurveyModel {
 		variables: variables,
 	}
 
-	for _, variable := range variables {
-		var p prompt.Model
-		switch {
-		case len(variable.Options) != 0:
-			// prompt = NewSelectModel() // TODO
-			p = prompt.NewStringModel(variable)
-		case variable.Confirm:
-			// prompt = NewConfirmModel() // TODO
-			p = prompt.NewStringModel(variable)
-		case len(variable.Columns) > 0:
-			// prompt = NewTableModel() // TODO
-			p = prompt.NewStringModel(variable)
-		default:
-			p = prompt.NewStringModel(variable)
-		}
+	p, err := model.createNextPrompt()
+	if err != nil {
+		model.err = err
+	}
+
+	if p != nil {
 		model.prompts = append(model.prompts, p)
 	}
 
@@ -49,13 +43,19 @@ func NewSurveyModel(variables []recipe.Variable) SurveyModel {
 }
 
 func (m SurveyModel) Init() tea.Cmd {
-	// Initialize the first prompt
-	return m.prompts[0].Init()
+	// Initialize the first prompt (if any)
+	if m.err != nil {
+		return tea.Quit
+	}
+
+	if len(m.prompts) > 0 {
+		return m.prompts[0].Init()
+	}
+
+	return nil
 }
 
 func (m SurveyModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	// TODO: if property
-
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.Type {
@@ -64,28 +64,50 @@ func (m SurveyModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
-	promptModel, promptCmd := m.prompts[m.cursor].Update(msg)
-	m.prompts[m.cursor] = promptModel.(prompt.Model)
+	// Check if we have already submitted the survey
+	if m.submitted {
+		return m, nil
+	}
 
-	if m.prompts[m.cursor].IsSubmitted() {
-		cmds := make([]tea.Cmd, 0, 3)
+	cmds := make([]tea.Cmd, 0, 3)
+	submit := func() (tea.Model, tea.Cmd) {
+		m.submitted = true
+		cmds = append(cmds, tea.Quit)
+		return m, tea.Batch(cmds...)
+	}
+
+	if len(m.prompts) == 0 {
+		return submit()
+	}
+
+	lastPrompt := &m.prompts[len(m.prompts)-1]
+	promptModel, promptCmd := (*lastPrompt).Update(msg)
+	*lastPrompt = promptModel.(prompt.Model)
+
+	if (*lastPrompt).IsSubmitted() {
 		cmds = append(cmds, promptCmd)
 
 		// Unfocus the current prompt
-		promptModel, promptCmd = m.prompts[m.cursor].Update(util.Blur())
-		m.prompts[m.cursor] = promptModel.(prompt.Model)
+		promptModel, promptCmd = (*lastPrompt).Update(util.Blur())
+		*lastPrompt = promptModel.(prompt.Model)
 		cmds = append(cmds, promptCmd)
 
 		// Check if we're on the last prompt
-		if m.cursor == len(m.prompts)-1 {
-			m.submitted = true
-			cmds = append(cmds, tea.Quit)
-			return m, tea.Batch(cmds...)
+		if m.cursor == len(m.variables)-1 {
+			return submit()
 		}
 
 		// Otherwise, move to the next prompt
-		m.cursor++
-		cmds = append(cmds, m.prompts[m.cursor].Init())
+		if p, err := m.createNextPrompt(); err != nil {
+			m.err = err
+			cmds = append(cmds, tea.Quit)
+		} else if p == nil {
+			return submit()
+		} else {
+			m.prompts = append(m.prompts, p)
+			cmds = append(cmds, p.Init())
+		}
+
 		return m, tea.Batch(cmds...)
 	}
 
@@ -93,18 +115,22 @@ func (m SurveyModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m SurveyModel) View() (s string) {
-	s += "Provide the following variables:\n\n"
-	for i := 0; i <= m.cursor; i++ {
-		cursorIsInLastVisiblePrompt := i == m.cursor && i != 0 && !m.submitted
-		if cursorIsInLastVisiblePrompt {
+	if len(m.prompts) > 0 && !m.submitted && m.err == nil {
+		s += "Provide the following variables:\n\n"
+	}
+
+	for i := range m.prompts {
+		isLastPrompt := i == len(m.prompts)-1 && !m.submitted
+		if isLastPrompt {
 			s += "\n"
 		}
 
 		s += m.prompts[i].View()
+		s += "\n"
+	}
 
-		if !cursorIsInLastVisiblePrompt {
-			s += "\n"
-		}
+	if m.submitted || m.err != nil {
+		s += "\n"
 	}
 
 	return
@@ -112,11 +138,67 @@ func (m SurveyModel) View() (s string) {
 
 func (m SurveyModel) Values() recipe.VariableValues {
 	values := make(recipe.VariableValues, len(m.prompts))
-	for i, prompt := range m.prompts {
-		values[m.variables[i].Name] = prompt.Value()
+	for _, prompt := range m.prompts {
+		if prompt.IsSubmitted() {
+			values[prompt.Name()] = prompt.Value()
+		}
 	}
 
 	return values
+}
+
+func (m *SurveyModel) createNextPrompt() (prompt.Model, error) {
+	if len(m.prompts) > 0 {
+		m.cursor++
+	}
+
+	if m.cursor >= len(m.variables) {
+		return nil, nil
+	}
+
+	if p, err := m.createPrompt(m.variables[m.cursor]); err != nil {
+		return nil, err
+	} else if p == nil {
+		return m.createNextPrompt()
+	} else {
+		return p, nil
+	}
+}
+
+// createPrompt creates a prompt for the given variable. Returns nil if the variable should be skipped.
+func (m SurveyModel) createPrompt(v recipe.Variable) (prompt.Model, error) {
+	// Check if variable should be skipped
+	if v.If != "" {
+		result, err := expr.Eval(v.If, m.Values())
+		if err != nil {
+			return nil, fmt.Errorf("error when evaluating variable \"%s\" 'if' expression: %w", v.Name, err)
+		}
+		variableShouldBePrompted, ok := result.(bool)
+		if !ok {
+			return nil, fmt.Errorf("result of 'if' expression of variable \"%s\" was not a boolean value, was %T instead", v.Name, result)
+		}
+
+		if !variableShouldBePrompted {
+			return nil, nil
+		}
+	}
+
+	var p prompt.Model
+	switch {
+	case len(v.Options) != 0:
+		// prompt = NewSelectModel() // TODO
+		p = prompt.NewStringModel(v)
+	case v.Confirm:
+		// prompt = NewConfirmModel() // TODO
+		p = prompt.NewStringModel(v)
+	case len(v.Columns) > 0:
+		// prompt = NewTableModel() // TODO
+		p = prompt.NewStringModel(v)
+	default:
+		p = prompt.NewStringModel(v)
+	}
+
+	return p, nil
 }
 
 // PromptUserForValues prompts the user for values for the given variables
@@ -126,6 +208,10 @@ func PromptUserForValues(in io.Reader, out io.Writer, variables []recipe.Variabl
 		return nil, err
 	} else {
 		survey := m.(SurveyModel)
+		if survey.err != nil {
+			return nil, survey.err
+		}
+
 		if survey.submitted {
 			return m.(SurveyModel).Values(), nil
 		}

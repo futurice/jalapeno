@@ -29,6 +29,10 @@ func (m TableModel) View() string {
 	return ""
 }
 
+func (m TableModel) Name() string {
+	return m.variable.Name
+}
+
 func (m TableModel) Value() interface{} {
 	return ""
 }

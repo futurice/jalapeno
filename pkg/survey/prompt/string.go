@@ -124,6 +124,10 @@ func (m StringModel) View() (s string) {
 	return
 }
 
+func (m StringModel) Name() string {
+	return m.variable.Name
+}
+
 func (m StringModel) Value() interface{} {
 	return m.textInput.Value()
 }

@@ -2,6 +2,7 @@ package cli
 
 import (
 	"context"
+	"errors"
 	"os"
 	"strings"
 
@@ -119,7 +120,7 @@ func runExecute(cmd *cobra.Command, opts executeOptions) {
 
 	providedValues, err := recipeutil.ParseProvidedValues(re.Variables, opts.Values.Flags, opts.Values.CSVDelimiter)
 	if err != nil {
-		cmd.PrintErrf("Error when parsing provided values: %v\n", err)
+		cmd.PrintErrf("Error when parsing provided values: %s\n", err)
 		return
 	}
 
@@ -129,11 +130,12 @@ func runExecute(cmd *cobra.Command, opts executeOptions) {
 	filteredVariables := recipeutil.FilterVariablesWithoutValues(re.Variables, predefinedValues)
 	promptedValues, err := survey.PromptUserForValues(cmd.InOrStdin(), cmd.OutOrStdout(), filteredVariables, predefinedValues)
 	if err != nil {
-		if err == survey.ErrUserAborted {
+		if errors.Is(err, survey.ErrUserAborted) {
+			return
+		} else {
+			cmd.PrintErrf("Error when prompting for values: %s\n", err)
 			return
 		}
-		cmd.PrintErrf("Error when prompting for values: %v\n", err)
-		return
 	}
 
 	sauce, err := re.Execute(
