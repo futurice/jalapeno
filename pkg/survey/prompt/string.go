@@ -1,6 +1,9 @@
 package prompt
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -21,6 +24,7 @@ var _ Model = StringModel{}
 
 type Styles struct {
 	VariableName lipgloss.Style
+	ErrorText    lipgloss.Style
 }
 
 func DefaultStyles() Styles {
@@ -28,6 +32,8 @@ func DefaultStyles() Styles {
 		VariableName: lipgloss.NewStyle().
 			Bold(true).
 			Foreground(lipgloss.Color("#04B575")),
+		ErrorText: lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#FF0000")),
 	}
 }
 
@@ -68,6 +74,10 @@ func (m StringModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		switch msg.Type {
 		case tea.KeyEnter:
+			if err := m.Validate(); err != nil {
+				m.err = err
+				return m, nil
+			}
 			m.submitted = true
 		}
 	case util.FocusMsg:
@@ -104,6 +114,13 @@ func (m StringModel) View() (s string) {
 
 	s += m.textInput.View()
 
+	if m.textInput.Focused() && m.err != nil {
+		s += "\n"
+		errMsg := m.err.Error()
+		errMsg = strings.ToUpper(errMsg[:1]) + errMsg[1:]
+		s += m.styles.ErrorText.Render(errMsg)
+	}
+
 	return
 }
 
@@ -113,4 +130,19 @@ func (m StringModel) Value() interface{} {
 
 func (m StringModel) IsSubmitted() bool {
 	return m.submitted
+}
+
+func (m StringModel) Validate() error {
+	if !m.variable.Optional && m.textInput.Value() == "" {
+		return util.ErrRequired
+	}
+
+	if m.variable.RegExp.Pattern != "" {
+		validator := m.variable.RegExp.CreateValidatorFunc()
+		if err := validator(m.textInput.Value()); err != nil {
+			return fmt.Errorf("%w: %s", util.ErrRegExFailed, err)
+		}
+	}
+
+	return nil
 }

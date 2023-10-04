@@ -55,7 +55,6 @@ func (m SurveyModel) Init() tea.Cmd {
 
 func (m SurveyModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	// TODO: if property
-	// TODO: regex validate property
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
@@ -71,6 +70,7 @@ func (m SurveyModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if m.prompts[m.cursor].IsSubmitted() {
 		cmds := make([]tea.Cmd, 0, 3)
 		cmds = append(cmds, promptCmd)
+
 		// Unfocus the current prompt
 		promptModel, promptCmd = m.prompts[m.cursor].Update(util.Blur())
 		m.prompts[m.cursor] = promptModel.(prompt.Model)
@@ -94,16 +94,15 @@ func (m SurveyModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m SurveyModel) View() (s string) {
 	s += "Provide the following variables:\n\n"
-
 	for i := 0; i <= m.cursor; i++ {
-		if i == m.cursor && i != 0 && !m.submitted {
+		cursorIsInLastVisiblePrompt := i == m.cursor && i != 0 && !m.submitted
+		if cursorIsInLastVisiblePrompt {
 			s += "\n"
 		}
 
 		s += m.prompts[i].View()
-		s += "\n"
 
-		if i == m.cursor && i != 0 && !m.submitted {
+		if !cursorIsInLastVisiblePrompt {
 			s += "\n"
 		}
 	}

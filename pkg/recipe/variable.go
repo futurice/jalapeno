@@ -67,7 +67,7 @@ func (v *Variable) Validate() error {
 
 	if v.If != "" {
 		if _, err := expr.Compile(v.If); err != nil {
-			return fmt.Errorf("invalid variable 'if' expression: %w", err)
+			return fmt.Errorf("invalid 'if' expression: %w", err)
 		}
 	}
 
