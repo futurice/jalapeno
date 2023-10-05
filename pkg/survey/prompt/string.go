@@ -6,7 +6,6 @@ import (
 
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 	"github.com/futurice/jalapeno/pkg/recipe"
 	"github.com/futurice/jalapeno/pkg/survey/util"
 )
@@ -14,7 +13,7 @@ import (
 type StringModel struct {
 	variable        recipe.Variable
 	textInput       textinput.Model
-	styles          Styles
+	styles          util.Styles
 	submitted       bool
 	showDescription bool
 	err             error
@@ -22,22 +21,7 @@ type StringModel struct {
 
 var _ Model = StringModel{}
 
-type Styles struct {
-	VariableName lipgloss.Style
-	ErrorText    lipgloss.Style
-}
-
-func DefaultStyles() Styles {
-	return Styles{
-		VariableName: lipgloss.NewStyle().
-			Bold(true).
-			Foreground(lipgloss.Color("#04B575")),
-		ErrorText: lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#FF0000")),
-	}
-}
-
-func NewStringModel(v recipe.Variable) StringModel {
+func NewStringModel(v recipe.Variable, styles util.Styles) StringModel {
 	ti := textinput.New()
 	ti.Focus()
 	ti.CharLimit = 156
@@ -51,7 +35,7 @@ func NewStringModel(v recipe.Variable) StringModel {
 		variable:  v,
 		textInput: ti,
 		err:       nil,
-		styles:    DefaultStyles(),
+		styles:    styles,
 	}
 }
 
@@ -78,16 +62,9 @@ func (m StringModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.err = err
 				return m, nil
 			}
+			m.textInput.Prompt = ""
 			m.submitted = true
 		}
-	case util.FocusMsg:
-		m.textInput.Focus()
-		m.textInput.Prompt = "> "
-		return m, nil
-	case util.BlurMsg:
-		m.textInput.Blur()
-		m.textInput.Prompt = ""
-		return m, nil
 	}
 
 	m.textInput, cmd = m.textInput.Update(msg)
@@ -97,24 +74,25 @@ func (m StringModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m StringModel) View() (s string) {
 	s += m.styles.VariableName.Render(m.variable.Name)
 
-	if m.textInput.Focused() {
-		if m.variable.Description != "" && !m.showDescription {
-			style := lipgloss.NewStyle().Foreground(lipgloss.Color("#999999"))
-			s += style.Render(" [type ? for more info]")
-		}
-
-		s += "\n"
-		if m.showDescription {
-			s += m.variable.Description
-			s += "\n"
-		}
-	} else {
+	if m.submitted {
 		s += ": "
+		s += m.textInput.Value()
+		return
+	}
+
+	if m.variable.Description != "" && !m.showDescription {
+		s += m.styles.HelpText.Render(" [type ? for more info]")
+	}
+
+	s += "\n"
+	if m.showDescription {
+		s += m.variable.Description
+		s += "\n"
 	}
 
 	s += m.textInput.View()
 
-	if m.textInput.Focused() && m.err != nil {
+	if m.err != nil {
 		s += "\n"
 		errMsg := m.err.Error()
 		errMsg = strings.ToUpper(errMsg[:1]) + errMsg[1:]

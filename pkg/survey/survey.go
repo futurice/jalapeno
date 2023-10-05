@@ -17,6 +17,7 @@ type SurveyModel struct {
 	submitted bool
 	variables []recipe.Variable
 	prompts   []prompt.Model
+	styles    util.Styles
 	err       error
 }
 
@@ -28,6 +29,7 @@ func NewSurveyModel(variables []recipe.Variable) SurveyModel {
 	model := SurveyModel{
 		prompts:   make([]prompt.Model, 0, len(variables)),
 		variables: variables,
+		styles:    util.DefaultStyles(),
 	}
 
 	p, err := model.createNextPrompt()
@@ -43,11 +45,11 @@ func NewSurveyModel(variables []recipe.Variable) SurveyModel {
 }
 
 func (m SurveyModel) Init() tea.Cmd {
-	// Initialize the first prompt (if any)
 	if m.err != nil {
 		return tea.Quit
 	}
 
+	// Initialize the first prompt (if any)
 	if len(m.prompts) > 0 {
 		return m.prompts[0].Init()
 	}
@@ -85,11 +87,6 @@ func (m SurveyModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	*lastPrompt = promptModel.(prompt.Model)
 
 	if (*lastPrompt).IsSubmitted() {
-		cmds = append(cmds, promptCmd)
-
-		// Unfocus the current prompt
-		promptModel, promptCmd = (*lastPrompt).Update(util.Blur())
-		*lastPrompt = promptModel.(prompt.Model)
 		cmds = append(cmds, promptCmd)
 
 		// Check if we're on the last prompt
@@ -186,16 +183,15 @@ func (m SurveyModel) createPrompt(v recipe.Variable) (prompt.Model, error) {
 	var p prompt.Model
 	switch {
 	case len(v.Options) != 0:
-		// prompt = NewSelectModel() // TODO
-		p = prompt.NewStringModel(v)
+		// prompt = prompt.NewSelectModel(v, m.styles) // TODO
+		p = prompt.NewStringModel(v, m.styles)
 	case v.Confirm:
-		// prompt = NewConfirmModel() // TODO
-		p = prompt.NewStringModel(v)
+		p = prompt.NewConfirmModel(v, m.styles)
 	case len(v.Columns) > 0:
-		// prompt = NewTableModel() // TODO
-		p = prompt.NewStringModel(v)
+		// prompt = prompt.NewTableModel(v, m.styles) // TODO
+		p = prompt.NewStringModel(v, m.styles)
 	default:
-		p = prompt.NewStringModel(v)
+		p = prompt.NewStringModel(v, m.styles)
 	}
 
 	return p, nil
