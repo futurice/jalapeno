@@ -183,8 +183,7 @@ func (m SurveyModel) createPrompt(v recipe.Variable) (prompt.Model, error) {
 	var p prompt.Model
 	switch {
 	case len(v.Options) != 0:
-		// prompt = prompt.NewSelectModel(v, m.styles) // TODO
-		p = prompt.NewStringModel(v, m.styles)
+		p = prompt.NewSelectModel(v, m.styles)
 	case v.Confirm:
 		p = prompt.NewConfirmModel(v, m.styles)
 	case len(v.Columns) > 0:
