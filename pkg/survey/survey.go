@@ -117,7 +117,7 @@ func (m SurveyModel) View() (s string) {
 	}
 
 	for i := range m.prompts {
-		isLastPrompt := i == len(m.prompts)-1 && !m.submitted
+		isLastPrompt := i == len(m.prompts)-1 && len(m.prompts) > 1 && !m.submitted
 		if isLastPrompt {
 			s += "\n"
 		}
@@ -187,7 +187,7 @@ func (m SurveyModel) createPrompt(v recipe.Variable) (prompt.Model, error) {
 	case v.Confirm:
 		p = prompt.NewConfirmModel(v, m.styles)
 	case len(v.Columns) > 0:
-		p = prompt.NewTableModel(v)
+		p = prompt.NewTableModel(v, m.styles)
 	default:
 		p = prompt.NewStringModel(v, m.styles)
 	}
