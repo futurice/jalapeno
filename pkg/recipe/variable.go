@@ -25,8 +25,8 @@ type Variable struct {
 	// The user selects the value from a list of options
 	Options []string `yaml:"options,omitempty"`
 
-	// Regular expression validator for the variable value
-	RegExp VariableRegExpValidator `yaml:"regexp,omitempty"`
+	// Regular expression validators for the variable value
+	Validators []VariableValidator `yaml:"validators,omitempty"`
 
 	// Makes the variable conditional based on the result of the expression. The result of the evaluation needs to be a boolean value. Uses https://github.com/antonmedv/expr
 	If string `yaml:"if,omitempty"`
@@ -35,12 +35,15 @@ type Variable struct {
 	Columns []string `yaml:"columns,omitempty"`
 }
 
-type VariableRegExpValidator struct {
+type VariableValidator struct {
 	// Regular expression pattern to match the input against
 	Pattern string `yaml:"pattern,omitempty"`
 
 	// If the regular expression validation fails, this help message will be shown to the user
 	Help string `yaml:"help,omitempty"`
+
+	// Apply the validator to a column if the variable type is table
+	Column string `yaml:"column,omitempty"`
 }
 
 // VariableValues stores values for each variable
@@ -59,9 +62,44 @@ func (v *Variable) Validate() error {
 		}
 	}
 
-	if v.RegExp.Pattern != "" {
-		if _, err := regexp.Compile(v.RegExp.Pattern); err != nil {
-			return fmt.Errorf("invalid variable regexp pattern: %w", err)
+	for i, validator := range v.Validators {
+		baseErr := fmt.Errorf("validator %d", i+1)
+		if v.Confirm {
+			return fmt.Errorf("%s: validators for boolean variables are not supported", baseErr)
+		}
+
+		if len(v.Options) > 0 {
+			return fmt.Errorf("%s: validators for select variables are not supported", baseErr)
+		}
+
+		if len(v.Columns) > 0 && validator.Column == "" {
+			return fmt.Errorf("%s: validator need to have `column` property defined since the variable is table type", baseErr)
+		}
+
+		if validator.Pattern == "" {
+			return fmt.Errorf("%s: regexp pattern is empty", baseErr)
+		}
+
+		if validator.Column != "" {
+			if len(v.Columns) == 0 {
+				return fmt.Errorf("%s: validator is defined for column while the variable has not defined any", baseErr)
+			}
+
+			found := false
+			for _, c := range v.Columns {
+				if c == validator.Column {
+					found = true
+					break
+				}
+			}
+
+			if !found {
+				return fmt.Errorf("%s: column %s does not exist in the variable", baseErr, validator.Column)
+			}
+		}
+
+		if _, err := regexp.Compile(validator.Pattern); err != nil {
+			return fmt.Errorf("%s: invalid variable regexp pattern: %w", baseErr, err)
 		}
 	}
 
@@ -74,11 +112,11 @@ func (v *Variable) Validate() error {
 	return nil
 }
 
-func (r *VariableRegExpValidator) CreateValidatorFunc() func(input interface{}) error {
+func (r *VariableValidator) CreateValidatorFunc() func(input string) error {
 	reg := regexp.MustCompile(r.Pattern)
 
-	return func(input interface{}) error {
-		if match := reg.MatchString(fmt.Sprint(input)); !match {
+	return func(input string) error {
+		if match := reg.MatchString(input); !match {
 			if r.Help != "" {
 				return errors.New(r.Help)
 			} else {

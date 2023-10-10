@@ -1,6 +1,10 @@
 package editable
 
 import (
+	"errors"
+	"fmt"
+	"strings"
+
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/bubbles/viewport"
@@ -30,8 +34,9 @@ type Row []textinput.Model
 
 // Column defines the table structure.
 type Column struct {
-	Title string
-	Width int
+	Title      string
+	Width      int
+	Validators []func(string) error
 }
 
 // KeyMap defines keybindings. It satisfies to the help.KeyMap interface, which
@@ -105,7 +110,9 @@ type Styles struct {
 
 func DefaultStyles() Styles {
 	return Styles{
-		Selected: lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("212")),
+		Selected: lipgloss.NewStyle().
+			Bold(true).
+			Foreground(lipgloss.Color("212")),
 		Header: lipgloss.NewStyle().
 			Bold(true).
 			Padding(0, 1).
@@ -123,7 +130,7 @@ func DefaultStyles() Styles {
 
 func (m *Model) SetStyles(s Styles) {
 	m.styles = s
-	m.UpdateViewport()
+	m.updateViewport()
 }
 
 // Option is used to set options in New. For example:
@@ -136,7 +143,7 @@ func New(opts ...Option) Model {
 	m := Model{
 		cursorX:  0,
 		cursorY:  0,
-		viewport: viewport.New(0, 3),
+		viewport: viewport.New(0, 4),
 
 		KeyMap: DefaultKeyMap(),
 		styles: DefaultStyles(),
@@ -229,7 +236,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
-	m.UpdateViewport()
+	m.updateViewport()
 	m.rows[m.cursorY][m.cursorX], cmd = m.rows[m.cursorY][m.cursorX].Update(msg)
 	return m, cmd
 }
@@ -240,28 +247,16 @@ func (m Model) Focused() bool {
 
 func (m *Model) Focus() {
 	m.focus = true
-	m.UpdateViewport()
+	m.updateViewport()
 }
 
 func (m *Model) Blur() {
 	m.focus = false
-	m.UpdateViewport()
+	m.updateViewport()
 }
 
 func (m Model) View() string {
 	return m.headersView() + "\n" + m.viewport.View()
-}
-
-func (m *Model) UpdateViewport() {
-	renderedRows := make([]string, 0, len(m.rows))
-
-	for i := range m.rows {
-		renderedRows = append(renderedRows, m.renderRow(i))
-	}
-
-	m.viewport.SetContent(
-		lipgloss.JoinVertical(lipgloss.Left, renderedRows...),
-	)
 }
 
 // Rows returns the current rows.
@@ -272,18 +267,14 @@ func (m Model) Rows() []Row {
 func (m *Model) AddRow() {
 	row := make(Row, len(m.cols))
 	for i := range row {
-		ti := textinput.New()
-		ti.Blur()
-		ti.Width = m.cols[i].Width - 1
-		ti.Prompt = ""
-		row[i] = ti
+		row[i] = m.newTextInput(m.cols[i])
 	}
 
 	m.rows = append(m.rows, row)
 
 	m.viewport.Height += 2
 
-	m.UpdateViewport()
+	m.updateViewport()
 }
 
 // SetRows sets a new rows state.
@@ -291,13 +282,13 @@ func (m *Model) RemoveRow(n int) {
 	m.rows = append(m.rows[:n], m.rows[n+1:]...)
 	m.viewport.Height -= 2
 
-	m.UpdateViewport()
+	m.updateViewport()
 }
 
 // SetColumns sets a new columns state.
 func (m *Model) SetColumns(c []Column) {
 	m.cols = c
-	m.UpdateViewport()
+	m.updateViewport()
 }
 
 // Cursor returns the index of the selected row.
@@ -309,7 +300,7 @@ func (m Model) Cursor() (int, int) {
 func (m *Model) SetCursor(y, x int) {
 	m.cursorY = clamp(y, 0, len(m.rows)-1)
 	m.cursorX = clamp(x, 0, len(m.cols)-1)
-	m.UpdateViewport()
+	m.updateViewport()
 }
 
 // MoveUp moves the selection up by any number of rows.
@@ -355,7 +346,8 @@ func (m *Model) Move(y, x int) tea.Cmd {
 	}
 
 	// Blur existing cell
-	m.BlurCell()
+	m.rows[m.cursorY][m.cursorX].Blur()
+	m.rows[m.cursorY][m.cursorX].Err = m.validateCell(m.cursorY, m.cursorX)
 
 	if x != 0 {
 		m.cursorX = clamp(m.cursorX+x, 0, len(m.cols)-1)
@@ -386,10 +378,10 @@ func (m *Model) Move(y, x int) tea.Cmd {
 		m.cursorY = clamp(m.cursorY+y, 0, len(m.rows)-1)
 	}
 
-	m.UpdateViewport()
+	m.updateViewport()
 
 	// Focus on the new cell
-	return m.FocusCell()
+	return m.rows[m.cursorY][m.cursorX].Focus()
 }
 
 func (m Model) Columns() []string {
@@ -410,6 +402,64 @@ func (m Model) Values() [][]string {
 	}
 
 	return values
+}
+
+func (m Model) Errors() []error {
+	errors := make([]error, 0, len(m.rows)*len(m.cols))
+	for y := range m.rows {
+		for x := range m.rows[y] {
+			if m.rows[y][x].Err != nil {
+				errors = append(errors, fmt.Errorf("cell (%d, %d): %w", y, x, m.rows[y][x].Err))
+			}
+		}
+	}
+
+	return errors
+}
+
+func (m Model) validateCell(y, x int) error {
+	if m.cols[x].Validators == nil {
+		return nil
+	}
+
+	errs := make([]error, 0, len(m.cols[x].Validators))
+	for i := range m.cols[x].Validators {
+		err := m.cols[x].Validators[i](m.rows[y][x].Value())
+		if err != nil {
+			errs = append(errs, err)
+		}
+	}
+
+	errStr := make([]string, len(errs))
+	for i := range errs {
+		errStr[i] = errs[i].Error()
+	}
+
+	return errors.New(strings.Join(errStr, ", "))
+}
+
+func (m *Model) updateViewport() {
+	renderedRows := make([]string, 0, len(m.rows))
+
+	for i := range m.rows {
+		renderedRows = append(renderedRows, m.renderRow(i))
+	}
+
+	errStr := ""
+	errors := m.Errors()
+	if len(errors) != 0 {
+		for _, err := range errors {
+			errStr += fmt.Sprintf("Error on %s\n", err)
+		}
+	}
+
+	m.viewport.SetContent(
+		lipgloss.JoinVertical(
+			lipgloss.Left,
+			lipgloss.JoinVertical(lipgloss.Left, renderedRows...),
+			errStr,
+		),
+	)
 }
 
 func (m Model) headersView() string {
@@ -437,12 +487,13 @@ func (m *Model) renderRow(rowID int) string {
 	return lipgloss.JoinHorizontal(lipgloss.Left, s...)
 }
 
-func (m *Model) FocusCell() tea.Cmd {
-	return m.rows[m.cursorY][m.cursorX].Focus()
-}
+func (m Model) newTextInput(c Column) textinput.Model {
+	ti := textinput.New()
+	ti.Blur()
+	ti.Prompt = ""
+	ti.Width = c.Width - 1
 
-func (m *Model) BlurCell() {
-	m.rows[m.cursorY][m.cursorX].Blur()
+	return ti
 }
 
 func max(a, b int) int {

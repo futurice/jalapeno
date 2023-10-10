@@ -49,9 +49,9 @@ func ParseProvidedValues(variables []recipe.Variable, flags []string, delimiter 
 			return nil, fmt.Errorf("%w: %s", ErrVarNotDefinedInRecipe, varName)
 		}
 
-		if targetedVariable.RegExp.Pattern != "" {
-			validator := targetedVariable.RegExp.CreateValidatorFunc()
-			if err := validator(varValue); err != nil {
+		for i := range targetedVariable.Validators {
+			validatorFunc := targetedVariable.Validators[i].CreateValidatorFunc()
+			if err := validatorFunc(varValue); err != nil {
 				return nil, fmt.Errorf("validator failed for value '%s=%s': %w", varName, varValue, err)
 			}
 		}
@@ -81,6 +81,8 @@ func ParseProvidedValues(variables []recipe.Variable, flags []string, delimiter 
 	return values, nil
 }
 
+// MergeValues merges multiple VariableValues into one. If a key exists in multiple VariableValues, the value from the
+// last VariableValues will be used.
 func MergeValues(valuesSlice ...recipe.VariableValues) recipe.VariableValues {
 	merged := make(recipe.VariableValues)
 	for _, values := range valuesSlice {

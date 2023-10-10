@@ -18,10 +18,23 @@ var _ Model = TableModel{}
 
 func NewTableModel(v recipe.Variable) TableModel {
 	cols := make([]editable.Column, len(v.Columns))
+
+	validators := make(map[string][]func(string) error)
+	for i, validator := range v.Validators {
+		if validator.Column != "" {
+			if validators[validator.Column] == nil {
+				validators[validator.Column] = make([]func(string) error, 0)
+			}
+
+			validators[validator.Column] = append(validators[validator.Column], v.Validators[i].CreateValidatorFunc())
+		}
+	}
+
 	for i, c := range v.Columns {
 		cols[i] = editable.Column{
-			Title: c,
-			Width: len(c),
+			Title:      c,
+			Width:      len(c),
+			Validators: validators[c],
 		}
 	}
 	table := editable.New(editable.WithColumns(cols))

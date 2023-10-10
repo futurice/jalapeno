@@ -6,25 +6,25 @@ version: v0.0.0
 vars:
   ### Variable types
   #
-  # - name: SELECT_VAR
-  #   description: |
-  #     User chooses one value from the predefined values in `options` property.
+  - name: STRING_VAR
+    description: |
+      Simple string variable
 
-  #     Defined by: non-empty `options` property.
-  #   options:
-  #     - option_1
-  #     - option_2
+  - name: BOOLEAN_VAR
+    description: |
+      Boolean variable can have value either `true` or `false`.
 
-  # - name: STRING_VAR
-  #   description: |
-  #     Simple string variable
+      Defined by: `confirm: true`.
+    confirm: true
 
-  # - name: BOOLEAN_VAR
-  #   description: |
-  #     Boolean variable can have value either `true` or `false`.
+  - name: SELECT_VAR
+    description: |
+      User chooses one value from the predefined values in `options` property.
 
-  #     Defined by: `confirm: true`.
-  #   confirm: true
+      Defined by: non-empty `options` property.
+    options:
+      - option_1
+      - option_2
 
   - name: TABLE_VAR
     description: |
@@ -64,6 +64,6 @@ vars:
   - name: VAR_WITH_VALIDATOR
     description: |
       Regular expression validators can be set for a variable by defining `regexp` property
-    regexp:
-      pattern: ".*"
-      help: "If the check doesn't pass, this help message will be shown"
+    validators:
+      - pattern: ".*"
+        help: "If the check doesn't pass, this help message will be shown"
