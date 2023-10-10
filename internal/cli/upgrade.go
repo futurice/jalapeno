@@ -120,6 +120,7 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) {
 	}
 
 	predefinedValues := recipeutil.MergeValues(reusedValues, providedValues)
+	values := recipeutil.MergeValues(oldSauce.Values, predefinedValues)
 
 	// Don't prompt variables which already has a value in existing sauce or is predefined
 	varsWithoutValues := make([]recipe.Variable, 0, len(re.Variables))
@@ -131,15 +132,19 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) {
 		}
 	}
 
-	values, err := survey.PromptUserForValues(cmd.InOrStdin(), cmd.OutOrStdout(), varsWithoutValues, predefinedValues)
-	if err != nil {
-		if !errors.Is(err, survey.ErrUserAborted) {
-			cmd.PrintErrf("Error when prompting for values: %s\n", err)
+	if len(varsWithoutValues) > 0 {
+		promptedValues, err := survey.PromptUserForValues(cmd.InOrStdin(), cmd.OutOrStdout(), varsWithoutValues, predefinedValues)
+		if err != nil {
+			if !errors.Is(err, survey.ErrUserAborted) {
+				cmd.PrintErrf("Error when prompting for values: %s\n", err)
+			}
+			return
 		}
-		return
+
+		values = recipeutil.MergeValues(values, promptedValues)
 	}
 
-	newSauce, err := re.Execute(recipeutil.MergeValues(values, oldSauce.Values, predefinedValues), oldSauce.ID)
+	newSauce, err := re.Execute(values, oldSauce.ID)
 	if err != nil {
 		cmd.PrintErrf("Error: %s", err)
 		return

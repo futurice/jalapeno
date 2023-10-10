@@ -124,24 +124,24 @@ func runExecute(cmd *cobra.Command, opts executeOptions) {
 		return
 	}
 
-	predefinedValues := recipeutil.MergeValues(reusedValues, providedValues)
+	values := recipeutil.MergeValues(reusedValues, providedValues)
 
 	// Filter out variables which don't have value yet
-	filteredVariables := recipeutil.FilterVariablesWithoutValues(re.Variables, predefinedValues)
-	promptedValues, err := survey.PromptUserForValues(cmd.InOrStdin(), cmd.OutOrStdout(), filteredVariables, predefinedValues)
-	if err != nil {
-		if errors.Is(err, survey.ErrUserAborted) {
-			return
-		} else {
-			cmd.PrintErrf("Error when prompting for values: %s\n", err)
-			return
+	varsWithoutValues := recipeutil.FilterVariablesWithoutValues(re.Variables, values)
+	if len(varsWithoutValues) > 0 {
+		promptedValues, err := survey.PromptUserForValues(cmd.InOrStdin(), cmd.OutOrStdout(), varsWithoutValues, values)
+		if err != nil {
+			if errors.Is(err, survey.ErrUserAborted) {
+				return
+			} else {
+				cmd.PrintErrf("Error when prompting for values: %s\n", err)
+				return
+			}
 		}
+		values = recipeutil.MergeValues(values, promptedValues)
 	}
 
-	sauce, err := re.Execute(
-		recipeutil.MergeValues(predefinedValues, promptedValues),
-		uuid.Must(uuid.NewV4()),
-	)
+	sauce, err := re.Execute(values, uuid.Must(uuid.NewV4()))
 	if err != nil {
 		cmd.PrintErrf("Error: %s", err)
 		return
