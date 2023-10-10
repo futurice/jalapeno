@@ -124,3 +124,15 @@ func CSVToTable(columns []string, str string, delimiter rune) ([]map[string]stri
 
 	return table, nil
 }
+
+func RowsToTable(columns []string, rows [][]string) ([]map[string]string, error) {
+	table := make([]map[string]string, len(rows))
+	for i, row := range rows {
+		table[i] = make(map[string]string)
+		for j, cell := range row {
+			table[i][columns[j]] = cell
+		}
+	}
+
+	return table, nil
+}

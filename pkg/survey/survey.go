@@ -187,8 +187,7 @@ func (m SurveyModel) createPrompt(v recipe.Variable) (prompt.Model, error) {
 	case v.Confirm:
 		p = prompt.NewConfirmModel(v, m.styles)
 	case len(v.Columns) > 0:
-		// prompt = prompt.NewTableModel(v, m.styles) // TODO
-		p = prompt.NewStringModel(v, m.styles)
+		p = prompt.NewTableModel(v)
 	default:
 		p = prompt.NewStringModel(v, m.styles)
 	}

@@ -6,25 +6,25 @@ version: v0.0.0
 vars:
   ### Variable types
   #
-  - name: STRING_VAR
-    description: |
-      Simple string variable
+  # - name: SELECT_VAR
+  #   description: |
+  #     User chooses one value from the predefined values in `options` property.
 
-  - name: BOOLEAN_VAR
-    description: |
-      Boolean variable can have value either `true` or `false`. 
+  #     Defined by: non-empty `options` property.
+  #   options:
+  #     - option_1
+  #     - option_2
 
-      Defined by: `confirm: true`.
-    confirm: true
+  # - name: STRING_VAR
+  #   description: |
+  #     Simple string variable
 
-  - name: SELECT_VAR
-    description: |
-      User chooses one value from the predefined values in `options` property.
+  # - name: BOOLEAN_VAR
+  #   description: |
+  #     Boolean variable can have value either `true` or `false`.
 
-      Defined by: non-empty `options` property.
-    options:
-      - option_1
-      - option_2
+  #     Defined by: `confirm: true`.
+  #   confirm: true
 
   - name: TABLE_VAR
     description: |
