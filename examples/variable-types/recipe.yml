@@ -63,7 +63,16 @@ vars:
 
   - name: VAR_WITH_VALIDATOR
     description: |
-      Regular expression validators can be set for a variable by defining `regexp` property
+      Regular expression validators can be set for a variable by defining `validators` property
     validators:
-      - pattern: ".*"
+      - pattern: ".+"
+        help: "If the check doesn't pass, this help message will be shown"
+
+  - name: TABLE_VAR_WITH_VALIDATOR
+    description: |
+      Regular expression validators can be set for a table variable by defining `validators` and `column` property
+    columns: [NOT_EMPTY_COL, CAN_BE_EMPTY_COL]
+    validators:
+      - pattern: ".+"
+        column: NOT_EMPTY_COL
         help: "If the check doesn't pass, this help message will be shown"

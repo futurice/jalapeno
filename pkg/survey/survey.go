@@ -25,7 +25,7 @@ var (
 	ErrUserAborted = errors.New("user aborted")
 )
 
-func NewSurveyModel(variables []recipe.Variable) SurveyModel {
+func NewModel(variables []recipe.Variable) SurveyModel {
 	model := SurveyModel{
 		prompts:   make([]prompt.Model, 0, len(variables)),
 		variables: variables,
@@ -197,7 +197,7 @@ func (m SurveyModel) createPrompt(v recipe.Variable) (prompt.Model, error) {
 
 // PromptUserForValues prompts the user for values for the given variables
 func PromptUserForValues(in io.Reader, out io.Writer, variables []recipe.Variable, existingValues recipe.VariableValues) (recipe.VariableValues, error) {
-	p := tea.NewProgram(NewSurveyModel(variables), tea.WithInput(in), tea.WithOutput(out))
+	p := tea.NewProgram(NewModel(variables), tea.WithInput(in), tea.WithOutput(out))
 	if m, err := p.Run(); err != nil {
 		return nil, err
 	} else {

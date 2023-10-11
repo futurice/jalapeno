@@ -69,6 +69,11 @@ func (m TableModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		switch msg.Type {
 		case tea.KeyEnter:
+			// Validate the table. If there are errors, don't submit the form.
+			if errs := m.table.Validate(); len(errs) != 0 {
+				return m, nil
+			}
+
 			m.submitted = true
 			m.tableAsCSV = m.ValueAsCSV()
 			m.table.Blur()

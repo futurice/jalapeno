@@ -22,6 +22,7 @@ type Model struct {
 	cursorY int
 	focus   bool
 	styles  Styles
+	errors  []error
 
 	viewport viewport.Model
 }
@@ -334,7 +335,7 @@ func (m *Model) Move(y, x int) tea.Cmd {
 	}
 
 	m.rows[m.cursorY][m.cursorX].Blur()
-	m.rows[m.cursorY][m.cursorX].Err = m.validateCell(m.cursorY, m.cursorX)
+	m.Validate()
 
 	if x != 0 {
 		m.cursorX = clamp(m.cursorX+x, 0, len(m.cols)-1)
@@ -391,16 +392,18 @@ func (m Model) Values() [][]string {
 	return values
 }
 
-func (m Model) Errors() []error {
+func (m *Model) Validate() []error {
 	errors := make([]error, 0, len(m.rows)*len(m.cols))
 	for y := range m.rows {
 		for x := range m.rows[y] {
-			if m.rows[y][x].Err != nil {
-				errors = append(errors, fmt.Errorf("cell (%d, %d): %w", y, x, m.rows[y][x].Err))
+			err := m.validateCell(y, x)
+			if err != nil {
+				errors = append(errors, fmt.Errorf("cell (%d, %d): %w", y, x, err))
 			}
 		}
 	}
 
+	m.errors = errors
 	return errors
 }
 
@@ -415,6 +418,14 @@ func (m Model) validateCell(y, x int) error {
 		if err != nil {
 			errs = append(errs, err)
 		}
+	}
+
+	if len(errs) == 0 {
+		return nil
+	}
+
+	if len(errs) == 1 {
+		return errs[0]
 	}
 
 	errStr := make([]string, len(errs))
@@ -433,9 +444,8 @@ func (m *Model) updateViewport() {
 	}
 
 	errStr := ""
-	errors := m.Errors()
-	if len(errors) != 0 {
-		for _, err := range errors {
+	if len(m.errors) != 0 {
+		for _, err := range m.errors {
 			errStr += fmt.Sprintf("Error on %s\n", err)
 		}
 	}
