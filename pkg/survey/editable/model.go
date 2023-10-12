@@ -105,6 +105,7 @@ func DefaultStyles() Styles {
 	return Styles{
 		Selected: lipgloss.NewStyle().
 			Bold(true).
+			Background(lipgloss.Color("236")).
 			Foreground(lipgloss.Color("212")),
 		Header: lipgloss.NewStyle().
 			Bold(true).
@@ -248,7 +249,6 @@ func (m Model) View() string {
 	return m.headersView() + "\n" + m.viewport.View()
 }
 
-// Rows returns the current rows.
 func (m Model) Rows() []Row {
 	return m.rows
 }
@@ -260,13 +260,11 @@ func (m *Model) AddRow() {
 	}
 
 	m.rows = append(m.rows, row)
-
 	m.viewport.Height += 2
 
 	m.updateViewport()
 }
 
-// SetRows sets a new rows state.
 func (m *Model) RemoveRow(n int) {
 	m.rows = append(m.rows[:n], m.rows[n+1:]...)
 	m.viewport.Height -= 2
@@ -274,32 +272,19 @@ func (m *Model) RemoveRow(n int) {
 	m.updateViewport()
 }
 
-// SetColumns sets a new columns state.
 func (m *Model) SetColumns(c []Column) {
 	m.cols = c
 	m.updateViewport()
 }
 
-// Cursor returns the index of the selected row.
 func (m Model) Cursor() (int, int) {
 	return m.cursorY, m.cursorX
 }
 
-// SetCursor sets the cursor position in the table.
-func (m *Model) SetCursor(y, x int) {
-	m.cursorY = clamp(y, 0, len(m.rows)-1)
-	m.cursorX = clamp(x, 0, len(m.cols)-1)
-	m.updateViewport()
-}
-
-// MoveUp moves the selection up by any number of rows.
-// It can not go above the first row.
 func (m *Model) MoveUp(n int) tea.Cmd {
 	return m.Move(-n, 0)
 }
 
-// MoveDown moves the selection down by any number of rows.
-// It can not go below the last row.
 func (m *Model) MoveDown(n int) tea.Cmd {
 	return m.Move(n, 0)
 }
@@ -318,6 +303,7 @@ func (m *Model) MoveToNextCell() tea.Cmd {
 		return m.MoveRight(1)
 	}
 
+	// else move to the first cell of the next row
 	return m.Move(1, -(len(m.cols) - 1))
 }
 
@@ -484,11 +470,12 @@ func (m *Model) renderRow(rowID int) string {
 	return lipgloss.JoinHorizontal(lipgloss.Left, s...)
 }
 
+// newTextInput initializes a text input which is used inside a cell.
 func (m Model) newTextInput(c Column) textinput.Model {
 	ti := textinput.New()
-	ti.Blur()
 	ti.Prompt = ""
 	ti.Width = c.Width - 1
+	ti.Blur()
 
 	return ti
 }

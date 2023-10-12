@@ -60,10 +60,11 @@ func (m ConfirmModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m ConfirmModel) View() (s string) {
 	s += m.styles.VariableName.Render(m.variable.Name)
 	if m.submitted {
+		s += ": "
 		if m.value {
-			s += ": Yes"
+			s += "Yes"
 		} else {
-			s += ": No"
+			s += "No"
 		}
 		return
 	}

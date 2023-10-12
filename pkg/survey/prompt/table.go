@@ -1,7 +1,10 @@
 package prompt
 
 import (
+	"strings"
+
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/futurice/jalapeno/pkg/recipe"
 	"github.com/futurice/jalapeno/pkg/recipeutil"
 	"github.com/futurice/jalapeno/pkg/survey/editable"
@@ -21,6 +24,15 @@ type TableModel struct {
 }
 
 var _ Model = TableModel{}
+
+var (
+	csvNewLine = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#999999")).
+			Render("\\n")
+	csvSeparator string = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#999999")).
+			Render(",")
+)
 
 func NewTableModel(v recipe.Variable, styles util.Styles) TableModel {
 	cols := make([]editable.Column, len(v.Columns))
@@ -93,13 +105,21 @@ func (m TableModel) View() (s string) {
 		return
 	}
 
-	if m.variable.Description != "" && !m.showDescription {
+	if !m.showDescription {
 		s += m.styles.HelpText.Render(" [type ? for more info]")
 	}
 
 	s += "\n"
 	if m.showDescription {
-		s += m.variable.Description
+		if m.variable.Description != "" {
+			s += m.variable.Description
+			s += "\n"
+		}
+		s += m.styles.HelpText.Render(`Table controls:
+- arrow keys: to move between cells
+- tab: to move to the next cells
+- ctrl+n or move past last row: create a new row 
+`)
 	}
 	s += "\n"
 
@@ -121,17 +141,13 @@ func (m TableModel) IsSubmitted() bool {
 }
 
 func (m TableModel) ValueAsCSV() string {
+
 	rows := m.table.Values()
 	s := ""
 	for y := range rows {
-		for x := range rows[y] {
-			s += rows[y][x]
-			if x < len(rows[y])-1 {
-				s += ","
-			}
-		}
+		s += strings.Join(rows[y], csvSeparator)
 		if y < len(rows)-1 {
-			s += "\\n"
+			s += csvNewLine
 		}
 	}
 
