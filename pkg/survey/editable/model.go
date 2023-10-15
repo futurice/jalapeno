@@ -20,7 +20,6 @@ type Model struct {
 	cursorX int
 	cursorY int
 	focus   bool
-	errors  []error
 
 	styles Styles
 	table  table.Table
@@ -29,7 +28,12 @@ type Model struct {
 var _ tea.Model = Model{}
 var _ table.Data = Model{}
 
-type Row []textinput.Model
+type Row []Cell
+
+type Cell struct {
+	input textinput.Model
+	err   error
+}
 
 type Column struct {
 	Title      string
@@ -91,6 +95,7 @@ type Styles struct {
 	Header   lipgloss.Style
 	Cell     lipgloss.Style
 	Selected lipgloss.Style
+	Error    lipgloss.Style
 }
 
 func DefaultStyles() Styles {
@@ -105,6 +110,8 @@ func DefaultStyles() Styles {
 			Padding(0, 1),
 		Cell: lipgloss.NewStyle().
 			Padding(0, 1),
+		Error: lipgloss.NewStyle().
+			Foreground(lipgloss.Color("9")),
 	}
 }
 
@@ -138,7 +145,7 @@ func NewModel(opts ...Option) Model {
 }
 
 func (m Model) At(row, cell int) string {
-	return m.rows[row][cell].View()
+	return m.rows[row][cell].input.View()
 }
 
 func (m Model) Columns() int {
@@ -180,7 +187,7 @@ func WithKeyMap(km KeyMap) Option {
 
 func (m Model) Init() tea.Cmd {
 	return tea.Batch(
-		m.rows[0][0].Focus(),
+		m.rows[0][0].input.Focus(),
 		textinput.Blink,
 	)
 }
@@ -216,7 +223,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
-	m.rows[m.cursorY][m.cursorX], cmd = m.rows[m.cursorY][m.cursorX].Update(msg)
+	m.rows[m.cursorY][m.cursorX].input, cmd = m.rows[m.cursorY][m.cursorX].input.Update(msg)
 	return m, cmd
 }
 
@@ -226,11 +233,11 @@ func (m *Model) Focus() {
 
 func (m *Model) Blur() {
 	m.focus = false
-	m.rows[m.cursorY][m.cursorX].Blur()
+	m.rows[m.cursorY][m.cursorX].input.Blur()
 }
 
-func (m Model) View() string {
-	return m.table.
+func (m Model) View() (s string) {
+	s += m.table.
 		StyleFunc(func(y, x int) lipgloss.Style {
 			switch {
 			case y == 0:
@@ -243,12 +250,21 @@ func (m Model) View() string {
 		}).
 		Data(m).
 		Render()
+
+	s += "\n"
+	if errs := m.Errors(); len(errs) != 0 {
+		for _, err := range errs {
+			s += m.styles.Error.Render(fmt.Sprintf("• %s", err.Error()))
+			s += "\n"
+		}
+	}
+	return
 }
 
 func (m *Model) AddRow() {
 	row := make(Row, len(m.cols))
 	for i := range row {
-		row[i] = m.newTextInput(m.cols[i])
+		row[i].input = m.newTextInput(m.cols[i])
 	}
 
 	m.rows = append(m.rows, row)
@@ -309,11 +325,8 @@ func (m *Model) Move(y, x int) tea.Cmd {
 		return nil
 	}
 
-	m.rows[m.cursorY][m.cursorX].Blur()
-
-	// TODO: This could be optimized to only validate the cells that are affected by.
-	// But at the moment this is the only place where we validate the table
-	m.Validate()
+	m.rows[m.cursorY][m.cursorX].input.Blur()
+	m.validateCell(m.cursorY, m.cursorX)
 
 	if x != 0 {
 		m.cursorX = clamp(m.cursorX+x, 0, len(m.cols)-1)
@@ -330,7 +343,7 @@ func (m *Model) Move(y, x int) tea.Cmd {
 			isEmpty := true
 			for n := 0; n > y; n-- {
 				for _, cell := range m.rows[m.cursorY+n] {
-					if cell.Value() != "" {
+					if cell.input.Value() != "" {
 						isEmpty = false
 						break
 					}
@@ -345,7 +358,7 @@ func (m *Model) Move(y, x int) tea.Cmd {
 	}
 
 	// Focus on the new cell
-	return m.rows[m.cursorY][m.cursorX].Focus()
+	return m.rows[m.cursorY][m.cursorX].input.Focus()
 }
 
 func (m Model) Values() [][]string {
@@ -353,47 +366,54 @@ func (m Model) Values() [][]string {
 	for i, row := range m.rows {
 		values[i] = make([]string, len(row))
 		for j, cell := range row {
-			values[i][j] = cell.Value()
+			values[i][j] = cell.input.Value()
 		}
 	}
 
 	return values
 }
 
-func (m *Model) Validate() []error {
-	errors := make([]error, 0, len(m.rows)*len(m.cols))
+func (m *Model) Validate() {
 	for y := range m.rows {
 		for x := range m.rows[y] {
-			err := m.validateCell(y, x)
-			if err != nil {
-				errors = append(errors, fmt.Errorf("cell (%d, %d): %w", y, x, err))
+			m.validateCell(y, x)
+		}
+	}
+}
+
+func (m Model) Errors() []error {
+	errs := make([]error, 0, len(m.rows)*len(m.cols))
+	for y := range m.rows {
+		for x := range m.rows[y] {
+			if m.rows[y][x].err != nil {
+				errs = append(errs, fmt.Errorf("cell (%d, %d): %w", y, x, m.rows[y][x].err))
 			}
 		}
 	}
-
-	m.errors = errors
-	return errors
+	return errs
 }
 
-func (m Model) validateCell(y, x int) error {
+func (m *Model) validateCell(y, x int) {
+	cell := &m.rows[y][x]
 	if m.cols[x].Validators == nil {
-		return nil
+		return
 	}
 
 	errs := make([]error, 0, len(m.cols[x].Validators))
 	for i := range m.cols[x].Validators {
-		err := m.cols[x].Validators[i](m.rows[y][x].Value())
+		err := m.cols[x].Validators[i](cell.input.Value())
 		if err != nil {
 			errs = append(errs, err)
 		}
 	}
 
 	if len(errs) == 0 {
-		return nil
+		cell.err = nil
+		return
 	}
 
 	if len(errs) == 1 {
-		return errs[0]
+		cell.err = errs[0]
 	}
 
 	errStr := make([]string, len(errs))
@@ -401,7 +421,7 @@ func (m Model) validateCell(y, x int) error {
 		errStr[i] = errs[i].Error()
 	}
 
-	return errors.New(strings.Join(errStr, ", "))
+	cell.err = errors.New(strings.Join(errStr, ", "))
 }
 
 // newTextInput initializes a text input which is used inside a cell.

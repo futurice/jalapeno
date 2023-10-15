@@ -82,7 +82,8 @@ func (m TableModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.Type {
 		case tea.KeyEnter:
 			// Validate the table. If there are errors, don't submit the form.
-			if errs := m.table.Validate(); len(errs) != 0 {
+			m.table.Validate()
+			if errs := m.table.Errors(); len(errs) != 0 {
 				return m, nil
 			}
 
