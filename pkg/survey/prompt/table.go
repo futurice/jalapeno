@@ -97,35 +97,36 @@ func (m TableModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
-func (m TableModel) View() (s string) {
-	s += m.styles.VariableName.Render(m.variable.Name)
+func (m TableModel) View() string {
+	var s strings.Builder
+	s.WriteString(m.styles.VariableName.Render(m.variable.Name))
 
 	if m.submitted {
-		s += ": "
-		s += m.tableAsCSV
-		return
+		s.WriteString(": ")
+		s.WriteString(m.tableAsCSV)
+		return s.String()
 	}
 
 	if !m.showDescription {
-		s += m.styles.HelpText.Render(" [type ? for more info]")
+		s.WriteString(m.styles.HelpText.Render(" [type ? for more info]"))
 	}
 
-	s += "\n"
+	s.WriteRune('\n')
 	if m.showDescription {
 		if m.variable.Description != "" {
-			s += m.variable.Description
-			s += "\n"
+			s.WriteString(m.variable.Description)
+			s.WriteRune('\n')
 		}
-		s += m.styles.HelpText.Render(`Table controls:
+		s.WriteString(m.styles.HelpText.Render(`Table controls:
 - arrow keys: to move between cells
 - tab: to move to the next cells
 - ctrl+n or move past last row: create a new row 
-`)
+`))
 	}
-	s += "\n"
+	s.WriteRune('\n')
 
-	s += m.table.View()
-	return
+	s.WriteString(m.table.View())
+	return s.String()
 }
 
 func (m TableModel) Name() string {

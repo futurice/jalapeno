@@ -108,25 +108,26 @@ func (m SelectModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
-func (m SelectModel) View() (s string) {
-	s += m.styles.VariableName.Render(m.variable.Name)
+func (m SelectModel) View() string {
+	var s strings.Builder
+	s.WriteString(m.styles.VariableName.Render(m.variable.Name))
 	if m.submitted {
-		s += fmt.Sprintf(": %s", m.value)
-		return
+		s.WriteString(fmt.Sprintf(": %s", m.value))
+		return s.String()
 	}
 
 	if m.variable.Description != "" && !m.showDescription {
-		s += m.styles.HelpText.Render(" [type ? for more info]")
+		s.WriteString(m.styles.HelpText.Render(" [type ? for more info]"))
 	}
 
-	s += "\n"
+	s.WriteRune('\n')
 	if m.showDescription {
-		s += m.variable.Description
-		s += "\n"
+		s.WriteString(m.variable.Description)
+		s.WriteRune('\n')
 	}
 
-	s += m.list.View()
-	return
+	s.WriteString(m.list.View())
+	return s.String()
 }
 
 func (m SelectModel) Name() string {

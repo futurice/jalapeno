@@ -71,35 +71,36 @@ func (m StringModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
-func (m StringModel) View() (s string) {
-	s += m.styles.VariableName.Render(m.variable.Name)
+func (m StringModel) View() string {
+	var s strings.Builder
+	s.WriteString(m.styles.VariableName.Render(m.variable.Name))
 
 	if m.submitted {
-		s += ": "
-		s += m.textInput.Value()
-		return
+		s.WriteString(": ")
+		s.WriteString(m.textInput.Value())
+		return s.String()
 	}
 
 	if m.variable.Description != "" && !m.showDescription {
-		s += m.styles.HelpText.Render(" [type ? for more info]")
+		s.WriteString(m.styles.HelpText.Render(" [type ? for more info]"))
 	}
 
-	s += "\n"
+	s.WriteRune('\n')
 	if m.showDescription {
-		s += m.variable.Description
-		s += "\n"
+		s.WriteString(m.variable.Description)
+		s.WriteRune('\n')
 	}
 
-	s += m.textInput.View()
+	s.WriteString(m.textInput.View())
 
 	if m.err != nil {
-		s += "\n"
+		s.WriteRune('\n')
 		errMsg := m.err.Error()
 		errMsg = strings.ToUpper(errMsg[:1]) + errMsg[1:]
-		s += m.styles.ErrorText.Render(errMsg)
+		s.WriteString(m.styles.ErrorText.Render(errMsg))
 	}
 
-	return
+	return s.String()
 }
 
 func (m StringModel) Name() string {

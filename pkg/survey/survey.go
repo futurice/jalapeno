@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"strings"
 
 	"github.com/antonmedv/expr"
 	tea "github.com/charmbracelet/bubbletea"
@@ -111,26 +112,27 @@ func (m SurveyModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, promptCmd
 }
 
-func (m SurveyModel) View() (s string) {
+func (m SurveyModel) View() string {
+	var s strings.Builder
 	if len(m.prompts) > 0 && !m.submitted && m.err == nil {
-		s += "Provide the following variables:\n\n"
+		s.WriteString("Provide the following variables:\n\n")
 	}
 
 	for i := range m.prompts {
 		isLastPrompt := i == len(m.prompts)-1 && len(m.prompts) > 1 && !m.submitted
 		if isLastPrompt {
-			s += "\n"
+			s.WriteRune('\n')
 		}
 
-		s += m.prompts[i].View()
-		s += "\n"
+		s.WriteString(m.prompts[i].View())
+		s.WriteRune('\n')
 	}
 
 	if m.submitted || m.err != nil {
-		s += "\n"
+		s.WriteRune('\n')
 	}
 
-	return
+	return s.String()
 }
 
 func (m SurveyModel) Values() recipe.VariableValues {
@@ -203,7 +205,7 @@ func PromptUserForValues(in io.Reader, out io.Writer, variables []recipe.Variabl
 	} else {
 		survey, ok := m.(SurveyModel)
 		if !ok {
-			return nil, errors.New("unexpected model type")
+			return nil, errors.New("internal error: unexpected model type")
 		}
 		if survey.err != nil {
 			return nil, survey.err

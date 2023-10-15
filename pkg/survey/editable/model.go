@@ -187,7 +187,7 @@ func WithKeyMap(km KeyMap) Option {
 
 func (m Model) Init() tea.Cmd {
 	return tea.Batch(
-		m.rows[0][0].input.Focus(),
+		m.rows[0][0].input.Focus(), // Focus on the first cell
 		textinput.Blink,
 	)
 }
@@ -236,8 +236,9 @@ func (m *Model) Blur() {
 	m.rows[m.cursorY][m.cursorX].input.Blur()
 }
 
-func (m Model) View() (s string) {
-	s += m.table.
+func (m Model) View() string {
+	var s strings.Builder
+	s.WriteString(m.table.
 		StyleFunc(func(y, x int) lipgloss.Style {
 			switch {
 			case y == 0:
@@ -249,16 +250,16 @@ func (m Model) View() (s string) {
 			}
 		}).
 		Data(m).
-		Render()
+		Render())
 
-	s += "\n"
+	s.WriteRune('\n')
 	if errs := m.Errors(); len(errs) != 0 {
 		for _, err := range errs {
-			s += m.styles.Error.Render(fmt.Sprintf("• %s", err.Error()))
-			s += "\n"
+			s.WriteString(m.styles.Error.Render(fmt.Sprintf("• %s", err.Error())))
+			s.WriteRune('\n')
 		}
 	}
-	return
+	return s.String()
 }
 
 func (m *Model) AddRow() {

@@ -2,6 +2,7 @@ package prompt
 
 import (
 	"fmt"
+	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/futurice/jalapeno/pkg/recipe"
@@ -57,35 +58,36 @@ func (m ConfirmModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-func (m ConfirmModel) View() (s string) {
-	s += m.styles.VariableName.Render(m.variable.Name)
+func (m ConfirmModel) View() string {
+	var s strings.Builder
+	s.WriteString(m.styles.VariableName.Render(m.variable.Name))
 	if m.submitted {
-		s += ": "
+		s.WriteString(": ")
 		if m.value {
-			s += "Yes"
+			s.WriteString("Yes")
 		} else {
-			s += "No"
+			s.WriteString("No")
 		}
-		return
+		return s.String()
 	}
 
 	if m.variable.Description != "" && !m.showDescription {
-		s += m.styles.HelpText.Render(" [type ? for more info]")
+		s.WriteString(m.styles.HelpText.Render(" [type ? for more info]"))
 	}
 
-	s += "\n"
+	s.WriteRune('\n')
 	if m.showDescription {
-		s += m.variable.Description
-		s += "\n"
+		s.WriteString(m.variable.Description)
+		s.WriteRune('\n')
 	}
 
 	if m.value {
-		s += fmt.Sprintf("> No/%s", m.styles.Bold.Render("Yes"))
+		s.WriteString(fmt.Sprintf("> No/%s", m.styles.Bold.Render("Yes")))
 	} else {
-		s += fmt.Sprintf("> %s/Yes", m.styles.Bold.Render("No"))
+		s.WriteString(fmt.Sprintf("> %s/Yes", m.styles.Bold.Render("No")))
 	}
 
-	return
+	return s.String()
 }
 
 func (m ConfirmModel) Name() string {
