@@ -7,10 +7,9 @@ import (
 
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/textinput"
-	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/mattn/go-runewidth"
+	"github.com/charmbracelet/lipgloss/table"
 )
 
 type Model struct {
@@ -21,13 +20,14 @@ type Model struct {
 	cursorX int
 	cursorY int
 	focus   bool
-	styles  Styles
 	errors  []error
 
-	viewport viewport.Model
+	styles Styles
+	table  table.Table
 }
 
 var _ tea.Model = Model{}
+var _ table.Data = Model{}
 
 type Row []textinput.Model
 
@@ -76,14 +76,6 @@ func DefaultKeyMap() KeyMap {
 			key.WithKeys("ctrl+n"),
 			key.WithHelp("ctrl + n", "new"),
 		),
-		PageUp: key.NewBinding(
-			key.WithKeys("pgup"),
-			key.WithHelp("pgup", "page up"),
-		),
-		PageDown: key.NewBinding(
-			key.WithKeys("pgdown"),
-			key.WithHelp("pgdn", "page down"),
-		),
 		GotoTop: key.NewBinding(
 			key.WithKeys("home"),
 			key.WithHelp("home", "go to start"),
@@ -106,25 +98,19 @@ func DefaultStyles() Styles {
 		Selected: lipgloss.NewStyle().
 			Bold(true).
 			Background(lipgloss.Color("236")).
-			Foreground(lipgloss.Color("212")),
+			Foreground(lipgloss.Color("212")).
+			Padding(0, 1),
 		Header: lipgloss.NewStyle().
 			Bold(true).
-			Padding(0, 1).
-			BorderStyle(lipgloss.NormalBorder()).
-			BorderForeground(lipgloss.Color("240")).
-			BorderBottom(true).
-			Bold(false),
+			Padding(0, 1),
 		Cell: lipgloss.NewStyle().
-			Padding(0, 1).
-			BorderStyle(lipgloss.NormalBorder()).
-			BorderForeground(lipgloss.Color("240")).
-			BorderBottom(true),
+			Padding(0, 1),
 	}
 }
 
 func (m *Model) SetStyles(s Styles) {
 	m.styles = s
-	m.updateViewport()
+
 }
 
 // Option is used to set options in New. For example:
@@ -134,12 +120,12 @@ type Option func(*Model)
 
 func NewModel(opts ...Option) Model {
 	m := Model{
-		cursorX:  0,
-		cursorY:  0,
-		viewport: viewport.New(0, 4),
+		cursorX: 0,
+		cursorY: 0,
 
 		KeyMap: DefaultKeyMap(),
 		styles: DefaultStyles(),
+		table:  *table.New(),
 	}
 
 	for _, opt := range opts {
@@ -151,27 +137,32 @@ func NewModel(opts ...Option) Model {
 	return m
 }
 
-func WithColumns(cols []Column) Option {
+func (m Model) At(row, cell int) string {
+	return m.rows[row][cell].View()
+}
+
+func (m Model) Columns() int {
+	return len(m.cols)
+}
+
+func (m Model) Rows() int {
+	return len(m.rows)
+}
+
+func WithColumns(columns []Column) Option {
 	return func(m *Model) {
-		m.cols = cols
+		m.cols = columns
+		cols := make([]string, len(m.cols))
+		for i := range cols {
+			cols[i] = m.cols[i].Title
+		}
+		m.table.Headers(cols...)
 	}
 }
 
 func WithRows(rows []Row) Option {
 	return func(m *Model) {
 		m.rows = rows
-	}
-}
-
-func WithHeight(h int) Option {
-	return func(m *Model) {
-		m.viewport.Height = h
-	}
-}
-
-func WithWidth(w int) Option {
-	return func(m *Model) {
-		m.viewport.Width = w
 	}
 }
 
@@ -215,10 +206,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			cmd = m.MoveToNextCell()
 		case key.Matches(msg, m.KeyMap.NewRow):
 			m.AddRow()
-		case key.Matches(msg, m.KeyMap.PageUp):
-			cmd = m.MoveUp(m.viewport.Height)
-		case key.Matches(msg, m.KeyMap.PageDown):
-			cmd = m.MoveDown(m.viewport.Height)
 		case key.Matches(msg, m.KeyMap.GotoTop):
 			cmd = m.GotoTop()
 		case key.Matches(msg, m.KeyMap.GotoBottom):
@@ -229,28 +216,33 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
-	m.updateViewport()
 	m.rows[m.cursorY][m.cursorX], cmd = m.rows[m.cursorY][m.cursorX].Update(msg)
 	return m, cmd
 }
 
 func (m *Model) Focus() {
 	m.focus = true
-	m.updateViewport()
 }
 
 func (m *Model) Blur() {
 	m.focus = false
 	m.rows[m.cursorY][m.cursorX].Blur()
-	m.updateViewport()
 }
 
 func (m Model) View() string {
-	return m.headersView() + "\n" + m.viewport.View()
-}
-
-func (m Model) Rows() []Row {
-	return m.rows
+	return m.table.
+		StyleFunc(func(y, x int) lipgloss.Style {
+			switch {
+			case y == 0:
+				return m.styles.Header
+			case y == m.cursorY+1 && x == m.cursorX:
+				return m.styles.Selected
+			default:
+				return m.styles.Cell
+			}
+		}).
+		Data(m).
+		Render()
 }
 
 func (m *Model) AddRow() {
@@ -260,21 +252,14 @@ func (m *Model) AddRow() {
 	}
 
 	m.rows = append(m.rows, row)
-	m.viewport.Height += 2
-
-	m.updateViewport()
 }
 
 func (m *Model) RemoveRow(n int) {
 	m.rows = append(m.rows[:n], m.rows[n+1:]...)
-	m.viewport.Height -= 2
-
-	m.updateViewport()
 }
 
 func (m *Model) SetColumns(c []Column) {
 	m.cols = c
-	m.updateViewport()
 }
 
 func (m Model) Cursor() (int, int) {
@@ -312,6 +297,10 @@ func (m *Model) GotoTop() tea.Cmd {
 }
 
 func (m *Model) GotoBottom() tea.Cmd {
+	if m.cursorY == len(m.rows)-1 {
+		return nil
+	}
+
 	return m.Move(len(m.rows)-1, 0)
 }
 
@@ -321,6 +310,9 @@ func (m *Model) Move(y, x int) tea.Cmd {
 	}
 
 	m.rows[m.cursorY][m.cursorX].Blur()
+
+	// TODO: This could be optimized to only validate the cells that are affected by.
+	// But at the moment this is the only place where we validate the table
 	m.Validate()
 
 	if x != 0 {
@@ -335,16 +327,16 @@ func (m *Model) Move(y, x int) tea.Cmd {
 		}
 
 		if m.cursorY == len(m.rows)-1 && y < 0 && len(m.rows) > 1 {
+			isEmpty := true
 			for n := 0; n > y; n-- {
-				isEmpty := true
 				for _, cell := range m.rows[m.cursorY+n] {
 					if cell.Value() != "" {
 						isEmpty = false
 						break
 					}
 				}
-				if isEmpty {
-					m.RemoveRow(m.cursorY)
+				if isEmpty && len(m.rows) > 1 {
+					m.RemoveRow(m.cursorY + n)
 				}
 			}
 		}
@@ -352,18 +344,8 @@ func (m *Model) Move(y, x int) tea.Cmd {
 		m.cursorY = clamp(m.cursorY+y, 0, len(m.rows)-1)
 	}
 
-	m.updateViewport()
-
 	// Focus on the new cell
 	return m.rows[m.cursorY][m.cursorX].Focus()
-}
-
-func (m Model) Columns() []string {
-	columns := make([]string, len(m.cols))
-	for i, col := range m.cols {
-		columns[i] = col.Title
-	}
-	return columns
 }
 
 func (m Model) Values() [][]string {
@@ -422,59 +404,11 @@ func (m Model) validateCell(y, x int) error {
 	return errors.New(strings.Join(errStr, ", "))
 }
 
-func (m *Model) updateViewport() {
-	renderedRows := make([]string, 0, len(m.rows))
-
-	for i := range m.rows {
-		renderedRows = append(renderedRows, m.renderRow(i))
-	}
-
-	errStr := ""
-	if len(m.errors) != 0 {
-		for _, err := range m.errors {
-			errStr += fmt.Sprintf("Error on %s\n", err)
-		}
-	}
-
-	m.viewport.SetContent(
-		lipgloss.JoinVertical(
-			lipgloss.Left,
-			lipgloss.JoinVertical(lipgloss.Left, renderedRows...),
-			errStr,
-		),
-	)
-}
-
-func (m Model) headersView() string {
-	var s = make([]string, 0, len(m.cols))
-	for _, col := range m.cols {
-		style := lipgloss.NewStyle().Width(col.Width).MaxWidth(col.Width).Inline(true)
-		renderedCell := style.Render(runewidth.Truncate(col.Title, col.Width, "…"))
-		s = append(s, m.styles.Header.Render(renderedCell))
-	}
-	return lipgloss.JoinHorizontal(lipgloss.Left, s...)
-}
-
-func (m *Model) renderRow(rowID int) string {
-	var s = make([]string, 0, len(m.cols))
-	for i := range m.rows[rowID] {
-		cellStyle := lipgloss.NewStyle().Width(m.cols[i].Width).MaxWidth(m.cols[i].Width)
-		if rowID == m.cursorY && i == m.cursorX {
-			cellStyle = m.styles.Selected.Inherit(cellStyle)
-		}
-
-		renderedCell := m.styles.Cell.Render(cellStyle.Render(m.rows[rowID][i].View()))
-		s = append(s, renderedCell)
-	}
-
-	return lipgloss.JoinHorizontal(lipgloss.Left, s...)
-}
-
 // newTextInput initializes a text input which is used inside a cell.
 func (m Model) newTextInput(c Column) textinput.Model {
 	ti := textinput.New()
 	ti.Prompt = ""
-	ti.Width = c.Width - 1
+
 	ti.Blur()
 
 	return ti

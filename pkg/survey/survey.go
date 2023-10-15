@@ -201,7 +201,10 @@ func PromptUserForValues(in io.Reader, out io.Writer, variables []recipe.Variabl
 	if m, err := p.Run(); err != nil {
 		return nil, err
 	} else {
-		survey := m.(SurveyModel)
+		survey, ok := m.(SurveyModel)
+		if !ok {
+			return nil, errors.New("unexpected model type")
+		}
 		if survey.err != nil {
 			return nil, survey.err
 		}
