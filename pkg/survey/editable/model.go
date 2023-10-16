@@ -22,7 +22,7 @@ type Model struct {
 	focus   bool
 
 	styles Styles
-	table  table.Table
+	table  *table.Table
 }
 
 var _ tea.Model = Model{}
@@ -132,7 +132,7 @@ func NewModel(opts ...Option) Model {
 
 		KeyMap: DefaultKeyMap(),
 		styles: DefaultStyles(),
-		table:  *table.New(),
+		table:  table.New(),
 	}
 
 	for _, opt := range opts {
