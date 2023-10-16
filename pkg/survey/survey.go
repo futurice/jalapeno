@@ -8,9 +8,11 @@ import (
 
 	"github.com/antonmedv/expr"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/futurice/jalapeno/pkg/recipe"
 	"github.com/futurice/jalapeno/pkg/survey/prompt"
 	"github.com/futurice/jalapeno/pkg/survey/util"
+	"github.com/muesli/termenv"
 )
 
 type SurveyModel struct {
@@ -199,6 +201,9 @@ func (m SurveyModel) createPrompt(v recipe.Variable) (prompt.Model, error) {
 
 // PromptUserForValues prompts the user for values for the given variables
 func PromptUserForValues(in io.Reader, out io.Writer, variables []recipe.Variable, existingValues recipe.VariableValues) (recipe.VariableValues, error) {
+	// https://github.com/charmbracelet/lipgloss/issues/73#issuecomment-1144921037
+	lipgloss.SetHasDarkBackground(termenv.HasDarkBackground())
+
 	p := tea.NewProgram(NewModel(variables), tea.WithInput(in), tea.WithOutput(out))
 	if m, err := p.Run(); err != nil {
 		return nil, err

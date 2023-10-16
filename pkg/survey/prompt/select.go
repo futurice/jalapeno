@@ -17,7 +17,6 @@ const listHeight = 14
 var (
 	itemStyle         = lipgloss.NewStyle().PaddingLeft(2)
 	selectedItemStyle = lipgloss.NewStyle().PaddingLeft(0).Foreground(lipgloss.Color("170"))
-	paginationStyle   = list.DefaultStyles().PaginationStyle.PaddingLeft(0)
 )
 
 type SelectModel struct {
@@ -73,7 +72,6 @@ func NewSelectModel(v recipe.Variable, styles util.Styles) SelectModel {
 	l.SetFilteringEnabled(false)
 	l.SetShowHelp(false)
 	l.SetShowTitle(false)
-	l.Styles.PaginationStyle = paginationStyle
 
 	return SelectModel{
 		variable: v,
