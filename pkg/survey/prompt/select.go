@@ -33,9 +33,13 @@ var _ Model = SelectModel{}
 
 type item string
 
+var _ list.Item = item("")
+
 func (i item) FilterValue() string { return "" }
 
 type itemDelegate struct{}
+
+var _ list.ItemDelegate = itemDelegate{}
 
 func (d itemDelegate) Height() int                             { return 1 }
 func (d itemDelegate) Spacing() int                            { return 0 }

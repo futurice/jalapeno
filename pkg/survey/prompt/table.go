@@ -19,20 +19,11 @@ type TableModel struct {
 	showDescription bool
 
 	// Save the table as CSV for the final output. This speeds up the
-	// rendering when the user has submitted the form.
+	// rendering after the user has submitted the form.
 	tableAsCSV string
 }
 
 var _ Model = TableModel{}
-
-var (
-	csvNewLine = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#999999")).
-			Render("\\n")
-	csvSeparator string = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#999999")).
-			Render(",")
-)
 
 func NewTableModel(v recipe.Variable, styles util.Styles) TableModel {
 	cols := make([]editable.Column, len(v.Columns))
@@ -122,8 +113,8 @@ func (m TableModel) View() string {
 - tab: to move to the next cells
 - ctrl+n or move past last row: create a new row 
 `))
+		s.WriteRune('\n')
 	}
-	s.WriteRune('\n')
 
 	s.WriteString(m.table.View())
 	return s.String()
@@ -142,14 +133,18 @@ func (m TableModel) IsSubmitted() bool {
 	return m.submitted
 }
 
-func (m TableModel) ValueAsCSV() string {
+var (
+	csvSeparator = lipgloss.NewStyle().Foreground(lipgloss.Color("#999999")).SetString(",")
+	csvNewLine   = lipgloss.NewStyle().Foreground(lipgloss.Color("#999999")).SetString("\\n")
+)
 
+func (m TableModel) ValueAsCSV() string {
 	rows := m.table.Values()
 	s := ""
 	for y := range rows {
-		s += strings.Join(rows[y], csvSeparator)
+		s += strings.Join(rows[y], csvSeparator.String())
 		if y < len(rows)-1 {
-			s += csvNewLine
+			s += csvNewLine.String()
 		}
 	}
 
