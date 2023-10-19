@@ -55,8 +55,13 @@ vars:
 
   - name: CONDITIONAL_VAR
     description: |
-      Conditional variable which depends on one value in the table.
-      You can read the syntax documentation here: https://expr.medv.io/docs/Language-Definition
+      Conditional variables uses `if` property to check if this variable should be prompted or not.
+      You can access values of the other variables inside the `if` expression, for example `if: STRING_VAR == "foo"`
+      You can read the expression syntax documentation here: https://expr.medv.io/docs/Language-Definition
+
+      In this case, we check has the user selected the first option in the SELECT_VAR variable.
+
+      Defined by: `if: <EXPRESSION>`.
     if: SELECT_VAR == "option_1"
     # To access cells in table variables:
     # if: TABLE_VAR[0].COLUMN_1 == "foo"
