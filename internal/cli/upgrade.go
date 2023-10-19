@@ -8,10 +8,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/AlecAivazis/survey/v2"
 	"github.com/futurice/jalapeno/internal/cli/option"
 	"github.com/futurice/jalapeno/pkg/recipe"
 	"github.com/futurice/jalapeno/pkg/recipeutil"
+	"github.com/futurice/jalapeno/pkg/survey"
 	"github.com/spf13/cobra"
 	"golang.org/x/mod/semver"
 )
@@ -113,13 +113,14 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) {
 		}
 	}
 
-	providedValues, err := recipeutil.ParseProvidedValues(re.Variables, opts.Values.Flags)
+	providedValues, err := recipeutil.ParseProvidedValues(re.Variables, opts.Values.Flags, opts.CSVDelimiter)
 	if err != nil {
 		cmd.PrintErrf("Error when parsing provided values: %v\n", err)
 		return
 	}
 
 	predefinedValues := recipeutil.MergeValues(reusedValues, providedValues)
+	values := recipeutil.MergeValues(oldSauce.Values, predefinedValues)
 
 	// Don't prompt variables which already has a value in existing sauce or is predefined
 	varsWithoutValues := make([]recipe.Variable, 0, len(re.Variables))
@@ -131,13 +132,19 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) {
 		}
 	}
 
-	values, err := recipeutil.PromptUserForValues(varsWithoutValues, predefinedValues)
-	if err != nil {
-		cmd.PrintErrf("Error: %s", err)
-		return
+	if len(varsWithoutValues) > 0 {
+		promptedValues, err := survey.PromptUserForValues(cmd.InOrStdin(), cmd.OutOrStdout(), varsWithoutValues, predefinedValues)
+		if err != nil {
+			if !errors.Is(err, survey.ErrUserAborted) {
+				cmd.PrintErrf("Error when prompting for values: %s\n", err)
+			}
+			return
+		}
+
+		values = recipeutil.MergeValues(values, promptedValues)
 	}
 
-	newSauce, err := re.Execute(recipeutil.MergeValues(values, oldSauce.Values, predefinedValues), oldSauce.ID)
+	newSauce, err := re.Execute(values, oldSauce.ID)
 	if err != nil {
 		cmd.PrintErrf("Error: %s", err)
 		return
@@ -189,12 +196,12 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) {
 
 				// TODO: We could do better in terms of merge conflict management. Like show the diff or something
 				var override bool
-				prompt := &survey.Confirm{
-					Message: path,
-					Default: true,
-				}
+				// prompt := &survey.Confirm{
+				// 	Message: path,
+				// 	Default: true,
+				// }
 
-				err = survey.AskOne(prompt, &override)
+				// err = survey.AskOne(prompt, &override)
 				if err != nil {
 					cmd.PrintErrf("Error when prompting for question: %s", err)
 					return

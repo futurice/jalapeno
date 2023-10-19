@@ -16,7 +16,7 @@ var (
 	ErrVarNotDefinedInRecipe = errors.New("following variable does not exist in the recipe")
 )
 
-func ParseProvidedValues(variables []recipe.Variable, flags []string) (recipe.VariableValues, error) {
+func ParseProvidedValues(variables []recipe.Variable, flags []string, delimiter rune) (recipe.VariableValues, error) {
 	values := make(recipe.VariableValues)
 	for _, env := range os.Environ() {
 		if !strings.HasPrefix(env, ValueEnvVarPrefix) {
@@ -49,9 +49,9 @@ func ParseProvidedValues(variables []recipe.Variable, flags []string) (recipe.Va
 			return nil, fmt.Errorf("%w: %s", ErrVarNotDefinedInRecipe, varName)
 		}
 
-		if targetedVariable.RegExp.Pattern != "" {
-			validator := targetedVariable.RegExp.CreateValidatorFunc()
-			if err := validator(varValue); err != nil {
+		for i := range targetedVariable.Validators {
+			validatorFunc := targetedVariable.Validators[i].CreateValidatorFunc()
+			if err := validatorFunc(varValue); err != nil {
 				return nil, fmt.Errorf("validator failed for value '%s=%s': %w", varName, varValue, err)
 			}
 		}
@@ -67,7 +67,7 @@ func ParseProvidedValues(variables []recipe.Variable, flags []string) (recipe.Va
 			}
 		case len(targetedVariable.Columns) > 0:
 			varValue = strings.ReplaceAll(varValue, "\\n", "\n")
-			table, err := CSVToTable(targetedVariable.Columns, varValue)
+			table, err := CSVToTable(targetedVariable.Columns, varValue, delimiter)
 			if err != nil {
 				return nil, fmt.Errorf("failed to parse table from CSV for variable '%s': %w", varName, err)
 			}
@@ -81,6 +81,8 @@ func ParseProvidedValues(variables []recipe.Variable, flags []string) (recipe.Va
 	return values, nil
 }
 
+// MergeValues merges multiple VariableValues into one. If a key exists in multiple VariableValues, the value from the
+// last VariableValues will be used.
 func MergeValues(valuesSlice ...recipe.VariableValues) recipe.VariableValues {
 	merged := make(recipe.VariableValues)
 	for _, values := range valuesSlice {
@@ -103,10 +105,10 @@ func FilterVariablesWithoutValues(variables []recipe.Variable, values recipe.Var
 	return variablesWithoutValues
 }
 
-func CSVToTable(columns []string, str string) ([]map[string]string, error) {
+func CSVToTable(columns []string, str string, delimiter rune) ([]map[string]string, error) {
 	reader := csv.NewReader(strings.NewReader(str))
 	reader.FieldsPerRecord = len(columns)
-	reader.Comma = ';'
+	reader.Comma = delimiter
 	reader.TrimLeadingSpace = true
 
 	rows, err := reader.ReadAll()
@@ -114,6 +116,18 @@ func CSVToTable(columns []string, str string) ([]map[string]string, error) {
 		return nil, err
 	}
 
+	table := make([]map[string]string, len(rows))
+	for i, row := range rows {
+		table[i] = make(map[string]string)
+		for j, cell := range row {
+			table[i][columns[j]] = cell
+		}
+	}
+
+	return table, nil
+}
+
+func RowsToTable(columns []string, rows [][]string) ([]map[string]string, error) {
 	table := make([]map[string]string, len(rows))
 	for i, row := range rows {
 		table[i] = make(map[string]string)

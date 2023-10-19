@@ -2,13 +2,16 @@ package cli
 
 import (
 	"context"
+	"errors"
 	"os"
 	"strings"
 
+	"github.com/charmbracelet/lipgloss"
 	"github.com/futurice/jalapeno/internal/cli/option"
 	"github.com/futurice/jalapeno/pkg/oci"
 	"github.com/futurice/jalapeno/pkg/recipe"
 	"github.com/futurice/jalapeno/pkg/recipeutil"
+	"github.com/futurice/jalapeno/pkg/survey"
 	"github.com/gofrs/uuid"
 	"github.com/spf13/cobra"
 )
@@ -16,6 +19,7 @@ import (
 type executeOptions struct {
 	RecipeURL string
 	option.Values
+	option.Styles
 	option.OCIRepository
 	option.WorkingDirectory
 	option.Common
@@ -84,10 +88,11 @@ func runExecute(cmd *cobra.Command, opts executeOptions) {
 		return
 	}
 
-	cmd.Printf("Recipe name: %s\n", re.Metadata.Name)
+	style := lipgloss.NewStyle().Foreground(opts.Colors.Primary)
+	cmd.Printf("%s: %s\n", style.Render("Recipe name"), re.Metadata.Name)
 
 	if re.Metadata.Description != "" {
-		cmd.Printf("Description: %s\n", re.Metadata.Description)
+		cmd.Printf("%s: %s\n", style.Render("Description"), re.Metadata.Description)
 	}
 
 	// Load all existing sauces
@@ -113,26 +118,30 @@ func runExecute(cmd *cobra.Command, opts executeOptions) {
 		}
 	}
 
-	providedValues, err := recipeutil.ParseProvidedValues(re.Variables, opts.Values.Flags)
+	providedValues, err := recipeutil.ParseProvidedValues(re.Variables, opts.Values.Flags, opts.Values.CSVDelimiter)
 	if err != nil {
-		cmd.PrintErrf("Error when parsing provided values: %v\n", err)
+		cmd.PrintErrf("Error when parsing provided values: %s\n", err)
 		return
 	}
 
-	predefinedValues := recipeutil.MergeValues(reusedValues, providedValues)
+	values := recipeutil.MergeValues(reusedValues, providedValues)
 
 	// Filter out variables which don't have value yet
-	filteredVariables := recipeutil.FilterVariablesWithoutValues(re.Variables, predefinedValues)
-	promptedValues, err := recipeutil.PromptUserForValues(filteredVariables, predefinedValues)
-	if err != nil {
-		cmd.PrintErrf("Error when prompting for values: %v\n", err)
-		return
+	varsWithoutValues := recipeutil.FilterVariablesWithoutValues(re.Variables, values)
+	if len(varsWithoutValues) > 0 {
+		promptedValues, err := survey.PromptUserForValues(cmd.InOrStdin(), cmd.OutOrStdout(), varsWithoutValues, values)
+		if err != nil {
+			if errors.Is(err, survey.ErrUserAborted) {
+				return
+			} else {
+				cmd.PrintErrf("Error when prompting for values: %s\n", err)
+				return
+			}
+		}
+		values = recipeutil.MergeValues(values, promptedValues)
 	}
 
-	sauce, err := re.Execute(
-		recipeutil.MergeValues(predefinedValues, promptedValues),
-		uuid.Must(uuid.NewV4()),
-	)
+	sauce, err := re.Execute(values, uuid.Must(uuid.NewV4()))
 	if err != nil {
 		cmd.PrintErrf("Error: %s", err)
 		return
