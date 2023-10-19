@@ -63,13 +63,6 @@ func (m TableModel) Init() tea.Cmd {
 func (m TableModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		switch msg.String() {
-		case "?":
-			if m.variable.Description != "" && !m.showDescription {
-				m.showDescription = true
-				return m, nil
-			}
-		}
 		switch msg.Type {
 		case tea.KeyEnter:
 			// Validate the table. If there are errors, don't submit the form.
@@ -81,6 +74,14 @@ func (m TableModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.submitted = true
 			m.tableAsCSV = m.ValueAsCSV()
 			m.table.Blur()
+		case tea.KeyRunes:
+			switch string(msg.Runes) {
+			case "?":
+				if m.variable.Description != "" && !m.showDescription {
+					m.showDescription = true
+					return m, nil
+				}
+			}
 		}
 	}
 	tm, cmd := m.table.Update(msg)

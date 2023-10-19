@@ -34,24 +34,25 @@ func (m ConfirmModel) Init() tea.Cmd {
 func (m ConfirmModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		switch msg.String() {
-		case "?":
-			if m.variable.Description != "" && !m.showDescription {
-				m.showDescription = true
-				return m, nil
-			}
-		case "y", "Y":
-			m.value = true
-		case "n", "N":
-			m.value = false
-		}
 		switch msg.Type {
+		case tea.KeyEnter:
+			m.submitted = true
 		case tea.KeyRight:
 			m.value = true
 		case tea.KeyLeft:
 			m.value = false
-		case tea.KeyEnter:
-			m.submitted = true
+		case tea.KeyRunes:
+			switch string(msg.Runes) {
+			case "?":
+				if m.variable.Description != "" && !m.showDescription {
+					m.showDescription = true
+					return m, nil
+				}
+			case "y", "Y":
+				m.value = true
+			case "n", "N":
+				m.value = false
+			}
 		}
 	}
 

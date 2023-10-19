@@ -9,8 +9,10 @@ require (
 	github.com/charmbracelet/bubbles v0.16.1
 	github.com/charmbracelet/bubbletea v0.24.2
 	github.com/charmbracelet/lipgloss v0.9.1
+	github.com/charmbracelet/x/exp/teatest v0.0.0-20231010190216-1cb11efc897d
 	github.com/cucumber/godog v0.13.0
 	github.com/docker/cli v24.0.6+incompatible
+	github.com/muesli/termenv v0.15.2
 	github.com/opencontainers/image-spec v1.1.0-rc5
 	github.com/spf13/cobra v1.7.0
 	github.com/xlab/treeprint v1.2.0
@@ -22,6 +24,7 @@ require (
 require (
 	github.com/atotto/clipboard v0.1.4 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
+	github.com/aymanbagabas/go-udiff v0.1.0 // indirect
 	github.com/cenkalti/backoff/v4 v4.2.1 // indirect
 	github.com/containerd/console v1.0.4-0.20230313162750-1ae8d489ac81 // indirect
 	github.com/cucumber/gherkin/go/v26 v26.2.0 // indirect
@@ -38,7 +41,6 @@ require (
 	github.com/muesli/ansi v0.0.0-20211018074035-2e021307bc4b // indirect
 	github.com/muesli/cancelreader v0.2.2 // indirect
 	github.com/muesli/reflow v0.3.0 // indirect
-	github.com/muesli/termenv v0.15.2 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/rivo/uniseg v0.4.4 // indirect
 	github.com/sahilm/fuzzy v0.1.0 // indirect

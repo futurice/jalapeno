@@ -48,22 +48,21 @@ func (m StringModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		switch msg.String() {
-		case "?":
-			if m.textInput.Value() == "" && m.variable.Description != "" && !m.showDescription {
-				m.showDescription = true
-				return m, nil
-			}
-		}
-
 		switch msg.Type {
 		case tea.KeyEnter:
 			if err := m.Validate(); err != nil {
 				m.err = err
 				return m, nil
 			}
-			m.textInput.Prompt = ""
 			m.submitted = true
+		case tea.KeyRunes:
+			switch string(msg.Runes) {
+			case "?":
+				if m.textInput.Value() == "" && m.variable.Description != "" && !m.showDescription {
+					m.showDescription = true
+					return m, nil
+				}
+			}
 		}
 	}
 

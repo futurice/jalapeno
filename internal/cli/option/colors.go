@@ -2,6 +2,7 @@ package option
 
 import (
 	"github.com/charmbracelet/lipgloss"
+	"github.com/muesli/termenv"
 	"github.com/spf13/pflag"
 )
 
@@ -21,6 +22,7 @@ func (opts *Styles) ApplyFlags(fs *pflag.FlagSet) {
 
 func (opts *Styles) Parse() error {
 	if opts.NoColors {
+		lipgloss.SetColorProfile(termenv.Ascii)
 		return nil
 	}
 

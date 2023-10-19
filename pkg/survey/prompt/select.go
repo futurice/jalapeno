@@ -91,17 +91,18 @@ func (m SelectModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case tea.KeyMsg:
-		switch msg.String() {
-		case "?":
-			if m.variable.Description != "" && !m.showDescription {
-				m.showDescription = true
-				return m, nil
-			}
-		}
 		switch msg.Type {
 		case tea.KeyEnter:
 			m.submitted = true
 			m.value = string(m.list.SelectedItem().(item))
+		case tea.KeyRunes:
+			switch string(msg.Runes) {
+			case "?":
+				if m.variable.Description != "" && !m.showDescription {
+					m.showDescription = true
+					return m, nil
+				}
+			}
 		}
 	}
 
