@@ -3,6 +3,7 @@ package cli
 import (
 	"context"
 	"errors"
+	"fmt"
 	"os"
 	"strings"
 
@@ -129,6 +130,22 @@ func runExecute(cmd *cobra.Command, opts executeOptions) {
 	// Filter out variables which don't have value yet
 	varsWithoutValues := recipeutil.FilterVariablesWithoutValues(re.Variables, values)
 	if len(varsWithoutValues) > 0 {
+		if opts.NoInput {
+			var errMsg string
+			if len(varsWithoutValues) == 1 {
+				errMsg = fmt.Sprintf("value for variable %s is", varsWithoutValues[0].Name)
+			} else {
+				vars := make([]string, len(varsWithoutValues))
+				for i, v := range varsWithoutValues {
+					vars[i] = v.Name
+				}
+				errMsg = fmt.Sprintf("values for variables [%s] are", strings.Join(vars, ","))
+			}
+
+			cmd.PrintErrf("Error: %s missing and `--no-input` flag was set to true\n", errMsg)
+			return
+		}
+
 		promptedValues, err := survey.PromptUserForValues(cmd.InOrStdin(), cmd.OutOrStdout(), varsWithoutValues, values)
 		if err != nil {
 			if errors.Is(err, survey.ErrUserAborted) {

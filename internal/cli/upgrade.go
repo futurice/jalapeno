@@ -133,6 +133,22 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) {
 	}
 
 	if len(varsWithoutValues) > 0 {
+		if opts.NoInput {
+			var errMsg string
+			if len(varsWithoutValues) == 1 {
+				errMsg = fmt.Sprintf("value for variable %s is", varsWithoutValues[0].Name)
+			} else {
+				vars := make([]string, len(varsWithoutValues))
+				for i, v := range varsWithoutValues {
+					vars[i] = v.Name
+				}
+				errMsg = fmt.Sprintf("values for variables [%s] are", strings.Join(vars, ","))
+			}
+
+			cmd.PrintErrf("Error: %s missing and `--no-input` flag was set to true\n", errMsg)
+			return
+		}
+
 		promptedValues, err := survey.PromptUserForValues(cmd.InOrStdin(), cmd.OutOrStdout(), varsWithoutValues, predefinedValues)
 		if err != nil {
 			if !errors.Is(err, survey.ErrUserAborted) {
