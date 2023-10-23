@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io/fs"
@@ -9,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/futurice/jalapeno/internal/cli/option"
+	"github.com/futurice/jalapeno/pkg/oci"
 	"github.com/futurice/jalapeno/pkg/recipe"
 	"github.com/futurice/jalapeno/pkg/recipeutil"
 	"github.com/futurice/jalapeno/pkg/survey"
@@ -17,7 +19,8 @@ import (
 )
 
 type upgradeOptions struct {
-	SourcePath string
+	RecipeURL string
+	option.OCIRepository
 	option.WorkingDirectory
 	option.Values
 	option.Common
@@ -31,7 +34,7 @@ func NewUpgradeCmd() *cobra.Command {
 		Long:  "Upgrade a recipe in a project with a newer version.",
 		Args:  cobra.ExactArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			opts.SourcePath = args[0]
+			opts.RecipeURL = args[0]
 			return option.Parse(&opts)
 		},
 		Run: func(cmd *cobra.Command, args []string) {
@@ -47,7 +50,32 @@ func NewUpgradeCmd() *cobra.Command {
 }
 
 func runUpgrade(cmd *cobra.Command, opts upgradeOptions) {
-	re, err := recipe.LoadRecipe(opts.SourcePath)
+	var (
+		re  *recipe.Recipe
+		err error
+	)
+
+	if strings.HasPrefix(opts.RecipeURL, "oci://") {
+		ctx := context.Background()
+		re, err = oci.PullRecipe(ctx,
+			oci.Repository{
+				Reference: strings.TrimPrefix(opts.RecipeURL, "oci://"),
+				PlainHTTP: opts.PlainHTTP,
+				Credentials: oci.Credentials{
+					Username:      opts.Username,
+					Password:      opts.Password,
+					DockerConfigs: opts.Configs,
+				},
+				TLS: oci.TLSConfig{
+					CACertFilePath: opts.CACertFilePath,
+					Insecure:       opts.Insecure,
+				},
+			})
+
+	} else {
+		re, err = recipe.LoadRecipe(opts.RecipeURL)
+	}
+
 	if err != nil {
 		cmd.PrintErrf("Error: %s", err)
 		return
