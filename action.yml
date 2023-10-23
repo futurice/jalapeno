@@ -2,6 +2,6 @@ name: "Jalapeno"
 description: "Run Jalapeno check-updates on a project"
 runs:
   using: "docker"
-  image: "docker://ghcr.io/futurice/jalapeno:v0.0.2-pre.1"
+  image: "docker://ghcr.io/futurice/jalapeno:v0.1.13"
   args:
-    - check-updates
+    - check
