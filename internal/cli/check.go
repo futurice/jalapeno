@@ -22,12 +22,12 @@ type checkOptions struct {
 func NewCheckCmd() *cobra.Command {
 	var opts checkOptions
 	var cmd = &cobra.Command{
-		Use:   "check RECIPE_NAME",
+		Use:   "check",
 		Short: "Check if there are new versions for a recipe",
 		Long:  "TODO",
-		Args:  cobra.ExactArgs(1),
+		Args:  cobra.NoArgs,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			opts.RecipeName = args[0]
+			cmd.Flags().StringVar(&opts.RecipeName, "recipe", "", "Name of the recipe to check for new versions")
 			return option.Parse(&opts)
 		},
 		Run: func(cmd *cobra.Command, args []string) {
@@ -43,7 +43,7 @@ func NewCheckCmd() *cobra.Command {
 }
 
 func runCheck(cmd *cobra.Command, opts checkOptions) {
-	sauce, err := re.LoadSauce(opts.Dir, opts.RecipeName)
+	sauces, err := re.LoadSauces(opts.Dir)
 	if err != nil {
 		if errors.Is(err, re.ErrSauceNotFound) {
 			cmd.PrintErrf("Error: project %s does not contain sauce with recipe %s. Recipe name used in the project should match the recipe which is used for upgrading", opts.Dir, opts.RecipeName)
@@ -53,53 +53,77 @@ func runCheck(cmd *cobra.Command, opts checkOptions) {
 		return
 	}
 
-	if sauce.CheckFrom == "" {
-		cmd.PrintErr("Error: source of the sauce is undefined, can not check for new versions")
-		return
-	}
-
-	ctx := context.Background()
-
-	repo, err := oci.NewRepository(oci.Repository{
-		Reference: strings.TrimPrefix(sauce.CheckFrom, "oci://"),
-		PlainHTTP: opts.PlainHTTP,
-		Credentials: oci.Credentials{
-			Username:      opts.Username,
-			Password:      opts.Password,
-			DockerConfigs: opts.Configs,
-		},
-		TLS: oci.TLSConfig{
-			CACertFilePath: opts.CACertFilePath,
-			Insecure:       opts.Insecure,
-		},
-	})
-
-	if err != nil {
-		cmd.PrintErrf("Error: %s", err)
-		return
-	}
-
-	newTags := []string{}
-	err = repo.Tags(ctx, "", func(tags []string) error {
-		for _, tag := range tags {
-			if semver.IsValid(tag) && semver.Compare(tag, sauce.Recipe.Version) > 0 {
-				newTags = append(newTags, tag)
+	if opts.RecipeName != "" {
+		found := false
+		for _, sauce := range sauces {
+			if sauce.Recipe.Name == opts.RecipeName {
+				found = true
+				sauces = []*re.Sauce{sauce}
+				break
 			}
 		}
-		semver.Sort(newTags)
-		return nil
-	})
 
-	if err != nil {
-		cmd.PrintErrf("Error: %s", err)
-		return
+		if !found {
+			cmd.PrintErrf("Error: project %s does not contain sauce with recipe %s. Recipe name used in the project should match the recipe which is used for upgrading", opts.Dir, opts.RecipeName)
+			return
+		}
 	}
 
-	if len(newTags) > 0 {
-		cmd.Println("New versions found:")
-		cmd.Println(newTags)
-	} else {
-		// TODO: Use different exit code
-		cmd.Println("No new versions found")
+	cmd.Println("Checking for new versions...")
+
+	updates := make([][]string, len(sauces))
+	for i, sauce := range sauces {
+		if sauce.CheckFrom == "" {
+			cmd.PrintErrf("Error: source of the sauce with ID '%s' is undefined, can not check for new versions\n", sauce.ID)
+			continue
+		}
+
+		ctx := context.Background()
+
+		repo, err := oci.NewRepository(oci.Repository{
+			Reference: strings.TrimPrefix(sauce.CheckFrom, "oci://"),
+			PlainHTTP: opts.PlainHTTP,
+			Credentials: oci.Credentials{
+				Username:      opts.Username,
+				Password:      opts.Password,
+				DockerConfigs: opts.Configs,
+			},
+			TLS: oci.TLSConfig{
+				CACertFilePath: opts.CACertFilePath,
+				Insecure:       opts.Insecure,
+			},
+		})
+
+		if err != nil {
+			cmd.PrintErrf("Error: %s", err)
+			return
+		}
+
+		err = repo.Tags(ctx, "", func(tags []string) error {
+			updates[i] = make([]string, 0, len(tags))
+			for _, tag := range tags {
+				if semver.IsValid(tag) && semver.Compare(tag, sauce.Recipe.Version) > 0 {
+					updates[i] = append(updates[i], tag)
+				}
+			}
+			semver.Sort(updates[i])
+			return nil
+		})
+
+		if err != nil {
+			cmd.PrintErrf("Error: %s", err)
+			return
+		}
+	}
+
+	for i, u := range updates {
+		if len(u) > 0 {
+			cmd.Println()
+			cmd.Printf("New versions found for recipe '%s': %s\n", sauces[i].Recipe.Name, u)
+			cmd.Println("Upgrade recipe with `jalapeno upgrade ...`")
+		} else {
+			// TODO: Use different exit code
+			cmd.Printf("No new versions found for recipe '%s'\n", sauces[i].Recipe.Name)
+		}
 	}
 }
