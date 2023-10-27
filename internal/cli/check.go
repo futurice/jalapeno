@@ -2,7 +2,6 @@ package cli
 
 import (
 	"context"
-	"errors"
 
 	"github.com/futurice/jalapeno/internal/cli/option"
 	"github.com/futurice/jalapeno/pkg/oci"
@@ -45,28 +44,25 @@ func NewCheckCmd() *cobra.Command {
 func runCheck(cmd *cobra.Command, opts checkOptions) {
 	sauces, err := re.LoadSauces(opts.Dir)
 	if err != nil {
-		if errors.Is(err, re.ErrSauceNotFound) {
-			cmd.PrintErrf("Error: project %s does not contain sauce with recipe %s. Recipe name used in the project should match the recipe which is used for upgrading", opts.Dir, opts.RecipeName)
-		} else {
-			cmd.PrintErrf("Error: %s", err)
-		}
+		cmd.PrintErrf("Error: can not load sauces: %s", err)
 		return
 	}
 
+	// Check if we are looking updates for a specific recipe
 	if opts.RecipeName != "" {
-		found := false
+		filtered := make([]*re.Sauce, 0, len(sauces))
 		for _, sauce := range sauces {
 			if sauce.Recipe.Name == opts.RecipeName {
-				found = true
-				sauces = []*re.Sauce{sauce}
-				break
+				filtered = append(filtered, sauce)
 			}
 		}
 
-		if !found {
+		if len(filtered) == 0 {
 			cmd.PrintErrf("Error: project %s does not contain a sauce with recipe %s. Recipe name used in the project should match the recipe which is used for upgrading", opts.Dir, opts.RecipeName)
 			return
 		}
+
+		sauces = filtered
 	}
 
 	cmd.Println("Checking for new versions...")
