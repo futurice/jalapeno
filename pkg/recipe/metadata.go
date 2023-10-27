@@ -3,9 +3,12 @@ package recipe
 import (
 	"fmt"
 	"net/url"
+	"regexp"
 
 	"golang.org/x/mod/semver"
 )
+
+var nameRegex = regexp.MustCompile(`^[a-zA-Z0-9_-]*$`)
 
 type Metadata struct {
 	// Version of the recipe metadata API schema. Currently should have value "v1"
@@ -41,6 +44,10 @@ func (m *Metadata) Validate() error {
 
 	if m.Name == "" {
 		return fmt.Errorf("recipe name can not be empty")
+	}
+
+	if !nameRegex.MatchString(m.Name) {
+		return fmt.Errorf("recipe name can only contain letters, numbers, dashes and underscores")
 	}
 
 	if !semver.IsValid(m.Version) {
