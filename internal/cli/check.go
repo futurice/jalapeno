@@ -3,7 +3,6 @@ package cli
 import (
 	"context"
 	"errors"
-	"strings"
 
 	"github.com/futurice/jalapeno/internal/cli/option"
 	"github.com/futurice/jalapeno/pkg/oci"
@@ -65,7 +64,7 @@ func runCheck(cmd *cobra.Command, opts checkOptions) {
 		}
 
 		if !found {
-			cmd.PrintErrf("Error: project %s does not contain sauce with recipe %s. Recipe name used in the project should match the recipe which is used for upgrading", opts.Dir, opts.RecipeName)
+			cmd.PrintErrf("Error: project %s does not contain a sauce with recipe %s. Recipe name used in the project should match the recipe which is used for upgrading", opts.Dir, opts.RecipeName)
 			return
 		}
 	}
@@ -81,19 +80,7 @@ func runCheck(cmd *cobra.Command, opts checkOptions) {
 
 		ctx := context.Background()
 
-		repo, err := oci.NewRepository(oci.Repository{
-			Reference: strings.TrimPrefix(sauce.CheckFrom, "oci://"),
-			PlainHTTP: opts.PlainHTTP,
-			Credentials: oci.Credentials{
-				Username:      opts.Username,
-				Password:      opts.Password,
-				DockerConfigs: opts.Configs,
-			},
-			TLS: oci.TLSConfig{
-				CACertFilePath: opts.CACertFilePath,
-				Insecure:       opts.Insecure,
-			},
-		})
+		repo, err := oci.NewRepository(opts.Repository(sauce.CheckFrom))
 
 		if err != nil {
 			cmd.PrintErrf("Error: %s", err)

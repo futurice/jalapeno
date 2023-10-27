@@ -65,20 +65,7 @@ func runExecute(cmd *cobra.Command, opts executeOptions) {
 	if strings.HasPrefix(opts.RecipeURL, "oci://") {
 		wasRemoteRecipe = true
 		ctx := context.Background()
-		re, err = oci.PullRecipe(ctx,
-			oci.Repository{
-				Reference: strings.TrimPrefix(opts.RecipeURL, "oci://"),
-				PlainHTTP: opts.PlainHTTP,
-				Credentials: oci.Credentials{
-					Username:      opts.Username,
-					Password:      opts.Password,
-					DockerConfigs: opts.Configs,
-				},
-				TLS: oci.TLSConfig{
-					CACertFilePath: opts.CACertFilePath,
-					Insecure:       opts.Insecure,
-				},
-			})
+		re, err = oci.PullRecipe(ctx, opts.Repository(opts.RecipeURL))
 
 	} else {
 		re, err = recipe.LoadRecipe(opts.RecipeURL)

@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/futurice/jalapeno/pkg/oci"
 	"github.com/spf13/pflag"
 )
 
@@ -47,4 +48,20 @@ func (opts *OCIRepository) readPassword() (err error) {
 		opts.Password = strings.TrimSuffix(opts.Password, "\r")
 	}
 	return nil
+}
+
+func (opts *OCIRepository) Repository(url string) oci.Repository {
+	return oci.Repository{
+		Reference: strings.TrimPrefix(url, "oci://"),
+		PlainHTTP: opts.PlainHTTP,
+		Credentials: oci.Credentials{
+			Username:      opts.Username,
+			Password:      opts.Password,
+			DockerConfigs: opts.Configs,
+		},
+		TLS: oci.TLSConfig{
+			CACertFilePath: opts.CACertFilePath,
+			Insecure:       opts.Insecure,
+		},
+	}
 }

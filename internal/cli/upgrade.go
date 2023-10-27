@@ -57,20 +57,7 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) {
 
 	if strings.HasPrefix(opts.RecipeURL, "oci://") {
 		ctx := context.Background()
-		re, err = oci.PullRecipe(ctx,
-			oci.Repository{
-				Reference: strings.TrimPrefix(opts.RecipeURL, "oci://"),
-				PlainHTTP: opts.PlainHTTP,
-				Credentials: oci.Credentials{
-					Username:      opts.Username,
-					Password:      opts.Password,
-					DockerConfigs: opts.Configs,
-				},
-				TLS: oci.TLSConfig{
-					CACertFilePath: opts.CACertFilePath,
-					Insecure:       opts.Insecure,
-				},
-			})
+		re, err = oci.PullRecipe(ctx, opts.Repository(opts.RecipeURL))
 
 	} else {
 		re, err = recipe.LoadRecipe(opts.RecipeURL)
