@@ -53,7 +53,7 @@ func iExecuteRemoteRecipe(ctx context.Context, repository string) (context.Conte
 		flags = make(map[string]string)
 	}
 
-	x := fmt.Sprintf("oci://%s/%s", registry.Resource.GetHostPort("5000/tcp"), repository)
+	url := fmt.Sprintf("oci://%s/%s", registry.Resource.GetHostPort("5000/tcp"), repository)
 
 	if registry.TLSEnabled {
 		// Allow self-signed certificates
@@ -73,7 +73,7 @@ func iExecuteRemoteRecipe(ctx context.Context, repository string) (context.Conte
 
 	ctx = context.WithValue(ctx, cmdOptionalFlagsCtxKey{}, flags)
 
-	return iRunExecute(ctx, x)
+	return iRunExecute(ctx, url)
 }
 
 func executionOfTheRecipeHasSucceeded(ctx context.Context) (context.Context, error) {

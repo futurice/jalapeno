@@ -11,7 +11,7 @@ Feature: Jalapenoignore
     And no errors were printed
     When I change recipe "foo" to version "v0.0.2"
     And I change project file "README.md" to contain "bar"
-    And I upgrade sauce "foo"
+    And I upgrade recipe "foo"
     Then the project directory should contain file "README.md" with "bar"
     And no errors were printed
     And no conflicts were reported
@@ -24,7 +24,7 @@ Feature: Jalapenoignore
     And I change project file "README.md" to contain "bar"
     And I change recipe "foo" to version "v0.0.2"
     And I change project file ".jalapenoignore" to contain "*.md"
-    And I upgrade sauce "foo"
+    And I upgrade recipe "foo"
     Then the project directory should contain file "README.md" with "bar"
     And no errors were printed
     And no conflicts were reported
