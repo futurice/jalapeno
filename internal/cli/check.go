@@ -27,13 +27,14 @@ func NewCheckCmd() *cobra.Command {
 		Long:  "TODO",
 		Args:  cobra.NoArgs,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			cmd.Flags().StringVar(&opts.RecipeName, "recipe", "", "Name of the recipe to check for new versions")
 			return option.Parse(&opts)
 		},
 		Run: func(cmd *cobra.Command, args []string) {
 			runCheck(cmd, opts)
 		},
 	}
+
+	cmd.Flags().StringVar(&opts.RecipeName, "recipe", "", "Name of the recipe to check for new versions")
 
 	if err := option.ApplyFlags(&opts, cmd.Flags()); err != nil {
 		return nil
