@@ -17,7 +17,7 @@ type Metadata struct {
 	// Name of the recipe
 	Name string `yaml:"name"`
 
-	// Version of the recipe
+	// Version of the recipe. Must be valid [semver](https://semver.org/)
 	Version string `yaml:"version"`
 
 	// Description of what the recipe does

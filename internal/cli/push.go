@@ -20,7 +20,7 @@ func NewPushCmd() *cobra.Command {
 	var cmd = &cobra.Command{
 		Use:   "push RECIPE_PATH TARGET_URL",
 		Short: "Push a recipe to OCI repository",
-		Long:  "TODO",
+		Long:  "Push a recipe to OCI repository (e.g. Docker registry). You can authenticate by using the --username and --password flags or logging in first with `docker login`.",
 		Args:  cobra.ExactArgs(2),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			opts.RecipePath = args[0]

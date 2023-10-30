@@ -21,7 +21,7 @@ func NewTestCmd() *cobra.Command {
 	var cmd = &cobra.Command{
 		Use:   "test RECIPE_PATH",
 		Short: "Run tests for the recipe",
-		Long:  "TODO",
+		Long:  "Run tests for the recipe.",
 		Args:  cobra.ExactArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			opts.RecipePath = args[0]

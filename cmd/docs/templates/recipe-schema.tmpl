@@ -1,0 +1,37 @@
+{{- define "recipe-schema" }}
+## Recipe schema (`recipe.yml`)
+
+| Attribute | Type | Default | Description |
+| --- | --- | --- | --- |
+| `apiVersion` | `string` | `v1` | Version of the recipe metadata API schema. Currently should have value "v1" |
+| `name` | `string` | | Name of the recipe |
+| `version` | `string` | | Version of the recipe. Must be valid [semver](https://semver.org/) |
+| `description` | `string` | | Description of what the recipe does |
+| `sources` | `[]string` | | A list of URLs to source code for this recipe |
+| `initHelp` | `string` | | A message which will be showed to an user after a succesful recipe execution. Can be used to guide the user what should be done next in the project directory |
+| `ignorePatterns` | `[]string` | | Glob patterns for ignoring generated files from future recipe upgrades. Ignored files will not be regenerated even if their templates change in future versions of the recipe |
+| `vars` | `[]Variable` | | An array of variables which can be used in templates |
+
+### Variable
+
+| Attribute | Type | Default | Description |
+| --- | --- | --- | --- |
+| `name` | `string` | | The name of the variable. It is also used as unique identifier |
+| `description` | `string` | | Description of the variable. Will be shown to the user when "show help" is activated |
+| `default` | `string` | | Default value of the variable |
+| `confirm` | `bool` | `false` | If set to true, the prompt will be yes/no question, and the value type will be boolean |
+| `optional` | `bool` | `false` | If set to true, the variable can be left empty |
+| `options` | `[]string` | | The user selects the value from a list of options |
+| `validators` | `[]Validator` | | Validators for the variable |
+| `if` | `string` | | Makes the variable conditional based on the result of the expression. The result of the evaluation needs to be a boolean value. Uses https://github.com/antonmedv/expr |
+| `columns` | `[]string` | |  Set the variable as a table type with columns defined by this property |
+
+### Validator
+
+| Attribute | Type | Default | Description |
+| --- | --- | --- | --- |
+| `pattern` | `string` | | Regular expression pattern to match the input against |
+| `help` | `string` | | If the regular expression validation fails, this help message will be shown to the user |
+| `column` | `string` | | Apply the validator to a column if the variable type is table |
+
+{{- end }}

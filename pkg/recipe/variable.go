@@ -25,7 +25,7 @@ type Variable struct {
 	// The user selects the value from a list of options
 	Options []string `yaml:"options,omitempty"`
 
-	// Regular expression validators for the variable value
+	// Validators for the variable
 	Validators []VariableValidator `yaml:"validators,omitempty"`
 
 	// Makes the variable conditional based on the result of the expression. The result of the evaluation needs to be a boolean value. Uses https://github.com/antonmedv/expr

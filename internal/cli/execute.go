@@ -29,10 +29,10 @@ type executeOptions struct {
 func NewExecuteCmd() *cobra.Command {
 	var opts executeOptions
 	var cmd = &cobra.Command{
-		Use:     "execute RECIPE_PATH",
+		Use:     "execute RECIPE_URL",
 		Aliases: []string{"exec", "e"},
 		Short:   "Execute a recipe",
-		Long:    "TODO",
+		Long:    "Executes (renders) a recipe and outputs the files to the directory. Recipe URL can be a local path or a remote URL (ex. 'oci://docker.io/my-recipe').",
 		Args:    cobra.ExactArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			opts.RecipeURL = args[0]

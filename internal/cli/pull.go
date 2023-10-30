@@ -22,7 +22,7 @@ func NewPullCmd() *cobra.Command {
 	var cmd = &cobra.Command{
 		Use:   "pull URL",
 		Short: "Pull a recipe from OCI repository",
-		Long:  "TODO",
+		Long:  "Pull a recipe from OCI repository and save it locally. You can authenticate by using the --username and --password flags or logging in first with `docker login`.",
 		Args:  cobra.ExactArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			opts.TargetRef = args[0]

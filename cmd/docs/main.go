@@ -42,12 +42,13 @@ func main() {
 	checkErr(err)
 
 	cmds := rootCmd.Commands()
-	infos := mapCommandInfos(cmds)
 
 	tmpl := template.Must(template.New("doc").ParseFS(tmpls, "templates/*"))
 
 	var b bytes.Buffer
-	err = tmpl.ExecuteTemplate(&b, "main.tmpl", infos)
+	err = tmpl.ExecuteTemplate(&b, "main.tmpl", map[string]interface{}{
+		"Commands": mapCommandInfos(cmds),
+	})
 	checkErr(err)
 
 	err = os.WriteFile(args[0], b.Bytes(), 0644)

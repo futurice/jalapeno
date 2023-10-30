@@ -21,8 +21,9 @@ func NewCreateCmd() *cobra.Command {
 	var cmd = &cobra.Command{
 		Use:   "create RECIPE_NAME",
 		Short: "Create a new recipe",
-		Long: fmt.Sprintf(`TODO
+		Long: fmt.Sprintf(`Create a new recipe with the given name.
 
+The following files will be created:
 %[1]s
 my-recipe
 ├── %[2]s

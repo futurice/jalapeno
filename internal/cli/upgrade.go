@@ -29,9 +29,9 @@ type upgradeOptions struct {
 func NewUpgradeCmd() *cobra.Command {
 	var opts upgradeOptions
 	var cmd = &cobra.Command{
-		Use:   "upgrade RECIPE_PATH",
+		Use:   "upgrade RECIPE_URL",
 		Short: "Upgrade a recipe in a project",
-		Long:  "Upgrade a recipe in a project with a newer version.",
+		Long:  "Upgrade a recipe in a project with a newer version. Recipe URL can be a local path or a remote URL (ex. 'oci://docker.io/my-recipe').",
 		Args:  cobra.ExactArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			opts.RecipeURL = args[0]

@@ -21,8 +21,8 @@ func NewCheckCmd() *cobra.Command {
 	var opts checkOptions
 	var cmd = &cobra.Command{
 		Use:   "check",
-		Short: "Check if there are new versions for a recipe",
-		Long:  "TODO",
+		Short: "Check if there are new versions for recipes",
+		Long:  "Check if there are newer versions available for recipes used in the project. By default it checks updates for all recipes, but it is possible to check updates for a specific recipe by using the `--recipe` flag.",
 		Args:  cobra.NoArgs,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			return option.Parse(&opts)
