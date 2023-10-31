@@ -30,6 +30,11 @@ func NewCheckCmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			runCheck(cmd, opts)
 		},
+		Example: `# Check updates for all recipes in the project
+jalapeno check
+
+# Check updates for a single recipe
+jalapeno check --recipe my-recipe`,
 	}
 
 	cmd.Flags().StringVar(&opts.RecipeName, "recipe", "", "Name of the recipe to check for new versions")

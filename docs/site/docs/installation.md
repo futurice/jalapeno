@@ -17,6 +17,17 @@ brew install jalapeno
 winget install jalapeno
 ```
 
+## Updating with package manager
+
+```bash tab={"label":"Homebrew"}
+brew update
+brew upgrade jalapeno
+```
+
+```powershell tab={"label":"Winget"}
+winget upgrade jalapeno
+```
+
 ## From the Binary Releases
 
 Cross-platform binaries are provided with each release of Jalapeno. These can manually be
@@ -71,14 +82,3 @@ task build
 ```
 
 After this the binary is available on path `./bin/jalapeno`.
-
-## Updating your Jalapeno version
-
-```bash tab={"label":"Homebrew"}
-brew update
-brew upgrade jalapeno
-```
-
-```powershell tab={"label":"Winget"}
-winget upgrade jalapeno
-```

@@ -40,6 +40,24 @@ func NewUpgradeCmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			runUpgrade(cmd, opts)
 		},
+		Example: `# Upgrade recipe with local recipe
+jalapeno upgrade path/to/recipe
+
+# Upgrade recipe with remote recipe from OCI repository
+jalapeno upgrade oci://ghcr.io/user/my-recipe:v2.0.0
+
+# Upgrade recipe with remote recipe from OCI repository with inline authentication
+jalapeno upgrade oci://ghcr.io/user/my-recipe:v2.0.0 --username user --password pass
+
+# Upgrade recipe with remote recipe from OCI repository with Docker authentication
+docker login ghcr.io
+jalapeno upgrade oci://ghcr.io/user/my-recipe:v2.0.0
+
+# Upgrade recipe to different directory
+jalapeno upgrade path/to/recipe --dir other/dir
+
+# Predefine values for new variables introduced in the upgrade
+jalapeno upgrade path/to/recipe --set NEW_VAR=foo`,
 	}
 
 	if err := option.ApplyFlags(&opts, cmd.Flags()); err != nil {

@@ -7,7 +7,7 @@ import (
 )
 
 type validateOptions struct {
-	TargetPath string
+	RecipePath string
 	option.Common
 }
 
@@ -18,13 +18,14 @@ func NewValidateCmd() *cobra.Command {
 		Short: "Validate a recipe",
 		Long:  "Validate a recipe in a local path.",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			opts.TargetPath = args[0]
+			opts.RecipePath = args[0]
 			return option.Parse(&opts)
 		},
 		Run: func(cmd *cobra.Command, args []string) {
 			runValidate(cmd, opts)
 		},
-		Args: cobra.ExactArgs(1),
+		Args:    cobra.ExactArgs(1),
+		Example: `jalapeno validate path/to/recipe`,
 	}
 
 	if err := option.ApplyFlags(&opts, cmd.Flags()); err != nil {
@@ -35,7 +36,7 @@ func NewValidateCmd() *cobra.Command {
 }
 
 func runValidate(cmd *cobra.Command, opts validateOptions) {
-	r, err := recipe.LoadRecipe(opts.TargetPath)
+	r, err := recipe.LoadRecipe(opts.RecipePath)
 	if err != nil {
 		cmd.PrintErrf("Error: could not load the recipe: %s\n", err)
 	}

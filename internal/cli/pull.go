@@ -31,6 +31,18 @@ func NewPullCmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			runPull(cmd, opts)
 		},
+		Example: `# Pull recipe from OCI repository
+jalapeno pull ghcr.io/user/recipe:latest
+
+# Pull recipe from OCI repository with inline authentication
+jalapeno pull oci://ghcr.io/user/my-recipe:latest --username user --password pass
+
+# Pull recipe from OCI repository with Docker authentication
+docker login ghcr.io
+jalapeno pull oci://ghcr.io/user/my-recipe:latest
+
+# Pull recipe to different directory
+jalapeno pull oci://ghcr.io/user/my-recipe:latest --dir other/dir`,
 	}
 
 	if err := option.ApplyFlags(&opts, cmd.Flags()); err != nil {
@@ -43,21 +55,7 @@ func NewPullCmd() *cobra.Command {
 func runPull(cmd *cobra.Command, opts pullOptions) {
 	ctx := context.Background()
 
-	err := oci.SaveRemoteRecipe(ctx, opts.Dir,
-		oci.Repository{
-			Reference: opts.TargetRef,
-			PlainHTTP: opts.PlainHTTP,
-			Credentials: oci.Credentials{
-				Username:      opts.Username,
-				Password:      opts.Password,
-				DockerConfigs: opts.Configs,
-			},
-			TLS: oci.TLSConfig{
-				CACertFilePath: opts.CACertFilePath,
-				Insecure:       opts.Insecure,
-			},
-		},
-	)
+	err := oci.SaveRemoteRecipe(ctx, opts.Dir, opts.Repository(opts.TargetRef))
 
 	if err != nil {
 		if strings.Contains(err.Error(), "not found") {

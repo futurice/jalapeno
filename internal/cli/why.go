@@ -30,6 +30,7 @@ func NewWhyCmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			runWhy(cmd, opts)
 		},
+		Example: `jalapeno why path/to/file`,
 	}
 
 	if err := option.ApplyFlags(&opts, cmd.Flags()); err != nil {

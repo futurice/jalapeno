@@ -41,6 +41,24 @@ func NewExecuteCmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			runExecute(cmd, opts)
 		},
+		Example: `# Execute local recipe
+jalapeno execute path/to/recipe
+
+# Execute recipe from OCI repository
+jalapeno execute oci://ghcr.io/user/my-recipe:latest
+
+# Execute recipe from OCI repository with inline authentication
+jalapeno execute oci://ghcr.io/user/my-recipe:latest --username user --password pass
+
+# Execute recipe from OCI repository with Docker authentication
+docker login ghcr.io
+jalapeno execute oci://ghcr.io/user/my-recipe:latest
+
+# Execute recipe to different directory
+jalapeno execute path/to/recipe --dir other/dir
+
+# Predefine variable values
+jalapeno execute path/to/recipe --set MY_VAR=foo --set MY_OTHER_VAR=bar`,
 	}
 
 	if err := option.ApplyFlags(&opts, cmd.Flags()); err != nil {

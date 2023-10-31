@@ -9,7 +9,7 @@ import (
 )
 
 type Test struct {
-	// Name of the test case. Defined by the test filename
+	// Name of the test case. Defined by directory name of the test case
 	Name string `yaml:"-"`
 
 	// Values to use to render the recipe templates

@@ -30,6 +30,14 @@ func NewTestCmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			runTest(cmd, opts)
 		},
+		Example: `# Run recipe tests
+jalapeno test path/to/recipe
+
+# Bootstrap a new test case
+jalapeno test path/to/recipe --create
+
+# Update test file snapshots with the current outputs
+jalapeno test path/to/recipe --update-snapshots`,
 	}
 
 	cmd.Flags().BoolVarP(&opts.UpdateSnapshots, "update-snapshots", "u", false, "Update test file snapshots")

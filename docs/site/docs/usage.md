@@ -4,7 +4,7 @@ slug: /usage/
 title: Usage
 ---
 
-# Usage
+# Usage [WIP]
 
 ## Getting started
 

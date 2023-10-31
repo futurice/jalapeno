@@ -25,6 +25,7 @@ func NewEjectCmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			runEject(cmd, opts)
 		},
+		Example: `jalapeno eject`,
 	}
 
 	if err := option.ApplyFlags(&opts, cmd.Flags()); err != nil {
