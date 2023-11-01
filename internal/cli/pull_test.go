@@ -1,9 +1,7 @@
 package cli_test
 
 import (
-	"bytes"
 	"context"
-	"errors"
 	"os"
 	"path/filepath"
 
@@ -59,18 +57,4 @@ func iPullRecipe(ctx context.Context, recipeName, repoName string) (context.Cont
 	}
 
 	return ctx, cmd.Execute()
-}
-
-func pullOfTheRecipeWasSuccessful(ctx context.Context) error {
-	cmdStdOut := ctx.Value(cmdStdOutCtxKey{}).(*bytes.Buffer)
-	err := noErrorsWerePrinted(ctx)
-	if err != nil {
-		return err
-	}
-
-	if cmdStdOut.String() == "" { // TODO: Check stdout when we have proper message from CMD
-		return errors.New("stdout was empty")
-	}
-
-	return nil
 }

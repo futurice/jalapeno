@@ -7,13 +7,13 @@ Feature: Jalapenoignore
     And a recipe "foo" that generates file "README.md"
     And recipe "foo" ignores pattern "README.md"
     When I execute recipe "foo"
-    Then the project directory should contain file "README.md" with "foo"
-    And no errors were printed
+    Then no errors were printed
+    And the project directory should contain file "README.md" with "foo"
     When I change recipe "foo" to version "v0.0.2"
     And I change project file "README.md" to contain "bar"
     And I upgrade recipe "foo"
-    Then the project directory should contain file "README.md" with "bar"
-    And no errors were printed
+    Then no errors were printed
+    And the project directory should contain file "README.md" with "bar"
     And no conflicts were reported
 
   Scenario: Ignore with jalapenoignore file
@@ -25,6 +25,6 @@ Feature: Jalapenoignore
     And I change recipe "foo" to version "v0.0.2"
     And I change project file ".jalapenoignore" to contain "*.md"
     And I upgrade recipe "foo"
-    Then the project directory should contain file "README.md" with "bar"
-    And no errors were printed
+    Then no errors were printed
+    And the project directory should contain file "README.md" with "bar"
     And no conflicts were reported

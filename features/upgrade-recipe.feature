@@ -24,8 +24,8 @@ Feature: Upgrade sauce
     And I change recipe "foo" template "README.md" to render "New version"
     And the recipe "foo" is pushed to the local OCI repository "foo:v0.0.2"
     When I upgrade recipe from the local OCI repository "foo:v0.0.2"
-    Then the project directory should contain file ".jalapeno/sauces.yml" with "version: v0.0.2"
-    And no errors were printed
+    Then no errors were printed
+    And the project directory should contain file ".jalapeno/sauces.yml" with "version: v0.0.2"
     And the project directory should contain file "README.md" with "New version"
     And no conflicts were reported
 

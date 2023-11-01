@@ -53,7 +53,3 @@ func iRunPush(ctx context.Context, recipeName string) (context.Context, error) {
 
 	return ctx, cmd.Execute()
 }
-
-func pushOfTheRecipeWasSuccessful(ctx context.Context) (context.Context, error) {
-	return ctx, expectGivenOutput(ctx, "") // TODO
-}

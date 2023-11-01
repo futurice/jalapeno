@@ -7,7 +7,7 @@ Feature: Recipes as OCI artifacts
 		And a recipe "foo" that generates file "README.md"
 		And a local OCI registry
 		When I push the recipe "foo" to the local OCI repository
-		Then push of the recipe was successful
+		Then no errors were printed
 
 	Scenario: Pull a recipe from OCI repository
 		Given a recipes directory
@@ -15,7 +15,7 @@ Feature: Recipes as OCI artifacts
 		And a local OCI registry
 		And the recipe "foo" is pushed to the local OCI repository "foo:v0.0.1"
 		When I pull the recipe "foo" from the local OCI repository "foo:v0.0.1"
-		Then pull of the recipe was successful
+		Then no errors were printed
 		And the recipes directory should contain recipe "foo"
 	
 	Scenario: Push a recipe to OCI repository with authentication
@@ -23,7 +23,7 @@ Feature: Recipes as OCI artifacts
 		And a recipe "foo" that generates file "README.md"
 	 	And a local OCI registry with authentication
 		When I push the recipe "foo" to the local OCI repository
-		Then push of the recipe was successful
+		Then no errors were printed
 
 	Scenario: Pull a recipe from OCI repository with authentication
 		Given a recipes directory
@@ -31,7 +31,8 @@ Feature: Recipes as OCI artifacts
 		And a local OCI registry with authentication
 		And the recipe "foo" is pushed to the local OCI repository "foo:v0.0.1"
 		When I pull the recipe "foo" from the local OCI repository "foo:v0.0.1"
-		Then pull of the recipe was successful
+		Then no errors were printed
+		Then no errors were printed
 		And the recipes directory should contain recipe "foo"
 	
 	Scenario: Try to push a recipe to OCI repository without authentication
@@ -55,7 +56,7 @@ Feature: Recipes as OCI artifacts
 		And registry credentials are provided by config file
 		And registry credentials are not provided by the command
 		When I push the recipe "foo" to the local OCI repository
-		Then push of the recipe was successful
+		Then no errors were printed
 
 	Scenario: Pull a recipe from OCI repository using credentials from default config file
 		Given a recipes directory
@@ -64,4 +65,4 @@ Feature: Recipes as OCI artifacts
 		And registry credentials are provided by default config file
 		And registry credentials are not provided by the command
 		When I push the recipe "foo" to the local OCI repository
-		Then push of the recipe was successful
+		Then no errors were printed
