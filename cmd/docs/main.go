@@ -78,7 +78,7 @@ func mapCommandInfos(cmds []*cobra.Command) []CommandInfo {
 				Name:        f.Name,
 				Shorthand:   f.Shorthand,
 				Default:     f.DefValue,
-				Type:        f.Value.Type(),
+				Type:        valueTypeToString(f.Value),
 				Description: f.Usage,
 			})
 		})
@@ -87,4 +87,15 @@ func mapCommandInfos(cmds []*cobra.Command) []CommandInfo {
 	}
 
 	return infos
+}
+
+func valueTypeToString(v pflag.Value) string {
+	t := v.Type()
+	switch t {
+	case "stringArray":
+		return "[]string"
+	default:
+		return t
+	}
+
 }

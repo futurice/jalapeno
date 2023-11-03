@@ -10,19 +10,19 @@
 | `sources` | `[]string` | | A list of URLs to source code for this recipe. |
 | `initHelp` | `string` | | A message which will be showed to an user after a succesful recipe execution. Can be used to guide the user what should be done next in the project directory. |
 | `ignorePatterns` | `[]string` | | Glob patterns for ignoring generated files from future recipe upgrades. Ignored files will not be regenerated even if their templates change in future versions of the recipe. |
-| `vars` | `[]Variable` | | An array of variables which can be used in templates. |
+| `vars` | [`[]Variable`](#variable) | | An array of variables which can be used in templates. The user will be prompted to provide the value for the variable if not predefined with `--set` flag. |
 
 ### Variable
 
 | Attribute | Type | Default | Description |
 | --- | --- | --- | --- |
-| `name` | `string` | | The name of the variable. It is also used as unique identifier. |
+| `name` | `string` | | The name of the variable. It is also used as unique identifier, so two variables can not have the same name. |
 | `description` | `string` | | Description of the variable. Will be shown to the user when "show help" is activated. |
 | `default` | `string` | | Default value of the variable. |
 | `confirm` | `bool` | `false` | If set to true, the prompt will be yes/no question, and the value type will be boolean. |
 | `optional` | `bool` | `false` | If set to true, the variable can be left empty. |
 | `options` | `[]string` | | The user selects the value from a list of options. |
-| `validators` | `[]Validator` | | Validators for the variable. |
+| `validators` | [`[]Validator`](#validator) | | Validators for the variable. |
 | `if` | `string` | | Makes the variable conditional based on the result of the expression. The result of the evaluation needs to be a boolean value. Uses https://github.com/antonmedv/expr. |
 | `columns` | `[]string` | |  Set the variable as a table type with columns defined by this property. |
 

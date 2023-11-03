@@ -103,7 +103,12 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) {
 		return
 	}
 
-	cmd.Printf("Upgrading recipe %s from version %s to %s\n", oldSauce.Recipe.Name, oldSauce.Recipe.Metadata.Version, re.Metadata.Version)
+	cmd.Printf(
+		"Upgrading recipe %s from version %s to %s\n",
+		oldSauce.Recipe.Name,
+		oldSauce.Recipe.Metadata.Version,
+		re.Metadata.Version,
+	)
 
 	// Check if the new version of the recipe has removed some variables
 	// which existed on previous version
