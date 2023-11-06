@@ -5,7 +5,6 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"errors"
-	"fmt"
 	"net/http"
 	"os"
 	"time"
@@ -20,6 +19,7 @@ type Repository struct {
 	PlainHTTP   bool
 	Credentials Credentials
 	TLS         TLSConfig
+	UserAgent   string
 }
 
 type Credentials struct {
@@ -67,7 +67,7 @@ func NewRepository(opts Repository) (*remote.Repository, error) {
 			},
 		},
 		Header: http.Header{
-			"User-Agent": []string{fmt.Sprintf("jalapeno/%s", "0.0.1")}, // TODO: Get real version number
+			"User-Agent": []string{opts.UserAgent},
 		},
 		Cache: auth.NewCache(),
 	}

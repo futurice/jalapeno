@@ -31,6 +31,11 @@ type CommandInfo struct {
 //go:embed templates
 var tmpls embed.FS
 
+var (
+	// https://goreleaser.com/cookbooks/using-main.version/
+	version string
+)
+
 func main() {
 	args := os.Args[1:]
 	if len(args) != 1 {
@@ -38,7 +43,7 @@ func main() {
 		return
 	}
 
-	rootCmd, err := cli.NewRootCmd()
+	rootCmd, err := cli.NewRootCmd(version)
 	checkErr(err)
 
 	cmds := rootCmd.Commands()
