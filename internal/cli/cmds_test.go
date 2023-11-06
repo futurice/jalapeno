@@ -130,6 +130,8 @@ func wrapCmdOutputs(ctx context.Context, cmdFactory func() *cobra.Command) (cont
 	cmd.SetOut(cmdStdOut)
 	cmd.SetErr(cmdStdErr)
 
+	cmd.SetContext(context.Background())
+
 	ctx = context.WithValue(ctx, cmdStdOutCtxKey{}, cmdStdOut)
 	ctx = context.WithValue(ctx, cmdStdErrCtxKey{}, cmdStdErr)
 

@@ -56,5 +56,6 @@ func iPullRecipe(ctx context.Context, recipeName, repoName string) (context.Cont
 		}
 	}
 
-	return ctx, cmd.Execute()
+	cmd.Execute()
+	return ctx, nil
 }

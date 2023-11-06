@@ -1,6 +1,8 @@
 package cli
 
 import (
+	"fmt"
+
 	"github.com/futurice/jalapeno/internal/cli/option"
 	"github.com/futurice/jalapeno/pkg/recipe"
 	"github.com/spf13/cobra"
@@ -21,8 +23,8 @@ func NewValidateCmd() *cobra.Command {
 			opts.RecipePath = args[0]
 			return option.Parse(&opts)
 		},
-		Run: func(cmd *cobra.Command, args []string) {
-			runValidate(cmd, opts)
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return runValidate(cmd, opts)
 		},
 		Args:    cobra.ExactArgs(1),
 		Example: `jalapeno validate path/to/recipe`,
@@ -35,16 +37,17 @@ func NewValidateCmd() *cobra.Command {
 	return cmd
 }
 
-func runValidate(cmd *cobra.Command, opts validateOptions) {
+func runValidate(cmd *cobra.Command, opts validateOptions) error {
 	r, err := recipe.LoadRecipe(opts.RecipePath)
 	if err != nil {
-		cmd.PrintErrf("Error: could not load the recipe: %s\n", err)
+		return fmt.Errorf("could not load the recipe: %w", err)
 	}
 
 	err = r.Validate()
 	if err != nil {
-		cmd.PrintErrf("Error: validation failed: %s\n", err)
+		return fmt.Errorf("validation failed: %w", err)
 	}
 
 	cmd.Println("Validation ok")
+	return nil
 }

@@ -43,16 +43,14 @@ func main() {
 		return
 	}
 
-	rootCmd, err := cli.NewRootCmd(version)
-	checkErr(err)
-
-	cmds := rootCmd.Commands()
+	rootCmd := cli.NewRootCmd(version)
+	subCmds := rootCmd.Commands()
 
 	tmpl := template.Must(template.New("doc").ParseFS(tmpls, "templates/*"))
 
 	var b bytes.Buffer
-	err = tmpl.ExecuteTemplate(&b, "main.tmpl", map[string]interface{}{
-		"Commands": mapCommandInfos(cmds),
+	err := tmpl.ExecuteTemplate(&b, "main.tmpl", map[string]interface{}{
+		"Commands": mapCommandInfos(subCmds),
 	})
 	checkErr(err)
 

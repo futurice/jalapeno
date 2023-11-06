@@ -27,8 +27,8 @@ func NewPushCmd() *cobra.Command {
 			opts.TargetURL = args[1]
 			return option.Parse(&opts)
 		},
-		Run: func(cmd *cobra.Command, args []string) {
-			runPush(cmd, opts)
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return runPush(cmd, opts)
 		},
 		Example: `# Push recipe to OCI repository
 jalapeno push path/to/recipe ghcr.io/user/recipe:latest
@@ -48,15 +48,15 @@ jalapeno push path/to/recipe oci://ghcr.io/user/my-recipe:latest`,
 	return cmd
 }
 
-func runPush(cmd *cobra.Command, opts pushOptions) {
+func runPush(cmd *cobra.Command, opts pushOptions) error {
 	ctx := context.Background()
 
 	err := oci.PushRecipe(ctx, opts.RecipePath, opts.Repository(opts.TargetURL))
 
 	if err != nil {
-		cmd.PrintErrf("Error: %s\n", err)
-		return
+		return err
 	}
 
 	cmd.Println("Recipe pushed successfully")
+	return nil
 }

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"context"
 	"os"
 
 	"github.com/futurice/jalapeno/internal/cli"
@@ -13,13 +13,17 @@ var (
 )
 
 func main() {
-	cmd, err := cli.NewRootCmd(version)
-	if err != nil {
-		fmt.Printf("%+v", err)
-		os.Exit(1)
-	}
+	cmd := cli.NewRootCmd(version)
+	err := cmd.ExecuteContext(context.Background())
 
-	if err = cmd.Execute(); err != nil {
-		os.Exit(1)
+	exitCode := cmd.Context().Value(cli.ExitCodeContextKey{})
+	if code, ok := exitCode.(int); ok { // Make sure that the exit code is still an int
+		os.Exit(code) // Exit with the exit code defined by a subcommand
+	} else {
+		if err == nil {
+			os.Exit(0)
+		} else {
+			os.Exit(1)
+		}
 	}
 }

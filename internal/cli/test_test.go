@@ -24,7 +24,8 @@ func iRunTest(ctx context.Context, recipe string) (context.Context, error) {
 		}
 	}
 
-	return ctx, cmd.Execute()
+	cmd.Execute()
+	return ctx, nil
 }
 
 func iCreateRecipeTestUsingCLI(ctx context.Context, recipe string) (context.Context, error) {

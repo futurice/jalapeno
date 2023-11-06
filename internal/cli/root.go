@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -8,12 +9,20 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func NewRootCmd(version string) (*cobra.Command, error) {
+type ExitCodeContextKey struct{}
+
+func NewRootCmd(version string) *cobra.Command {
 	// rootCmd represents the base command when called without any subcommands
 	var cmd = &cobra.Command{
-		Use:   "jalapeno",
-		Short: "Create, manage and share spiced up project templates",
-		Long:  "Create, manage and share spiced up project templates.",
+		Use:          "jalapeno",
+		Short:        "Create, manage and share spiced up project templates",
+		Long:         "Create, manage and share spiced up project templates.",
+		SilenceUsage: true,
+		PreRun: func(cmd *cobra.Command, args []string) {
+			if cmd.Context() != nil {
+				cmd.SetContext(context.Background())
+			}
+		},
 	}
 
 	if version != "" {
@@ -40,5 +49,5 @@ func NewRootCmd(version string) (*cobra.Command, error) {
 		NewWhyCmd(),
 	)
 
-	return cmd, nil
+	return cmd
 }

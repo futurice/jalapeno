@@ -18,5 +18,6 @@ func iRunCreate(ctx context.Context, recipe string) (context.Context, error) {
 		return ctx, err
 	}
 
-	return ctx, cmd.Execute()
+	cmd.Execute()
+	return ctx, nil
 }

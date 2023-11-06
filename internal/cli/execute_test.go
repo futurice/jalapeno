@@ -39,7 +39,8 @@ func iRunExecute(ctx context.Context, recipe string) (context.Context, error) {
 		}
 	}
 
-	return ctx, cmd.Execute()
+	cmd.Execute()
+	return ctx, nil
 }
 
 func iExecuteRemoteRecipe(ctx context.Context, repository string) (context.Context, error) {

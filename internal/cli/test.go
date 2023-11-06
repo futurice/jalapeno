@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"fmt"
 	"path/filepath"
 
 	"github.com/futurice/jalapeno/internal/cli/option"
@@ -27,8 +28,8 @@ func NewTestCmd() *cobra.Command {
 			opts.RecipePath = args[0]
 			return option.Parse(&opts)
 		},
-		Run: func(cmd *cobra.Command, args []string) {
-			runTest(cmd, opts)
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return runTest(cmd, opts)
 		},
 		Example: `# Run recipe tests
 jalapeno test path/to/recipe
@@ -50,11 +51,10 @@ jalapeno test path/to/recipe --update-snapshots`,
 	return cmd
 }
 
-func runTest(cmd *cobra.Command, opts testOptions) {
+func runTest(cmd *cobra.Command, opts testOptions) error {
 	re, err := recipe.LoadRecipe(opts.RecipePath)
 	if err != nil {
-		cmd.PrintErrf("Can't load the recipe: %v\n", err)
-		return
+		return fmt.Errorf("can not load the recipe: %w", err)
 	}
 
 	if opts.Create {
@@ -68,17 +68,16 @@ func runTest(cmd *cobra.Command, opts testOptions) {
 
 		err := re.Save(filepath.Dir(opts.RecipePath))
 		if err != nil {
-			cmd.PrintErrf("Error: failed to save recipe: %s", err)
-			return
+			return fmt.Errorf("failed to save recipe: %w", err)
 		}
 
 		cmd.Println("Test created")
-		return
+		return nil
 	}
 
 	if len(re.Tests) == 0 {
 		cmd.Println("No tests specified")
-		return
+		return nil
 	}
 
 	if opts.UpdateSnapshots {
@@ -86,8 +85,7 @@ func runTest(cmd *cobra.Command, opts testOptions) {
 			test := &re.Tests[i]
 			sauce, err := re.Execute(test.Values, recipe.TestID)
 			if err != nil {
-				cmd.PrintErrf("Error: failed to render templates: %s", err)
-				return
+				return fmt.Errorf("failed to render templates: %w", err)
 			}
 
 			test.Files = make(map[string][]byte)
@@ -98,27 +96,22 @@ func runTest(cmd *cobra.Command, opts testOptions) {
 
 		err := re.Save(filepath.Dir(opts.RecipePath))
 		if err != nil {
-			cmd.PrintErrf("Error: failed to save recipe: %s", err)
-			return
+			return fmt.Errorf("failed to save recipe: %w", err)
 		}
 
 		// TODO: Show which tests were modified
 		cmd.Println("Recipe tests updated successfully")
-		return
+		return nil
 	}
 
 	errs := re.RunTests()
-	errFound := false
 	for i, err := range errs {
-		if err == nil {
-			continue
+		if err != nil {
+			return fmt.Errorf("test %s failed: %v", re.Tests[i].Name, err)
 		}
-		cmd.PrintErrf("Test %s failed: %v\n", re.Tests[i].Name, err)
-		errFound = true
 	}
 
-	if !errFound {
-		// TODO: Show pass for each test
-		cmd.Println("Tests passed successfully")
-	}
+	// TODO: Show pass for each test
+	cmd.Println("Tests passed successfully")
+	return nil
 }

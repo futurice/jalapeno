@@ -1,6 +1,8 @@
 package cli
 
 import (
+	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -27,8 +29,8 @@ func NewWhyCmd() *cobra.Command {
 			opts.Filepath = filepath.Clean(args[0])
 			return option.Parse(&opts)
 		},
-		Run: func(cmd *cobra.Command, args []string) {
-			runWhy(cmd, opts)
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return runWhy(cmd, opts)
 		},
 		Example: `jalapeno why path/to/file`,
 	}
@@ -40,41 +42,36 @@ func NewWhyCmd() *cobra.Command {
 	return cmd
 }
 
-func runWhy(cmd *cobra.Command, opts whyOptions) {
+func runWhy(cmd *cobra.Command, opts whyOptions) error {
 	// Supporting absolute paths is not trivial, since then we can't use opts.Dir
 	// to find the project root directory and we need to travel up the tree to find
 	// the project root
 	if filepath.IsAbs(opts.Filepath) {
-		cmd.PrintErrln("Error: use path relative to the project directory")
-		return
+		return errors.New("use path relative to the project directory")
 	}
 
 	fileinfo, err := os.Stat(filepath.Join(opts.Dir, opts.Filepath))
 	if os.IsNotExist(err) {
-		cmd.PrintErrf("File '%s' does not exist\n", filepath.Join(opts.Dir, opts.Filepath))
-		return
+		return fmt.Errorf("file '%s' does not exist", filepath.Join(opts.Dir, opts.Filepath))
 	}
 
 	sauces, err := recipe.LoadSauces(opts.Dir)
 	if err != nil {
-		cmd.PrintErrf("Error: can not load sauces: %s\n", err)
-		return
+		return fmt.Errorf("can not load sauces: %w", err)
 	}
 
 	if len(sauces) == 0 {
-		cmd.PrintErrf("Error: '%s' is not a project directory\n", opts.Dir)
-		return
+		return fmt.Errorf("'%s' is not a project directory", opts.Dir)
 	}
 
 	if opts.Filepath == recipe.SauceDirName {
 		cmd.Printf("Directory '%s' is created by Jalapeno\n", opts.Filepath)
-		return
-
+		return nil
 	}
 
 	if strings.Split(opts.Filepath, string(filepath.Separator))[0] == recipe.SauceDirName {
 		cmd.Printf("File '%s' is created by Jalapeno\n", opts.Filepath)
-		return
+		return nil
 	}
 
 	for _, sauce := range sauces {
@@ -82,16 +79,17 @@ func runWhy(cmd *cobra.Command, opts whyOptions) {
 			if fileinfo.IsDir() {
 				if strings.HasPrefix(file, opts.Filepath) {
 					cmd.Printf("Directory '%s' is created by the recipe '%s'\n", opts.Filepath, sauce.Recipe.Name)
-					return
+					return nil
 				}
 			}
 			if opts.Filepath == file {
 				// TODO: Check if the file is modified by the user by comparing hashes
 				cmd.Printf("File '%s' is created by the recipe '%s'\n", opts.Filepath, sauce.Recipe.Name)
-				return
+				return nil
 			}
 		}
 	}
 
 	cmd.Printf("File %s is created by the user\n", opts.Filepath)
+	return nil
 }

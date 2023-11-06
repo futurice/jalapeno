@@ -27,5 +27,6 @@ func iRunWhy(ctx context.Context, file string) (context.Context, error) {
 		}
 	}
 
-	return ctx, cmd.Execute()
+	cmd.Execute()
+	return ctx, nil
 }

@@ -21,7 +21,8 @@ func iRunEject(ctx context.Context) (context.Context, error) {
 		return ctx, err
 	}
 
-	return ctx, cmd.Execute()
+	cmd.Execute()
+	return ctx, nil
 }
 
 func thereShouldNotBeASauceDirectoryInTheProjectDirectory(ctx context.Context) (context.Context, error) {

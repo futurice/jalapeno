@@ -2,6 +2,7 @@ package cli
 
 import (
 	"context"
+	"errors"
 	"strings"
 
 	"github.com/futurice/jalapeno/internal/cli/option"
@@ -28,8 +29,8 @@ func NewPullCmd() *cobra.Command {
 			opts.TargetRef = args[0]
 			return option.Parse(&opts)
 		},
-		Run: func(cmd *cobra.Command, args []string) {
-			runPull(cmd, opts)
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return runPull(cmd, opts)
 		},
 		Example: `# Pull recipe from OCI repository
 jalapeno pull ghcr.io/user/recipe:latest
@@ -52,19 +53,19 @@ jalapeno pull oci://ghcr.io/user/my-recipe:latest --dir other/dir`,
 	return cmd
 }
 
-func runPull(cmd *cobra.Command, opts pullOptions) {
+func runPull(cmd *cobra.Command, opts pullOptions) error {
 	ctx := context.Background()
 
 	err := oci.SaveRemoteRecipe(ctx, opts.Dir, opts.Repository(opts.TargetRef))
 
 	if err != nil {
 		if strings.Contains(err.Error(), "not found") {
-			cmd.PrintErrln("Error: recipe not found") // TODO: Give more descriptive error message
-		} else {
-			cmd.PrintErrf("Error: %s", err)
+			return errors.New("recipe not found") // TODO: Give more descriptive error message
 		}
-		return
+
+		return err
 	}
 
 	cmd.Println("Recipe pulled successfully")
+	return nil
 }

@@ -8,7 +8,7 @@ Feature: Check for new recipe versions
     And the source of the sauce with recipe "foo" is in the local OCI registry
     Then execution of the recipe has succeeded
     When I push the recipe "foo" to the local OCI repository
-    Then push of the recipe was successful
+    Then no errors were printed
     When I change recipe "foo" to version "v0.0.2"
     And I push the recipe "foo" to the local OCI repository
     And I check new versions for recipe "foo"
@@ -20,7 +20,7 @@ Feature: Check for new recipe versions
     And a recipe "foo" that generates file "README.md"
     And a local OCI registry
     When I push the recipe "foo" to the local OCI repository
-    Then push of the recipe was successful
+    Then no errors were printed
     When I change recipe "foo" to version "v0.0.2"
     And I push the recipe "foo" to the local OCI repository
     And I execute recipe "foo"

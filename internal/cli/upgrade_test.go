@@ -42,7 +42,8 @@ func iRunUpgrade(ctx context.Context, recipe string) (context.Context, error) {
 		}
 	}
 
-	return ctx, cmd.Execute()
+	cmd.Execute()
+	return ctx, nil
 }
 
 func iRunUpgradeFromRemoteRecipe(ctx context.Context, repository string) (context.Context, error) {

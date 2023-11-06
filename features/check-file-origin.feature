@@ -46,4 +46,4 @@ Feature: Check origin of a file in project directory using "why" command
     And a recipe "foo" that generates file "README.md"
     And I execute recipe "foo"
     When I check why the file "not-found" is created
-    Then CLI produced an error "File '.*/not-found' does not exist"
+    Then CLI produced an error "file '.*/not-found' does not exist"

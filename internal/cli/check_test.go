@@ -40,7 +40,8 @@ func iRunCheck(ctx context.Context, recipe string) (context.Context, error) {
 		}
 	}
 
-	return ctx, cmd.Execute()
+	cmd.Execute()
+	return ctx, nil
 }
 
 func newRecipeVersionsWereFound(ctx context.Context) (context.Context, error) {

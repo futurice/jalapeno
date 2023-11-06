@@ -38,8 +38,8 @@ func NewExecuteCmd() *cobra.Command {
 			opts.RecipeURL = args[0]
 			return option.Parse(&opts)
 		},
-		Run: func(cmd *cobra.Command, args []string) {
-			runExecute(cmd, opts)
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return runExecute(cmd, opts)
 		},
 		Example: `# Execute local recipe
 jalapeno execute path/to/recipe
@@ -68,10 +68,9 @@ jalapeno execute path/to/recipe --set MY_VAR=foo --set MY_OTHER_VAR=bar`,
 	return cmd
 }
 
-func runExecute(cmd *cobra.Command, opts executeOptions) {
+func runExecute(cmd *cobra.Command, opts executeOptions) error {
 	if _, err := os.Stat(opts.Dir); os.IsNotExist(err) {
-		cmd.PrintErrln("Error: output path does not exist")
-		return
+		return errors.New("output path does not exist")
 	}
 
 	var (
@@ -90,8 +89,7 @@ func runExecute(cmd *cobra.Command, opts executeOptions) {
 	}
 
 	if err != nil {
-		cmd.PrintErrf("Error: can not load the recipe: %s\n", err)
-		return
+		return fmt.Errorf("can not load the recipe: %s", err)
 	}
 
 	style := lipgloss.NewStyle().Foreground(opts.Colors.Primary)
@@ -104,8 +102,7 @@ func runExecute(cmd *cobra.Command, opts executeOptions) {
 	// Load all existing sauces
 	existingSauces, err := recipe.LoadSauces(opts.Dir)
 	if err != nil {
-		cmd.PrintErrf("Error: %s", err)
-		return
+		return err
 	}
 
 	reusedValues := make(recipe.VariableValues)
@@ -126,8 +123,7 @@ func runExecute(cmd *cobra.Command, opts executeOptions) {
 
 	providedValues, err := recipeutil.ParseProvidedValues(re.Variables, opts.Values.Flags, opts.Values.CSVDelimiter)
 	if err != nil {
-		cmd.PrintErrf("Error when parsing provided values: %s\n", err)
-		return
+		return fmt.Errorf("failed to parse provided values: %w", err)
 	}
 
 	values := recipeutil.MergeValues(reusedValues, providedValues)
@@ -147,17 +143,15 @@ func runExecute(cmd *cobra.Command, opts executeOptions) {
 				errMsg = fmt.Sprintf("values for variables [%s] are", strings.Join(vars, ","))
 			}
 
-			cmd.PrintErrf("Error: %s missing and `--no-input` flag was set to true\n", errMsg)
-			return
+			return fmt.Errorf("%s missing and `--no-input` flag was set to true", errMsg)
 		}
 
 		promptedValues, err := survey.PromptUserForValues(cmd.InOrStdin(), cmd.OutOrStdout(), varsWithoutValues, values)
 		if err != nil {
 			if errors.Is(err, survey.ErrUserAborted) {
-				return
+				return nil
 			} else {
-				cmd.PrintErrf("Error when prompting for values: %s\n", err)
-				return
+				return fmt.Errorf("error when prompting for values: %s", err)
 			}
 		}
 		values = recipeutil.MergeValues(values, promptedValues)
@@ -165,15 +159,13 @@ func runExecute(cmd *cobra.Command, opts executeOptions) {
 
 	sauce, err := re.Execute(values, uuid.Must(uuid.NewV4()))
 	if err != nil {
-		cmd.PrintErrf("Error: %s", err)
-		return
+		return err
 	}
 
 	// Check for conflicts
 	for _, s := range existingSauces {
 		if conflicts := s.Conflicts(sauce); conflicts != nil {
-			cmd.PrintErrf("Error: conflict in recipe '%s': file '%s' was already created by recipe '%s'\n", re.Name, conflicts[0].Path, s.Recipe.Name)
-			return
+			return fmt.Errorf("conflict in recipe '%s': file '%s' was already created by recipe '%s'", re.Name, conflicts[0].Path, s.Recipe.Name)
 		}
 	}
 
@@ -184,8 +176,7 @@ func runExecute(cmd *cobra.Command, opts executeOptions) {
 
 	err = sauce.Save(opts.Dir)
 	if err != nil {
-		cmd.PrintErrf("Error: %s", err)
-		return
+		return err
 	}
 
 	cmd.Println("\nRecipe executed successfully!")
@@ -196,4 +187,6 @@ func runExecute(cmd *cobra.Command, opts executeOptions) {
 	if re.InitHelp != "" {
 		cmd.Printf("\nNext up: %s\n", re.InitHelp)
 	}
+
+	return nil
 }
