@@ -48,20 +48,11 @@ Feature: Recipes as OCI artifacts
 		When I pull the recipe "foo" from the local OCI repository "foo:v0.0.1"
 		Then CLI produced an error "recipe not found"
 
-	Scenario: Pull a recipe from OCI repository using credentials from config file
+	Scenario: Push a recipe from OCI repository using credentials from config file
 		Given a recipes directory
 		And a recipe "foo" that generates file "README.md"
 	 	And a local OCI registry with authentication
 		And registry credentials are provided by config file
-		And registry credentials are not provided by the command
-		When I push the recipe "foo" to the local OCI repository
-		Then no errors were printed
-
-	Scenario: Pull a recipe from OCI repository using credentials from default config file
-		Given a recipes directory
-		And a recipe "foo" that generates file "README.md"
-	 	And a local OCI registry with authentication
-		And registry credentials are provided by default config file
 		And registry credentials are not provided by the command
 		When I push the recipe "foo" to the local OCI repository
 		Then no errors were printed

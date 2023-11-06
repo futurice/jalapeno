@@ -27,21 +27,18 @@ func iRunUpgrade(ctx context.Context, recipe string) (context.Context, error) {
 		url = filepath.Join(recipesDir, recipe)
 	}
 
-	cmd.SetArgs([]string{url})
-
-	flags := cmd.Flags()
-	if err := flags.Set("dir", projectDir); err != nil {
-		return ctx, err
+	args := []string{
+		url,
+		fmt.Sprintf("--dir=%s", projectDir),
 	}
 
 	if flagsAreSet && optionalFlags != nil {
 		for name, value := range optionalFlags {
-			if err := flags.Set(name, value); err != nil {
-				return ctx, err
-			}
+			args = append(args, fmt.Sprintf("--%s=%s", name, value))
 		}
 	}
 
+	cmd.SetArgs(args)
 	cmd.Execute()
 	return ctx, nil
 }

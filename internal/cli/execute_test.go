@@ -24,27 +24,24 @@ func iRunExecute(ctx context.Context, recipe string) (context.Context, error) {
 		url = filepath.Join(recipesDir, recipe)
 	}
 
-	cmd.SetArgs([]string{url})
-
-	flags := cmd.Flags()
-	if err := flags.Set("dir", projectDir); err != nil {
-		return ctx, err
+	args := []string{
+		url,
+		fmt.Sprintf("--dir=%s", projectDir),
 	}
 
 	if flagsAreSet && optionalFlags != nil {
 		for name, value := range optionalFlags {
-			if err := flags.Set(name, value); err != nil {
-				return ctx, err
-			}
+			args = append(args, fmt.Sprintf("--%s=%s", name, value))
 		}
 	}
 
+	cmd.SetArgs(args)
 	cmd.Execute()
 	return ctx, nil
 }
 
 func iExecuteRemoteRecipe(ctx context.Context, repository string) (context.Context, error) {
-	registry := ctx.Value(ociRegistryCtxKey{}).(OCIRegistry)
+	ociRegistry := ctx.Value(ociRegistryCtxKey{}).(OCIRegistry)
 	configDir, configFileExists := ctx.Value(dockerConfigDirectoryPathCtxKey{}).(string)
 	optionalFlags, flagsAreSet := ctx.Value(cmdOptionalFlagsCtxKey{}).(map[string]string)
 	var flags map[string]string
@@ -54,16 +51,16 @@ func iExecuteRemoteRecipe(ctx context.Context, repository string) (context.Conte
 		flags = make(map[string]string)
 	}
 
-	url := fmt.Sprintf("oci://%s/%s", registry.Resource.GetHostPort("5000/tcp"), repository)
+	url := fmt.Sprintf("oci://%s/%s", ociRegistry.Resource.GetHostPort("5000/tcp"), repository)
 
-	if registry.TLSEnabled {
+	if ociRegistry.TLSEnabled {
 		// Allow self-signed certificates
 		flags["insecure"] = "true"
 	} else {
 		flags["plain-http"] = "true"
 	}
 
-	if registry.AuthEnabled {
+	if ociRegistry.AuthEnabled {
 		flags["username"] = "foo"
 		flags["password"] = "bar"
 	}

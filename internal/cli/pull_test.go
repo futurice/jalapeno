@@ -2,7 +2,7 @@ package cli_test
 
 import (
 	"context"
-	"os"
+	"fmt"
 	"path/filepath"
 
 	"github.com/futurice/jalapeno/internal/cli"
@@ -10,52 +10,43 @@ import (
 
 func iPullRecipe(ctx context.Context, recipeName, repoName string) (context.Context, error) {
 	recipesDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
-	registry := ctx.Value(ociRegistryCtxKey{}).(OCIRegistry)
+	ociRegistry := ctx.Value(ociRegistryCtxKey{}).(OCIRegistry)
 	configDir, configFileExists := ctx.Value(dockerConfigDirectoryPathCtxKey{}).(string)
 	optionalFlags, flagsAreSet := ctx.Value(cmdOptionalFlagsCtxKey{}).(map[string]string)
 
 	ctx, cmd := wrapCmdOutputs(ctx, cli.NewPullCmd)
 
-	cmd.SetArgs([]string{filepath.Join(registry.Resource.GetHostPort("5000/tcp"), repoName)})
-
-	flags := cmd.Flags()
-	if err := flags.Set("dir", recipesDir); err != nil {
-		return ctx, err
+	args := []string{
+		filepath.Join(ociRegistry.Resource.GetHostPort("5000/tcp"), repoName),
+		fmt.Sprintf("--dir=%s", recipesDir),
 	}
-	if registry.TLSEnabled {
-		// Allow self-signed certificates
-		if err := flags.Set("insecure", "true"); err != nil {
-			return ctx, err
-		}
+
+	if ociRegistry.TLSEnabled {
+		args = append(args, "--insecure=true")
 	} else {
-		if err := flags.Set("plain-http", "true"); err != nil {
-			return ctx, err
-		}
+		args = append(args, "--plain-http=true")
 	}
 
-	if registry.AuthEnabled {
-		if err := flags.Set("username", "foo"); err != nil {
-			return ctx, err
-		}
-		if err := flags.Set("password", "bar"); err != nil {
-			return ctx, err
-		}
+	if ociRegistry.AuthEnabled {
+		args = append(args,
+			"--username=foo",
+			"--password=bar",
+		)
 	}
 
-	if configFileExists && os.Getenv("DOCKER_CONFIG") == "" {
-		if err := flags.Set("registry-config", filepath.Join(configDir, DOCKER_CONFIG_FILENAME)); err != nil {
-			return ctx, err
-		}
+	if configFileExists {
+		args = append(args,
+			fmt.Sprintf("--registry-config=%s", filepath.Join(configDir, DOCKER_CONFIG_FILENAME)),
+		)
 	}
 
 	if flagsAreSet && optionalFlags != nil {
 		for name, value := range optionalFlags {
-			if err := flags.Set(name, value); err != nil {
-				return ctx, err
-			}
+			args = append(args, fmt.Sprintf("--%s=%s", name, value))
 		}
 	}
 
+	cmd.SetArgs(args)
 	cmd.Execute()
 	return ctx, nil
 }

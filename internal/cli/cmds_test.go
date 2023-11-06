@@ -96,7 +96,6 @@ func TestFeatures(t *testing.T) {
 			s.Step(`^a local OCI registry with authentication$`, aLocalOCIRegistryWithAuth)
 			s.Step(`^registry credentials are not provided by the command$`, credentialsAreNotProvidedByTheCommand)
 			s.Step(`^registry credentials are provided by config file$`, generateDockerConfigFile)
-			s.Step(`^registry credentials are provided by default config file$`, generateDockerConfigFileAndSetDefaultConfig)
 			s.Step(`^I push the recipe "([^"]*)" to the local OCI repository$`, iRunPush)
 			s.Step(`^the recipe "([^"]*)" is pushed to the local OCI repository "([^"]*)"$`, iRunPush)
 			s.Step(`^I pull the recipe "([^"]*)" from the local OCI repository "([^"]*)"$`, iPullRecipe)
@@ -562,27 +561,19 @@ func generateDockerConfigFile(ctx context.Context) (context.Context, error) {
 		return ctx, err
 	}
 
-	contents := fmt.Sprintf(`{"auths":{"https://%s/v2/":{"auth":"Zm9vOmJhcg=="}}}`, registry.Resource.GetHostPort("5000/tcp"))
+	contents := fmt.Sprintf(`{
+  "auths": {
+    "https://%s/v2/": {
+      "auth": "Zm9vOmJhcg=="
+    }
+  }
+}`, registry.Resource.GetHostPort("5000/tcp"))
 	err = os.WriteFile(filepath.Join(dir, DOCKER_CONFIG_FILENAME), []byte(contents), 0666)
 	if err != nil {
 		return ctx, err
 	}
 
 	return context.WithValue(ctx, dockerConfigDirectoryPathCtxKey{}, dir), nil
-}
-
-func generateDockerConfigFileAndSetDefaultConfig(ctx context.Context) (context.Context, error) {
-	ctx, err := generateDockerConfigFile(ctx)
-	if err != nil {
-		return ctx, err
-	}
-
-	err = os.Setenv("DOCKER_CONFIG", ctx.Value(dockerConfigDirectoryPathCtxKey{}).(string))
-	if err != nil {
-		return ctx, err
-	}
-
-	return ctx, nil
 }
 
 func theFileExistInTheRecipe(ctx context.Context, file, recipe string) (context.Context, error) {

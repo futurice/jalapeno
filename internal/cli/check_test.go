@@ -15,31 +15,24 @@ func iRunCheck(ctx context.Context, recipe string) (context.Context, error) {
 
 	ctx, cmd := wrapCmdOutputs(ctx, cli.NewCheckCmd)
 
-	flags := cmd.Flags()
-	if err := flags.Set("recipe", recipe); err != nil {
-		return ctx, err
+	args := []string{
+		fmt.Sprintf("--recipe=%s", recipe),
+		fmt.Sprintf("--dir=%s", projectDir),
 	}
-	if err := flags.Set("dir", projectDir); err != nil {
-		return ctx, err
-	}
+
 	if ociRegistry.TLSEnabled {
-		if err := flags.Set("insecure", "true"); err != nil {
-			return ctx, err
-		}
+		args = append(args, "--insecure=true")
 	} else {
-		if err := flags.Set("plain-http", "true"); err != nil {
-			return ctx, err
-		}
+		args = append(args, "--plain-http=true")
 	}
 
 	if flagsAreSet && optionalFlags != nil {
 		for name, value := range optionalFlags {
-			if err := flags.Set(name, value); err != nil {
-				return ctx, err
-			}
+			args = append(args, fmt.Sprintf("--%s=%s", name, value))
 		}
 	}
 
+	cmd.SetArgs(args)
 	cmd.Execute()
 	return ctx, nil
 }

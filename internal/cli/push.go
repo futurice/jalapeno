@@ -2,6 +2,7 @@ package cli
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/futurice/jalapeno/internal/cli/option"
 	"github.com/futurice/jalapeno/pkg/oci"
@@ -54,7 +55,7 @@ func runPush(cmd *cobra.Command, opts pushOptions) error {
 	err := oci.PushRecipe(ctx, opts.RecipePath, opts.Repository(opts.TargetURL))
 
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to push recipe: %w", err)
 	}
 
 	cmd.Println("Recipe pushed successfully")

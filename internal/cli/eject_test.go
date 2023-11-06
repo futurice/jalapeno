@@ -15,12 +15,11 @@ func iRunEject(ctx context.Context) (context.Context, error) {
 	projectDir := ctx.Value(projectDirectoryPathCtxKey{}).(string)
 
 	ctx, cmd := wrapCmdOutputs(ctx, cli.NewEjectCmd)
-
-	flags := cmd.Flags()
-	if err := flags.Set("dir", projectDir); err != nil {
-		return ctx, err
+	args := []string{
+		fmt.Sprintf("--dir=%s", projectDir),
 	}
 
+	cmd.SetArgs(args)
 	cmd.Execute()
 	return ctx, nil
 }

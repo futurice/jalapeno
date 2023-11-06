@@ -2,6 +2,7 @@ package cli_test
 
 import (
 	"context"
+	"fmt"
 	"path/filepath"
 
 	"github.com/futurice/jalapeno/internal/cli"
@@ -13,17 +14,17 @@ func iRunTest(ctx context.Context, recipe string) (context.Context, error) {
 
 	ctx, cmd := wrapCmdOutputs(ctx, cli.NewTestCmd)
 
-	cmd.SetArgs([]string{filepath.Join(recipesDir, recipe)})
+	args := []string{
+		filepath.Join(recipesDir, recipe),
+	}
 
-	flags := cmd.Flags()
 	if flagsAreSet && optionalFlags != nil {
 		for name, value := range optionalFlags {
-			if err := flags.Set(name, value); err != nil {
-				return ctx, err
-			}
+			args = append(args, fmt.Sprintf("--%s=%s", name, value))
 		}
 	}
 
+	cmd.SetArgs(args)
 	cmd.Execute()
 	return ctx, nil
 }

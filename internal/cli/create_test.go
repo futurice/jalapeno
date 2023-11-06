@@ -2,6 +2,7 @@ package cli_test
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/futurice/jalapeno/internal/cli"
 )
@@ -11,13 +12,12 @@ func iRunCreate(ctx context.Context, recipe string) (context.Context, error) {
 
 	ctx, cmd := wrapCmdOutputs(ctx, cli.NewCreateCmd)
 
-	cmd.SetArgs([]string{recipe})
-
-	flags := cmd.Flags()
-	if err := flags.Set("dir", recipesDir); err != nil {
-		return ctx, err
+	args := []string{
+		recipe,
+		fmt.Sprintf("--dir=%s", recipesDir),
 	}
 
+	cmd.SetArgs(args)
 	cmd.Execute()
 	return ctx, nil
 }
