@@ -46,6 +46,6 @@ func iRunPush(ctx context.Context, recipeName string) (context.Context, error) {
 	}
 
 	cmd.SetArgs(args)
-	cmd.Execute()
+	_ = cmd.Execute()
 	return ctx, nil
 }

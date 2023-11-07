@@ -17,6 +17,6 @@ func iRunCreate(ctx context.Context, recipe string) (context.Context, error) {
 	}
 
 	cmd.SetArgs(args)
-	cmd.Execute()
+	_ = cmd.Execute()
 	return ctx, nil
 }
