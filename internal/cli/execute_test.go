@@ -6,15 +6,13 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-
-	"github.com/futurice/jalapeno/internal/cli"
 )
 
 func iRunExecute(ctx context.Context, recipe string) (context.Context, error) {
 	projectDir := ctx.Value(projectDirectoryPathCtxKey{}).(string)
 	optionalFlags, flagsAreSet := ctx.Value(cmdOptionalFlagsCtxKey{}).(map[string]string)
 
-	ctx, cmd := wrapCmdOutputs(ctx, cli.NewExecuteCmd)
+	ctx, cmd := wrapCmdOutputs(ctx)
 
 	var url string
 	if strings.HasPrefix(recipe, "oci://") {
@@ -25,6 +23,7 @@ func iRunExecute(ctx context.Context, recipe string) (context.Context, error) {
 	}
 
 	args := []string{
+		"execute",
 		url,
 		fmt.Sprintf("--dir=%s", projectDir),
 	}

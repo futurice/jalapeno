@@ -3,17 +3,16 @@ package cli_test
 import (
 	"context"
 	"fmt"
-
-	"github.com/futurice/jalapeno/internal/cli"
 )
 
 func iRunWhy(ctx context.Context, file string) (context.Context, error) {
 	projectDir := ctx.Value(projectDirectoryPathCtxKey{}).(string)
 	optionalFlags, flagsAreSet := ctx.Value(cmdOptionalFlagsCtxKey{}).(map[string]string)
 
-	ctx, cmd := wrapCmdOutputs(ctx, cli.NewWhyCmd)
+	ctx, cmd := wrapCmdOutputs(ctx)
 
 	args := []string{
+		"why",
 		file,
 		fmt.Sprintf("--dir=%s", projectDir),
 	}

@@ -9,7 +9,6 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/futurice/jalapeno/internal/cli"
 	re "github.com/futurice/jalapeno/pkg/recipe"
 )
 
@@ -17,7 +16,7 @@ func iRunUpgrade(ctx context.Context, recipe string) (context.Context, error) {
 	projectDir := ctx.Value(projectDirectoryPathCtxKey{}).(string)
 	optionalFlags, flagsAreSet := ctx.Value(cmdOptionalFlagsCtxKey{}).(map[string]string)
 
-	ctx, cmd := wrapCmdOutputs(ctx, cli.NewUpgradeCmd)
+	ctx, cmd := wrapCmdOutputs(ctx)
 
 	var url string
 	if strings.HasPrefix(recipe, "oci://") {
@@ -28,6 +27,7 @@ func iRunUpgrade(ctx context.Context, recipe string) (context.Context, error) {
 	}
 
 	args := []string{
+		"upgrade",
 		url,
 		fmt.Sprintf("--dir=%s", projectDir),
 	}

@@ -27,6 +27,7 @@ import (
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 
+	"github.com/futurice/jalapeno/internal/cli"
 	re "github.com/futurice/jalapeno/pkg/recipe"
 )
 
@@ -123,12 +124,12 @@ func TestFeatures(t *testing.T) {
  * UTILITIES
  */
 
-func wrapCmdOutputs(ctx context.Context, cmdFactory func() *cobra.Command) (context.Context, *cobra.Command) {
-	cmd := cmdFactory()
+func wrapCmdOutputs(ctx context.Context) (context.Context, *cobra.Command) {
+	cmd := cli.NewRootCmd("")
 	cmdStdOut, cmdStdErr := new(bytes.Buffer), new(bytes.Buffer)
+
 	cmd.SetOut(cmdStdOut)
 	cmd.SetErr(cmdStdErr)
-
 	cmd.SetContext(context.Background())
 
 	ctx = context.WithValue(ctx, cmdStdOutCtxKey{}, cmdStdOut)

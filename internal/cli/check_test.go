@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/futurice/jalapeno/internal/cli"
 	re "github.com/futurice/jalapeno/pkg/recipe"
 )
 
@@ -13,9 +12,10 @@ func iRunCheck(ctx context.Context, recipe string) (context.Context, error) {
 	ociRegistry := ctx.Value(ociRegistryCtxKey{}).(OCIRegistry)
 	optionalFlags, flagsAreSet := ctx.Value(cmdOptionalFlagsCtxKey{}).(map[string]string)
 
-	ctx, cmd := wrapCmdOutputs(ctx, cli.NewCheckCmd)
+	ctx, cmd := wrapCmdOutputs(ctx)
 
 	args := []string{
+		"check",
 		fmt.Sprintf("--recipe=%s", recipe),
 		fmt.Sprintf("--dir=%s", projectDir),
 	}

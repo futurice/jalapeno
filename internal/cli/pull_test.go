@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
-
-	"github.com/futurice/jalapeno/internal/cli"
 )
 
 func iPullRecipe(ctx context.Context, recipeName, repoName string) (context.Context, error) {
@@ -14,9 +12,10 @@ func iPullRecipe(ctx context.Context, recipeName, repoName string) (context.Cont
 	configDir, configFileExists := ctx.Value(dockerConfigDirectoryPathCtxKey{}).(string)
 	optionalFlags, flagsAreSet := ctx.Value(cmdOptionalFlagsCtxKey{}).(map[string]string)
 
-	ctx, cmd := wrapCmdOutputs(ctx, cli.NewPullCmd)
+	ctx, cmd := wrapCmdOutputs(ctx)
 
 	args := []string{
+		"pull",
 		filepath.Join(ociRegistry.Resource.GetHostPort("5000/tcp"), repoName),
 		fmt.Sprintf("--dir=%s", recipesDir),
 	}

@@ -7,15 +7,15 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/futurice/jalapeno/internal/cli"
 	"github.com/futurice/jalapeno/pkg/recipe"
 )
 
 func iRunEject(ctx context.Context) (context.Context, error) {
 	projectDir := ctx.Value(projectDirectoryPathCtxKey{}).(string)
 
-	ctx, cmd := wrapCmdOutputs(ctx, cli.NewEjectCmd)
+	ctx, cmd := wrapCmdOutputs(ctx)
 	args := []string{
+		"eject",
 		fmt.Sprintf("--dir=%s", projectDir),
 	}
 

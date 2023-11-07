@@ -4,17 +4,16 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
-
-	"github.com/futurice/jalapeno/internal/cli"
 )
 
 func iRunTest(ctx context.Context, recipe string) (context.Context, error) {
 	recipesDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
 	optionalFlags, flagsAreSet := ctx.Value(cmdOptionalFlagsCtxKey{}).(map[string]string)
 
-	ctx, cmd := wrapCmdOutputs(ctx, cli.NewTestCmd)
+	ctx, cmd := wrapCmdOutputs(ctx)
 
 	args := []string{
+		"test",
 		filepath.Join(recipesDir, recipe),
 	}
 

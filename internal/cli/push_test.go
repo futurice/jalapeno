@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
-
-	"github.com/futurice/jalapeno/internal/cli"
 )
 
 func iRunPush(ctx context.Context, recipeName string) (context.Context, error) {
@@ -14,9 +12,10 @@ func iRunPush(ctx context.Context, recipeName string) (context.Context, error) {
 	configDir, configFileExists := ctx.Value(dockerConfigDirectoryPathCtxKey{}).(string)
 	optionalFlags, flagsAreSet := ctx.Value(cmdOptionalFlagsCtxKey{}).(map[string]string)
 
-	ctx, cmd := wrapCmdOutputs(ctx, cli.NewPushCmd)
+	ctx, cmd := wrapCmdOutputs(ctx)
 
 	args := []string{
+		"push",
 		filepath.Join(recipesDir, recipeName),
 		filepath.Join(ociRegistry.Resource.GetHostPort("5000/tcp"), recipeName),
 	}
