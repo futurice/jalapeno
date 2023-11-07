@@ -122,11 +122,7 @@ func loadTests(path string) ([]Test, error) {
 			return nil, err
 		}
 
-		// If the test does not define the name, get it from directory name
-		if test.Name == "" {
-			test.Name = strings.TrimSuffix(dir.Name(), YAMLExtension)
-		}
-
+		test.Name = dir.Name()
 		test.Files = make(map[string][]byte)
 		testFileDirPath := filepath.Join(testDirPath, RecipeTestFilesDirName)
 

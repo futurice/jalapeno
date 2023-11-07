@@ -104,6 +104,7 @@ func TestFeatures(t *testing.T) {
 			s.Step(`^I eject Jalapeno from the project$`, iRunEject)
 			s.Step(`^there should not be a sauce directory in the project directory$`, thereShouldNotBeASauceDirectoryInTheProjectDirectory)
 			s.Step(`I check why the file "([^"]*)" is created$`, iRunWhy)
+			s.Step(`I validate recipe "([^"]*)"$`, iRunValidate)
 			s.After(cleanDockerResources)
 			s.After(cleanTempDirs)
 		},

@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	"path/filepath"
 
 	"github.com/futurice/jalapeno/internal/cli/option"
 	"github.com/futurice/jalapeno/pkg/recipe"
@@ -10,6 +11,8 @@ import (
 
 type validateOptions struct {
 	RecipePath string
+
+	option.WorkingDirectory
 	option.Common
 }
 
@@ -38,7 +41,12 @@ func NewValidateCmd() *cobra.Command {
 }
 
 func runValidate(cmd *cobra.Command, opts validateOptions) error {
-	r, err := recipe.LoadRecipe(opts.RecipePath)
+	path := opts.RecipePath
+	if !filepath.IsAbs(opts.RecipePath) {
+		path = filepath.Join(opts.Dir, opts.RecipePath)
+	}
+
+	r, err := recipe.LoadRecipe(path)
 	if err != nil {
 		return fmt.Errorf("could not load the recipe: %w", err)
 	}
