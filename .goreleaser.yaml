@@ -20,7 +20,8 @@ builds:
       - amd64
 
 kos:
-  - repository: ghcr.io/futurice/jalapeno
+  - id: jalapeno
+    repository: ghcr.io/futurice/jalapeno
     build: jalapeno
     base_image: alpine
     tags:
@@ -44,7 +45,8 @@ kos:
       org.opencontainers.image.url: "https://github.com/futurice/jalapeno"
       org.opencontainers.image.source: "https://github.com/futurice/jalapeno"
       org.opencontainers.image.documentation: "https://futurice.github.io/jalapeno/"
-  - repository: ghcr.io/futurice/jalapeno
+  - id: github-action
+    repository: ghcr.io/futurice/jalapeno
     build: github-action
     base_image: alpine
     tags:
