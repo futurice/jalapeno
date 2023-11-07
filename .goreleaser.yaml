@@ -10,9 +10,18 @@ builds:
     goarch:
       - amd64
       - arm64
+  - id: github-action
+    dir: cmd/action
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+    goarch:
+      - amd64
 
 kos:
   - repository: ghcr.io/futurice/jalapeno
+    build: jalapeno
     base_image: alpine
     tags:
       - latest
@@ -25,18 +34,34 @@ kos:
     platforms:
       - linux/amd64
       - linux/arm64
-    labels:
+    labels: &labels
       org.opencontainers.image.authors: "Jalapeno contributors <github.com/futurice/jalapeno>"
       org.opencontainers.image.licenses: "Apache-2.0"
       org.opencontainers.image.vendor: "Futurice"
       org.opencontainers.image.title: "Jalapeno"
+      org.opencontainers.image.version: "v{{.Version}}"
       org.opencontainers.image.description: "Jalapeno is a CLI for creating, managing and sharing spiced up project templates."
       org.opencontainers.image.url: "https://github.com/futurice/jalapeno"
       org.opencontainers.image.source: "https://github.com/futurice/jalapeno"
       org.opencontainers.image.documentation: "https://futurice.github.io/jalapeno/"
+  - repository: ghcr.io/futurice/jalapeno
+    build: github-action
+    base_image: alpine
+    tags:
+      - "latest-githubaction"
+      - "v{{.Version}}-githubaction"
+      - "v{{.Major}}-githubaction"
+      - "v{{.Major}}.{{.Minor}}-githubaction"
+    sbom: none
+    bare: true
+    preserve_import_paths: false
+    platforms:
+      - linux/amd64
+    labels: *labels
 
 archives:
   - id: jalapeno
+    builds: [jalapeno]
     name_template: "{{ .ProjectName }}-{{ .Os }}-{{ .Arch }}"
     format_overrides:
       - goos: windows
@@ -77,32 +102,32 @@ brews:
       system "#{bin}/jalapeno --version"
 
 winget:
-- name: jalapeno
-  publisher: Futurice
-  publisher_url: https://www.futurice.com
-  publisher_support_url: https://github.com/futurice/jalapeno/issues/new
-  short_description: Jalapeno is a CLI for creating, managing and sharing spiced up project templates
-  license: "Apache-2.0"
-  homepage: https://futurice.github.io/jalapeno/
-  license_url: https://github.com/futurice/jalapeno/blob/main/LICENCE
-  release_notes: '{{ .Changelog }}'
-  release_notes_url: 'https://github.com/futurice/jalapeno/releases/tag/{{ .Tag }}'
-  tags:
-  - cli
-  - configuration
-  - project
-  - bootstrap
-  - templates
-  repository:
-    owner: futurice
-    name: winget-pkgs
-    branch: "{{.ProjectName}}-{{.Version}}"
-    git:
-      url: "git@github.com:futurice/winget-pkgs.git"
-      private_key: "{{ .Env.WINGET_PKGS_PRIVATE_KEY }}"
-    pull_request:
-      enabled: true
-      base:
-        owner: microsoft
-        name: winget-pkgs
-        branch: master
+  - name: jalapeno
+    publisher: Futurice
+    publisher_url: https://www.futurice.com
+    publisher_support_url: https://github.com/futurice/jalapeno/issues/new
+    short_description: Jalapeno is a CLI for creating, managing and sharing spiced up project templates
+    license: "Apache-2.0"
+    homepage: https://futurice.github.io/jalapeno/
+    license_url: https://github.com/futurice/jalapeno/blob/main/LICENCE
+    release_notes: "{{ .Changelog }}"
+    release_notes_url: "https://github.com/futurice/jalapeno/releases/tag/{{ .Tag }}"
+    tags:
+      - cli
+      - configuration
+      - project
+      - bootstrap
+      - templates
+    repository:
+      owner: futurice
+      name: winget-pkgs
+      branch: "{{.ProjectName}}-{{.Version}}"
+      git:
+        url: "git@github.com:futurice/winget-pkgs.git"
+        private_key: "{{ .Env.WINGET_PKGS_PRIVATE_KEY }}"
+      pull_request:
+        enabled: true
+        base:
+          owner: microsoft
+          name: winget-pkgs
+          branch: master
