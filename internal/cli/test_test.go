@@ -8,7 +8,7 @@ import (
 
 func iRunTest(ctx context.Context, recipe string) (context.Context, error) {
 	recipesDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
-	optionalFlags, flagsAreSet := ctx.Value(cmdOptionalFlagsCtxKey{}).(map[string]string)
+	additionalFlags := ctx.Value(cmdAdditionalFlagsCtxKey{}).(map[string]string)
 
 	ctx, cmd := wrapCmdOutputs(ctx)
 
@@ -17,10 +17,8 @@ func iRunTest(ctx context.Context, recipe string) (context.Context, error) {
 		filepath.Join(recipesDir, recipe),
 	}
 
-	if flagsAreSet && optionalFlags != nil {
-		for name, value := range optionalFlags {
-			args = append(args, fmt.Sprintf("--%s=%s", name, value))
-		}
+	for name, value := range additionalFlags {
+		args = append(args, fmt.Sprintf("--%s=%s", name, value))
 	}
 
 	cmd.SetArgs(args)
@@ -31,7 +29,7 @@ func iRunTest(ctx context.Context, recipe string) (context.Context, error) {
 func iCreateRecipeTestUsingCLI(ctx context.Context, recipe string) (context.Context, error) {
 	ctx = context.WithValue(
 		ctx,
-		cmdOptionalFlagsCtxKey{},
+		cmdAdditionalFlagsCtxKey{},
 		map[string]string{"create": "true"},
 	)
 

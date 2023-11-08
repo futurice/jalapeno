@@ -40,7 +40,7 @@ type (
 	ociRegistryCtxKey               struct{}
 	cmdStdOutCtxKey                 struct{}
 	cmdStdErrCtxKey                 struct{}
-	cmdOptionalFlagsCtxKey          struct{}
+	cmdAdditionalFlagsCtxKey        struct{}
 	dockerResourcesCtxKey           struct{}
 )
 
@@ -80,9 +80,8 @@ func TestFeatures(t *testing.T) {
 			s.Step(`^CLI produced an output "([^"]*)"$`, expectGivenOutput)
 			s.Step(`^CLI produced an error "([^"]*)"$`, expectGivenError)
 			s.Step(`^I change recipe "([^"]*)" to version "([^"]*)"$`, iChangeRecipeToVersion)
-			s.Step(`^I check new versions for recipe "([^"]*)"$`, iRunCheck)
-			s.Step(`^newer recipe versions were found`, newRecipeVersionsWereFound)
-			s.Step(`^no newer recipe versions were found`, noNewRecipeVersionsWereFound)
+			s.Step(`^I check new versions$`, iRunCheck)
+			s.Step(`^I check new versions for recipe "([^"]*)"$`, iRunCheckForRecipe)
 			s.Step(`^I upgrade recipe "([^"]*)"$`, iRunUpgrade)
 			s.Step(`^I upgrade recipe from the local OCI repository "([^"]*)"$`, iRunUpgradeFromRemoteRecipe)
 			s.Step(`^I create a recipe with name "([^"]*)"$`, iRunCreate)
@@ -105,6 +104,13 @@ func TestFeatures(t *testing.T) {
 			s.Step(`^there should not be a sauce directory in the project directory$`, thereShouldNotBeASauceDirectoryInTheProjectDirectory)
 			s.Step(`I check why the file "([^"]*)" is created$`, iRunWhy)
 			s.Step(`I validate recipe "([^"]*)"$`, iRunValidate)
+			s.Before(func(ctx context.Context, sc *godog.Scenario) (context.Context, error) {
+				// Initialize additional flags to empty map before each step
+				return context.WithValue(
+					ctx,
+					cmdAdditionalFlagsCtxKey{},
+					make(map[string]string)), nil
+			})
 			s.After(cleanDockerResources)
 			s.After(cleanTempDirs)
 		},

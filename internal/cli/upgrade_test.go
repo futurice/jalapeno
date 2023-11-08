@@ -9,12 +9,12 @@ import (
 	"regexp"
 	"strings"
 
-	re "github.com/futurice/jalapeno/pkg/recipe"
+	"github.com/futurice/jalapeno/pkg/recipe"
 )
 
 func iRunUpgrade(ctx context.Context, recipe string) (context.Context, error) {
 	projectDir := ctx.Value(projectDirectoryPathCtxKey{}).(string)
-	optionalFlags, flagsAreSet := ctx.Value(cmdOptionalFlagsCtxKey{}).(map[string]string)
+	additionalFlags := ctx.Value(cmdAdditionalFlagsCtxKey{}).(map[string]string)
 
 	ctx, cmd := wrapCmdOutputs(ctx)
 
@@ -32,10 +32,8 @@ func iRunUpgrade(ctx context.Context, recipe string) (context.Context, error) {
 		fmt.Sprintf("--dir=%s", projectDir),
 	}
 
-	if flagsAreSet && optionalFlags != nil {
-		for name, value := range optionalFlags {
-			args = append(args, fmt.Sprintf("--%s=%s", name, value))
-		}
+	for name, value := range additionalFlags {
+		args = append(args, fmt.Sprintf("--%s=%s", name, value))
 	}
 
 	cmd.SetArgs(args)
@@ -46,33 +44,27 @@ func iRunUpgrade(ctx context.Context, recipe string) (context.Context, error) {
 func iRunUpgradeFromRemoteRecipe(ctx context.Context, repository string) (context.Context, error) {
 	registry := ctx.Value(ociRegistryCtxKey{}).(OCIRegistry)
 	configDir, configFileExists := ctx.Value(dockerConfigDirectoryPathCtxKey{}).(string)
-	optionalFlags, flagsAreSet := ctx.Value(cmdOptionalFlagsCtxKey{}).(map[string]string)
-	var flags map[string]string
-	if flagsAreSet {
-		flags = optionalFlags
-	} else {
-		flags = make(map[string]string)
-	}
+	additionalFlags := ctx.Value(cmdAdditionalFlagsCtxKey{}).(map[string]string)
 
 	url := fmt.Sprintf("oci://%s/%s", registry.Resource.GetHostPort("5000/tcp"), repository)
 
 	if registry.TLSEnabled {
 		// Allow self-signed certificates
-		flags["insecure"] = "true"
+		additionalFlags["insecure"] = "true"
 	} else {
-		flags["plain-http"] = "true"
+		additionalFlags["plain-http"] = "true"
 	}
 
 	if registry.AuthEnabled {
-		flags["username"] = "foo"
-		flags["password"] = "bar"
+		additionalFlags["username"] = "foo"
+		additionalFlags["password"] = "bar"
 	}
 
 	if configFileExists && os.Getenv("DOCKER_CONFIG") == "" {
-		flags["registry-config"] = filepath.Join(configDir, DOCKER_CONFIG_FILENAME)
+		additionalFlags["registry-config"] = filepath.Join(configDir, DOCKER_CONFIG_FILENAME)
 	}
 
-	ctx = context.WithValue(ctx, cmdOptionalFlagsCtxKey{}, flags)
+	ctx = context.WithValue(ctx, cmdAdditionalFlagsCtxKey{}, additionalFlags)
 
 	return iRunUpgrade(ctx, url)
 }
@@ -109,15 +101,15 @@ func iChangeRecipeTemplateToRender(ctx context.Context, recipeName, filename, co
 
 func iChangeRecipeToVersion(ctx context.Context, recipeName, version string) (context.Context, error) {
 	recipesDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
-	recipeFile := filepath.Join(recipesDir, recipeName, re.RecipeFileName+re.YAMLExtension)
-	recipeData, err := os.ReadFile(recipeFile)
+
+	re, err := recipe.LoadRecipe(filepath.Join(recipesDir, recipeName))
 	if err != nil {
 		return ctx, err
 	}
 
-	newData := strings.Replace(string(recipeData), "v0.0.1", version, 1)
+	re.Version = version
 
-	if err := os.WriteFile(filepath.Join(recipesDir, recipeName, re.RecipeFileName+re.YAMLExtension), []byte(newData), 0644); err != nil {
+	if err = re.Save(recipesDir); err != nil {
 		return ctx, err
 	}
 

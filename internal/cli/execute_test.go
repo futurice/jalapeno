@@ -10,7 +10,7 @@ import (
 
 func iRunExecute(ctx context.Context, recipe string) (context.Context, error) {
 	projectDir := ctx.Value(projectDirectoryPathCtxKey{}).(string)
-	optionalFlags, flagsAreSet := ctx.Value(cmdOptionalFlagsCtxKey{}).(map[string]string)
+	additionalFlags := ctx.Value(cmdAdditionalFlagsCtxKey{}).(map[string]string)
 
 	ctx, cmd := wrapCmdOutputs(ctx)
 
@@ -28,10 +28,8 @@ func iRunExecute(ctx context.Context, recipe string) (context.Context, error) {
 		fmt.Sprintf("--dir=%s", projectDir),
 	}
 
-	if flagsAreSet && optionalFlags != nil {
-		for name, value := range optionalFlags {
-			args = append(args, fmt.Sprintf("--%s=%s", name, value))
-		}
+	for name, value := range additionalFlags {
+		args = append(args, fmt.Sprintf("--%s=%s", name, value))
 	}
 
 	cmd.SetArgs(args)
@@ -42,13 +40,7 @@ func iRunExecute(ctx context.Context, recipe string) (context.Context, error) {
 func iExecuteRemoteRecipe(ctx context.Context, repository string) (context.Context, error) {
 	ociRegistry := ctx.Value(ociRegistryCtxKey{}).(OCIRegistry)
 	configDir, configFileExists := ctx.Value(dockerConfigDirectoryPathCtxKey{}).(string)
-	optionalFlags, flagsAreSet := ctx.Value(cmdOptionalFlagsCtxKey{}).(map[string]string)
-	var flags map[string]string
-	if flagsAreSet {
-		flags = optionalFlags
-	} else {
-		flags = make(map[string]string)
-	}
+	flags := ctx.Value(cmdAdditionalFlagsCtxKey{}).(map[string]string)
 
 	url := fmt.Sprintf("oci://%s/%s", ociRegistry.Resource.GetHostPort("5000/tcp"), repository)
 
@@ -68,7 +60,7 @@ func iExecuteRemoteRecipe(ctx context.Context, repository string) (context.Conte
 		flags["registry-config"] = filepath.Join(configDir, DOCKER_CONFIG_FILENAME)
 	}
 
-	ctx = context.WithValue(ctx, cmdOptionalFlagsCtxKey{}, flags)
+	ctx = context.WithValue(ctx, cmdAdditionalFlagsCtxKey{}, flags)
 
 	return iRunExecute(ctx, url)
 }

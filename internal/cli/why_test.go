@@ -7,7 +7,7 @@ import (
 
 func iRunWhy(ctx context.Context, file string) (context.Context, error) {
 	projectDir := ctx.Value(projectDirectoryPathCtxKey{}).(string)
-	optionalFlags, flagsAreSet := ctx.Value(cmdOptionalFlagsCtxKey{}).(map[string]string)
+	additionalFlags := ctx.Value(cmdAdditionalFlagsCtxKey{}).(map[string]string)
 
 	ctx, cmd := wrapCmdOutputs(ctx)
 
@@ -17,10 +17,8 @@ func iRunWhy(ctx context.Context, file string) (context.Context, error) {
 		fmt.Sprintf("--dir=%s", projectDir),
 	}
 
-	if flagsAreSet && optionalFlags != nil {
-		for name, value := range optionalFlags {
-			args = append(args, fmt.Sprintf("--%s=%s", name, value))
-		}
+	for name, value := range additionalFlags {
+		args = append(args, fmt.Sprintf("--%s=%s", name, value))
 	}
 
 	cmd.SetArgs(args)

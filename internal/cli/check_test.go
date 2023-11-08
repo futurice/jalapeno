@@ -7,16 +7,15 @@ import (
 	re "github.com/futurice/jalapeno/pkg/recipe"
 )
 
-func iRunCheck(ctx context.Context, recipe string) (context.Context, error) {
+func iRunCheck(ctx context.Context) (context.Context, error) {
 	projectDir := ctx.Value(projectDirectoryPathCtxKey{}).(string)
 	ociRegistry := ctx.Value(ociRegistryCtxKey{}).(OCIRegistry)
-	optionalFlags, flagsAreSet := ctx.Value(cmdOptionalFlagsCtxKey{}).(map[string]string)
+	additionalFlags := ctx.Value(cmdAdditionalFlagsCtxKey{}).(map[string]string)
 
 	ctx, cmd := wrapCmdOutputs(ctx)
 
 	args := []string{
 		"check",
-		fmt.Sprintf("--recipe=%s", recipe),
 		fmt.Sprintf("--dir=%s", projectDir),
 	}
 
@@ -26,10 +25,8 @@ func iRunCheck(ctx context.Context, recipe string) (context.Context, error) {
 		args = append(args, "--plain-http=true")
 	}
 
-	if flagsAreSet && optionalFlags != nil {
-		for name, value := range optionalFlags {
-			args = append(args, fmt.Sprintf("--%s=%s", name, value))
-		}
+	for name, value := range additionalFlags {
+		args = append(args, fmt.Sprintf("--%s=%s", name, value))
 	}
 
 	cmd.SetArgs(args)
@@ -37,12 +34,12 @@ func iRunCheck(ctx context.Context, recipe string) (context.Context, error) {
 	return ctx, nil
 }
 
-func newRecipeVersionsWereFound(ctx context.Context) (context.Context, error) {
-	return ctx, expectGivenOutput(ctx, "New versions found")
-}
+func iRunCheckForRecipe(ctx context.Context, recipe string) (context.Context, error) {
+	additionalFlags := ctx.Value(cmdAdditionalFlagsCtxKey{}).(map[string]string)
+	additionalFlags["recipe"] = recipe
 
-func noNewRecipeVersionsWereFound(ctx context.Context) (context.Context, error) {
-	return ctx, expectGivenOutput(ctx, "No new versions found")
+	ctx = context.WithValue(ctx, cmdAdditionalFlagsCtxKey{}, additionalFlags)
+	return iRunCheck(ctx)
 }
 
 func sourceOfTheSauceIsTheLocalOCIRegistry(ctx context.Context, recipeName string) (context.Context, error) {
