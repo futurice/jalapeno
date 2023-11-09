@@ -21,7 +21,7 @@ type checkOptions struct {
 
 const (
 	ExitCodeOK               = 0
-	ExitCodeError            = 0
+	ExitCodeError            = 1
 	ExitCodeUpdatesAvailable = 2
 )
 
