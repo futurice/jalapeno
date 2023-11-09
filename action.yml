@@ -1,7 +1,8 @@
 name: "Jalapeno"
-description: "Run Jalapeno check-updates on a project"
+description: "Run Jalapeno check on the workspace"
 runs:
   using: "docker"
   image: "docker://ghcr.io/futurice/jalapeno:v0-githubaction"
   args:
     - check
+    - --dir=/github/workspace

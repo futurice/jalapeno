@@ -146,21 +146,20 @@ func wrapCmdOutputs(ctx context.Context) (context.Context, *cobra.Command) {
 }
 
 func cleanTempDirs(ctx context.Context, sc *godog.Scenario, err error) (context.Context, error) {
-	if dir := ctx.Value(projectDirectoryPathCtxKey{}); dir != nil {
-		os.RemoveAll(dir.(string))
+	directoryCtxKeys := []interface{}{
+		projectDirectoryPathCtxKey{},
+		recipesDirectoryPathCtxKey{},
+		certDirectoryPathCtxKey{},
+		htpasswdDirectoryPathCtxKey{},
+		dockerConfigDirectoryPathCtxKey{},
 	}
-	if dir := ctx.Value(recipesDirectoryPathCtxKey{}); dir != nil {
-		os.RemoveAll(dir.(string))
+
+	for _, key := range directoryCtxKeys {
+		if dir := ctx.Value(key); dir != nil {
+			os.RemoveAll(dir.(string))
+		}
 	}
-	if dir := ctx.Value(certDirectoryPathCtxKey{}); dir != nil {
-		os.RemoveAll(dir.(string))
-	}
-	if dir := ctx.Value(htpasswdDirectoryPathCtxKey{}); dir != nil {
-		os.RemoveAll(dir.(string))
-	}
-	if dir := ctx.Value(dockerConfigDirectoryPathCtxKey{}); dir != nil {
-		os.RemoveAll(dir.(string))
-	}
+
 	return ctx, err
 }
 

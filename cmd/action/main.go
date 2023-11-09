@@ -27,7 +27,7 @@ func main() {
 	delimiter := uuid.Must(uuid.NewV4()).String()
 	fmt.Fprintf(output, "result<<%s\n", delimiter)
 
-	// TODO: Add result
+	// TODO: Add outputs
 
 	fmt.Fprintf(output, "%s\n", delimiter)
 
