@@ -16,14 +16,14 @@ func main() {
 	cmd := cli.NewRootCmd(version)
 	err := cmd.ExecuteContext(context.Background())
 
-	exitCode := cmd.Context().Value(cli.ExitCodeContextKey{})
-	if code, ok := exitCode.(int); ok { // Make sure that the exit code is still an int
-		os.Exit(code) // Exit with the exit code defined by a subcommand
-	} else {
+	exitCode, isExitCodeSet := cmd.Context().Value(cli.ExitCodeContextKey{}).(int)
+	if !isExitCodeSet {
 		if err == nil {
-			os.Exit(0)
+			exitCode = 0
 		} else {
-			os.Exit(1)
+			exitCode = 1
 		}
 	}
+
+	os.Exit(exitCode)
 }

@@ -1,8 +1,27 @@
 name: "Jalapeno"
 description: "Run Jalapeno check on the workspace"
+inputs:
+  insecure:
+    description: "Allow connections to SSL registry without certs"
+    default: "false"
+    required: false
+  plain-http:
+    description: "Allow insecure connections to registry without SSL check"
+    default: "false"
+    required: false
+  ca-file:
+    description: "Server certificate authority file for the remote registry"
+    required: false
+outputs:
+  exit-code:
+    description: "Exit code of the operation"
 runs:
   using: "docker"
   image: "docker://ghcr.io/futurice/jalapeno:v0-githubaction"
   args:
     - check
     - --dir=/github/workspace
+    - --detailed-exitcode
+    - --insecure=${{ inputs.insecure }}
+    - --plain-http=${{ inputs.plain-http }}
+    - --ca-file=${{ inputs.ca-file }}

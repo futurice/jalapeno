@@ -1,12 +1,12 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
 
 	"github.com/futurice/jalapeno/internal/cli"
-	"github.com/gofrs/uuid"
 )
 
 var (
@@ -15,6 +15,10 @@ var (
 )
 
 func main() {
+	if os.Getenv("GITHUB_ACTIONS") != "true" {
+		checkErr(errors.New("this image only works on Github Actions"))
+	}
+
 	filename := os.Getenv("GITHUB_OUTPUT")
 	if filename == "" {
 		checkErr(errors.New("GITHUB_OUTPUT environment variable not set"))
@@ -22,17 +26,21 @@ func main() {
 
 	output, err := os.OpenFile(filename, os.O_APPEND, 0644)
 	checkErr(err)
+	defer output.Close()
 
 	cmd := cli.NewRootCmd(version)
-	delimiter := uuid.Must(uuid.NewV4()).String()
-	fmt.Fprintf(output, "result<<%s\n", delimiter)
+	err = cmd.ExecuteContext(context.Background())
 
-	// TODO: Add outputs
-
-	fmt.Fprintf(output, "%s\n", delimiter)
-
-	err = cmd.Execute()
-	checkErr(err)
+	exitCode, isExitCodeSet := cmd.Context().Value(cli.ExitCodeContextKey{}).(int)
+	if !isExitCodeSet {
+		if err == nil {
+			exitCode = 0
+		} else {
+			exitCode = 1
+		}
+	}
+	fmt.Fprintf(output, "exit-code=%d\n", exitCode)
+	os.Exit(exitCode)
 }
 
 func checkErr(err error) {

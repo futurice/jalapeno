@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"context"
 	"fmt"
 	"time"
 
@@ -18,11 +17,6 @@ func NewRootCmd(version string) *cobra.Command {
 		Short:        "Create, manage and share spiced up project templates",
 		Long:         "Create, manage and share spiced up project templates.",
 		SilenceUsage: true,
-		PreRun: func(cmd *cobra.Command, args []string) {
-			if cmd.Context() != nil {
-				cmd.SetContext(context.Background())
-			}
-		},
 	}
 
 	if version != "" {

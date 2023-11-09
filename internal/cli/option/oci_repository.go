@@ -21,8 +21,8 @@ type OCIRepository struct {
 }
 
 func (opts *OCIRepository) ApplyFlags(fs *pflag.FlagSet) {
-	fs.StringVarP(&opts.Username, "username", "u", "", "Registry username")
-	fs.StringVarP(&opts.Password, "password", "p", "", "Registry password or identity token")
+	fs.StringVarP(&opts.Username, "username", "u", "", "Username used to log against the Docker registry")
+	fs.StringVarP(&opts.Password, "password", "p", "", "Password or personal access token used to log against the Docker registry")
 	fs.BoolVarP(&opts.UseInsecure, "insecure", "", false, "Allow connections to SSL registry without certs")
 	fs.BoolVarP(&opts.UsePlainHTTP, "plain-http", "", false, "Allow insecure connections to registry without SSL check")
 	fs.StringVarP(&opts.CACertFilePath, "ca-file", "", "", "Server certificate authority file for the remote registry")
