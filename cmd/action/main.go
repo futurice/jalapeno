@@ -40,12 +40,18 @@ func main() {
 		}
 	}
 	fmt.Fprintf(output, "exit-code=%d\n", exitCode)
-	os.Exit(exitCode)
+
+	// Map all non error exit codes to 0 so that Github Actions job does not fail
+	if exitCode != cli.ExitCodeError {
+		os.Exit(cli.ExitCodeOK)
+	} else {
+		os.Exit(cli.ExitCodeError)
+	}
 }
 
 func checkErr(err error) {
 	if err != nil {
 		fmt.Printf("%+v\n", err)
-		os.Exit(1)
+		os.Exit(cli.ExitCodeError)
 	}
 }
