@@ -20,7 +20,7 @@ runs:
   image: "docker://ghcr.io/futurice/jalapeno:v0-githubaction"
   args:
     - check
-    - --dir=/github/workspace
+    - --dir=${{ github.workspace }}
     - --detailed-exitcode
     - --insecure=${{ inputs.insecure }}
     - --plain-http=${{ inputs.plain-http }}
