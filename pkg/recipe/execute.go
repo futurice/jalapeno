@@ -26,8 +26,12 @@ func (re *Recipe) Execute(values VariableValues, id uuid.UUID) (*Sauce, error) {
 
 	// Define the context which is available on templates
 	context := map[string]interface{}{
-		"ID":        sauce.ID.String(),
-		"Recipe":    struct{ Name, Version string }{re.Name, re.Version},
+		"ID": sauce.ID.String(),
+		"Recipe": struct{ APIVersion, Name, Version string }{
+			re.APIVersion,
+			re.Name,
+			re.Version,
+		},
 		"Variables": values,
 	}
 

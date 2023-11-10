@@ -57,6 +57,7 @@ Templates are done by using [Go templates](https://pkg.go.dev/text/template).
 The following context is available on the templates:
 
 - `Recipe`: Metadata object of the recipe
+  - `Recipe.APIVersion`: The API version which the recipe file uses
   - `Recipe.Name`: The name of the recipe
   - `Recipe.Version`: The current version of the recipe
 - `ID`: UUID which is generated after the first execution of the recipe. It will keep its value over upgrades. Can be used to generate unique pseudo-random values which stays the same over the upgrades, for example `my-resource-{{ sha1sum .ID | trunc 5 }}`
