@@ -36,6 +36,7 @@ var (
 	version string
 )
 
+// This is the entrypoint for generating API reference documentation
 func main() {
 	args := os.Args[1:]
 	if len(args) != 1 {

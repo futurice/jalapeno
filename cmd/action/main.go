@@ -9,25 +9,20 @@ import (
 	"github.com/futurice/jalapeno/internal/cli"
 )
 
-var (
-	// https://goreleaser.com/cookbooks/using-main.version/
-	version string
+const (
+	OutputExitCode = "exit-code"
 )
 
+// This is the entrypoint for the Github Action
 func main() {
 	if os.Getenv("GITHUB_ACTIONS") != "true" {
 		checkErr(errors.New("this image only works on Github Actions"))
 	}
 
-	filename := os.Getenv("GITHUB_OUTPUT")
-	if filename == "" {
-		checkErr(errors.New("GITHUB_OUTPUT environment variable not set"))
-	}
-
-	output, err := os.OpenFile(filename, os.O_APPEND, 0644)
+	output, err := os.OpenFile(os.Getenv("GITHUB_OUTPUT"), os.O_APPEND|os.O_WRONLY, 0644)
 	checkErr(err)
 
-	cmd := cli.NewRootCmd(version)
+	cmd := cli.NewRootCmd("")
 	err = cmd.ExecuteContext(context.Background())
 
 	exitCode, isExitCodeSet := cmd.Context().Value(cli.ExitCodeContextKey{}).(int)
@@ -38,10 +33,12 @@ func main() {
 			exitCode = 1
 		}
 	}
-	fmt.Fprintf(output, "exit-code=%d\n", exitCode)
+	fmt.Fprintf(output, "%s=%d\n", OutputExitCode, exitCode)
 
 	// Write buffer to the file
-	output.Sync()
+	err = output.Sync()
+	checkErr(err)
+
 	output.Close()
 
 	// Map all non error exit codes to 0 so that Github Actions job does not fail

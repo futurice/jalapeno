@@ -12,6 +12,7 @@ var (
 	version string
 )
 
+// This is the entrypoint for the CLI
 func main() {
 	cmd := cli.NewRootCmd(version)
 	err := cmd.ExecuteContext(context.Background())
