@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	OutputExitCode = "exit-code"
+	OutputExitCode = "exitcode"
 )
 
 // This is the entrypoint for the Github Action

@@ -13,7 +13,7 @@ inputs:
     description: "Server certificate authority file for the remote registry"
     required: false
 outputs:
-  exit-code:
+  exitcode:
     description: "Exit code of the operation"
 runs:
   using: "docker"
