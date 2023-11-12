@@ -37,6 +37,12 @@ mkdir my-project
 jalapeno execute my-recipe -d my-project
 ```
 
+You can also execute any of the examples from the Jalapeno repository, for example:
+
+```bash
+jalapeno execute oci://ghcr.io/futurice/jalapeno/examples/variable-types:0.0.0 -d my-project
+```
+
 After this, the project directory should have the following files:
 
 ```
