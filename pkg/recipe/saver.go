@@ -92,12 +92,12 @@ func (re *Recipe) saveTests(dest string) error {
 		}
 
 		testFileDirPath := filepath.Join(testDirPath, RecipeTestFilesDirName)
-		if len(test.Files) > 0 {
-			err := os.MkdirAll(testFileDirPath, defaultFileMode)
-			if err != nil {
-				return fmt.Errorf("failed to create test file directory for test '%s': %w", test.Name, err)
-			}
+		err = os.MkdirAll(testFileDirPath, defaultFileMode)
+		if err != nil {
+			return fmt.Errorf("failed to create test file directory for test '%s': %w", test.Name, err)
+		}
 
+		if len(test.Files) > 0 {
 			err = saveFileMap(test.Files, testFileDirPath)
 			if err != nil {
 				return fmt.Errorf("failed to save template files: %w", err)
