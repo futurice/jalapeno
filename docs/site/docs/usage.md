@@ -30,18 +30,29 @@ my-recipe
             └── README.md
 ```
 
-The `templates` directory contains the templates which will be rendered to the project directory. You can add and edit files there or you can already execute this _recipe_ (render the templates) to your project directory by running:
+The `templates` directory contains the templates which will be rendered to the project directory. You can add and edit files there or you can already _execute the recipe_ (render the templates) to your project directory by running:
 
 ```bash
 mkdir my-project
 jalapeno execute my-recipe -d my-project
 ```
 
+:::tip
+
 You can also execute any of the examples from the Jalapeno repository, for example:
+
+```bash
+git clone git@github.com:futurice/jalapeno.git
+jalapeno execute ./jalapeno/examples/variable-types -d my-project
+```
+
+Or execute them directly from GitHub Container Registry:
 
 ```bash
 jalapeno execute oci://ghcr.io/futurice/jalapeno/examples/variable-types:0.0.0 -d my-project
 ```
+
+:::
 
 After this, the project directory should have the following files:
 

@@ -47,6 +47,6 @@ jobs:
           for dir in examples/*/ # list directories in the form "examples/dirname/"
           do
               dir=${dir%*/} # remove the trailing "/"
-              task run -- validate ${dir}
+              task run -- test ${dir}
               task run -- push ${dir} oci://ghcr.io/futurice/jalapeno/${dir}
           done
