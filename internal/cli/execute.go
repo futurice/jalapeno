@@ -20,7 +20,6 @@ import (
 type executeOptions struct {
 	RecipeURL string
 	option.Values
-	option.Styles
 	option.OCIRepository
 	option.WorkingDirectory
 	option.Common
