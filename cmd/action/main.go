@@ -7,9 +7,11 @@ import (
 	"os"
 
 	"github.com/futurice/jalapeno/internal/cli"
+	"github.com/gofrs/uuid"
 )
 
 const (
+	OutputResult   = "result"
 	OutputExitCode = "exitcode"
 )
 
@@ -22,8 +24,13 @@ func main() {
 	output, err := os.OpenFile(os.Getenv("GITHUB_OUTPUT"), os.O_APPEND|os.O_WRONLY, 0644)
 	checkErr(err)
 
+	delimiter := uuid.Must(uuid.NewV4()).String()
+	fmt.Fprintf(output, "%s << %s\n", OutputResult, delimiter)
+
 	cmd := cli.NewRootCmd("")
+	cmd.SetOut(output)
 	err = cmd.ExecuteContext(context.Background())
+	fmt.Fprintf(output, "%s\n", delimiter)
 
 	exitCode, isExitCodeSet := cmd.Context().Value(cli.ExitCodeContextKey{}).(int)
 	if !isExitCodeSet {
