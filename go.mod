@@ -25,6 +25,7 @@ require (
 	github.com/atotto/clipboard v0.1.4 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/aymanbagabas/go-udiff v0.1.0 // indirect
+	github.com/buildkite/shellwords v0.0.0-20180315110454-59467a9b8e10 // indirect
 	github.com/cenkalti/backoff/v4 v4.2.1 // indirect
 	github.com/containerd/console v1.0.4-0.20230313162750-1ae8d489ac81 // indirect
 	github.com/cucumber/gherkin/go/v26 v26.2.0 // indirect

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/buildkite/shellwords"
 	"github.com/futurice/jalapeno/internal/cli"
 	"github.com/gofrs/uuid"
 )
@@ -24,11 +25,17 @@ func main() {
 	output, err := os.OpenFile(os.Getenv("GITHUB_OUTPUT"), os.O_APPEND|os.O_WRONLY, 0644)
 	checkErr(err)
 
+	// Since arguments are passed as a single string, we need to split them
+	args, err := shellwords.Split(os.Args[1])
+	checkErr(err)
+
 	delimiter := uuid.Must(uuid.NewV4()).String()
-	fmt.Fprintf(output, "%s << %s\n", OutputResult, delimiter)
+	fmt.Fprintf(output, "%s<<%s\n", OutputResult, delimiter)
 
 	cmd := cli.NewRootCmd("")
 	cmd.SetOut(output)
+	cmd.SetArgs(args)
+
 	err = cmd.ExecuteContext(context.Background())
 	fmt.Fprintf(output, "%s\n", delimiter)
 
