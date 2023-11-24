@@ -1,6 +1,7 @@
 name: Check for Jalapeno recipe updates
 
 on:
+  workflow_dispatch:
   schedule:
     - cron: {{ .Variables.SCHEDULE | quote }}
 
@@ -17,7 +18,9 @@ jobs:
           registry: ghcr.io
           username: {{ "${{ github.actor }}" }}
           password: {{  "${{ secrets.GITHUB_TOKEN }}" }}
-      - uses: futurice/jalapeno@v0.1.20
+      - uses: futurice/jalapeno@main
         id: jalapeno
+        with:
+          cmd: check
       - if: steps.jalapeno.outputs.exit-code == '2'
         run: echo "::notice::Jalapeno updates available"

@@ -17,6 +17,11 @@ const (
 	OutputExitCode = "exitcode"
 )
 
+var (
+	// https://goreleaser.com/cookbooks/using-main.version/
+	version string
+)
+
 // This is the entrypoint for the Github Action
 func main() {
 	if os.Getenv("GITHUB_ACTIONS") != "true" {
@@ -30,13 +35,13 @@ func main() {
 	out := io.MultiWriter(os.Stdout, output)
 
 	// Since arguments are passed as a single string, we need to split them
-	args, err := shellwords.Split(os.Args[1])
+	args, err := shellwords.SplitPosix(os.Args[1])
 	checkErr(err)
 
 	delimiter := uuid.Must(uuid.NewV4()).String()
 	fmt.Fprintf(output, "%s<<%s\n", OutputResult, delimiter)
 
-	cmd := cli.NewRootCmd("")
+	cmd := cli.NewRootCmd(version)
 	cmd.SetOut(out)
 	cmd.SetArgs(args)
 
