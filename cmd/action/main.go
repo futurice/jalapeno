@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 
 	"github.com/buildkite/shellwords"
@@ -25,6 +26,9 @@ func main() {
 	output, err := os.OpenFile(os.Getenv("GITHUB_OUTPUT"), os.O_APPEND|os.O_WRONLY, 0644)
 	checkErr(err)
 
+	// Write contents to the output file and to stdout
+	out := io.MultiWriter(os.Stdout, output)
+
 	// Since arguments are passed as a single string, we need to split them
 	args, err := shellwords.Split(os.Args[1])
 	checkErr(err)
@@ -33,7 +37,7 @@ func main() {
 	fmt.Fprintf(output, "%s<<%s\n", OutputResult, delimiter)
 
 	cmd := cli.NewRootCmd("")
-	cmd.SetOut(output)
+	cmd.SetOut(out)
 	cmd.SetArgs(args)
 
 	err = cmd.ExecuteContext(context.Background())
