@@ -25,7 +25,7 @@ tasks:
     sources:
       - "./**/*.go"
     generates:
-      - "bin/jalapeno"
+      - "bin/jalapeno{{exeExt}}"
     cmds:
       - go build -o bin/jalapeno{{exeExt}} {{.ENTRYPOINT}}
 
