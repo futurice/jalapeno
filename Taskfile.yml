@@ -27,7 +27,7 @@ tasks:
     generates:
       - "bin/jalapeno"
     cmds:
-      - go build -o bin/jalapeno {{.ENTRYPOINT}}
+      - go build -o bin/jalapeno{{exeExt}} {{.ENTRYPOINT}}
 
   debug:
     desc: Starts the CLI in debug mode. After running the task, you can use for example VSCode to connect to the session
