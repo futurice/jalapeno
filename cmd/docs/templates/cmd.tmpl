@@ -1,5 +1,9 @@
 {{- define "cmd" }}
 ### {{.Name}} {#{{.Name}}}
+{{- if .Aliases }}
+
+**Aliases**: `{{ .Aliases | join "`, `" }}`
+{{- end }}
 
 {{.Description}}
 

@@ -29,7 +29,7 @@ func NewExecuteCmd() *cobra.Command {
 	var opts executeOptions
 	var cmd = &cobra.Command{
 		Use:     "execute RECIPE_URL",
-		Aliases: []string{"exec", "e"},
+		Aliases: []string{"exec", "e", "run"},
 		Short:   "Execute a recipe",
 		Long:    "Executes (renders) a recipe and outputs the files to the directory. Recipe URL can be a local path or a remote URL (ex. 'oci://docker.io/my-recipe').",
 		Args:    cobra.ExactArgs(1),
@@ -178,7 +178,7 @@ func runExecute(cmd *cobra.Command, opts executeOptions) error {
 		return err
 	}
 
-	cmd.Println("\nRecipe executed successfully!")
+	cmd.Println("Recipe executed successfully!")
 
 	tree := recipeutil.CreateFileTree(opts.Dir, sauce.Files)
 	cmd.Printf("The following files were created:\n\n%s", tree)

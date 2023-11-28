@@ -7,6 +7,7 @@ import (
 	"os"
 	"text/template"
 
+	"github.com/Masterminds/sprig"
 	"github.com/futurice/jalapeno/internal/cli"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -22,6 +23,7 @@ type Flag struct {
 
 type CommandInfo struct {
 	Name        string
+	Aliases     []string
 	Description string
 	Usage       string
 	Example     string
@@ -47,7 +49,11 @@ func main() {
 	rootCmd := cli.NewRootCmd(version)
 	subCmds := rootCmd.Commands()
 
-	tmpl := template.Must(template.New("doc").ParseFS(tmpls, "templates/*"))
+	tmpl := template.Must(template.
+		New("doc").
+		Funcs(sprig.FuncMap()).
+		ParseFS(tmpls, "templates/*"),
+	)
 
 	var b bytes.Buffer
 	err := tmpl.ExecuteTemplate(&b, "main.tmpl", map[string]interface{}{
@@ -71,6 +77,7 @@ func mapCommandInfos(cmds []*cobra.Command) []CommandInfo {
 	for i, c := range cmds {
 		info := CommandInfo{
 			Name:        c.Name(),
+			Aliases:     c.Aliases,
 			Description: c.Long,
 			Usage:       c.Use,
 			Example:     c.Example,
