@@ -19,8 +19,8 @@ type Colors struct {
 }
 
 func (opts *Common) ApplyFlags(fs *pflag.FlagSet) {
-	fs.BoolVar(&opts.Debug, "debug", false, "debug mode")
-	fs.BoolVarP(&opts.Verbose, "verbose", "v", false, "verbose output")
+	fs.BoolVar(&opts.Debug, "debug", false, "Debug mode")
+	fs.BoolVarP(&opts.Verbose, "verbose", "v", false, "Verbose output")
 	fs.BoolVar(&opts.NoColors, "no-color", false, "If specified, output won't contain any color")
 }
 
