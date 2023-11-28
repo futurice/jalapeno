@@ -73,22 +73,41 @@ Templates are done by using [Go templates](https://pkg.go.dev/text/template).
 
 The following context is available on the templates:
 
-- `Recipe`: Metadata object of the recipe
-  - `Recipe.APIVersion`: The API version which the recipe file uses
-  - `Recipe.Name`: The name of the recipe
-  - `Recipe.Version`: The current version of the recipe
-- `ID`: UUID which is generated after the first execution of the recipe. It will keep its value over upgrades. Can be used to generate unique pseudo-random values which stays the same over the upgrades, for example `my-resource-{{ sha1sum .ID | trunc 5 }}`
-- `Variables`: Object which contains the values of the variables defined for the recipe. Example: `{{ .Variables.FOO }}`
+- `.Recipe`: Metadata object of the recipe
+  - `.Recipe.APIVersion`: The API version which the recipe file uses
+  - `.Recipe.Name`: The name of the recipe
+  - `.Recipe.Version`: The current version of the recipe
+- `.ID`: UUID which is generated after the first execution of the recipe. It will keep its value over upgrades. Can be used to generate unique pseudo-random values which stays the same over the upgrades, for example `my-resource-{{ sha1sum .ID | trunc 5 }}`
+- `.Variables`: Object which contains the values of the variables defined for the recipe. Example: `{{ .Variables.FOO }}`
 
 ## Variables
 
+Recipe variables let you define values which user need to provide to be able to render the tempaltes. Variables are defined in the `recipe.yml` file. You can check schema [here](/api#variable).
+
+### Variable types
+
+Recipe variables supports the following types:
+
+- [String](https://github.com/futurice/jalapeno/blob/main/examples/variable-types/recipe.yml#L9-L11)
+- [Boolean](https://github.com/futurice/jalapeno/blob/main/examples/variable-types/recipe.yml#L13-L15)
+- [Select (predefined options)](https://github.com/futurice/jalapeno/blob/main/examples/variable-types/recipe.yml#L20-L22)
+- [Table](https://github.com/futurice/jalapeno/blob/main/examples/variable-types/recipe.yml#L29-L38)
+
+You can see examples of all the possible variables in the [example recipe](https://github.com/futurice/jalapeno/blob/main/examples/variable-types/recipe.yml).
+
+:::note
+
+If you need to use numbers in the templates, you can use the `atoi` function to convert a string variable to integer: `{{ .Variables.FOO | atoi }}`
+
+:::
+
 ### Validation
 
-### Conditional variables
+Variables can be validated by defining [`validators`](/api#variable) property for the variable. Validators support regular expression pattern matching.
 
-## Pushing recipe to Container Registry
+## Using recipes in Container Registry
 
-### Executing a recipe from local path
+### Pushing a recipe to Container registry
 
 ### Executing a recipe from Container registry
 
