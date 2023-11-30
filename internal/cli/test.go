@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"errors"
 	"fmt"
 	"path/filepath"
 
@@ -105,14 +106,29 @@ func runTest(cmd *cobra.Command, opts testOptions) error {
 		return nil
 	}
 
+	cmd.Printf("Running tests for recipe \"%s\"...\n", re.Name)
 	errs := re.RunTests()
 	for i, err := range errs {
+		var symbol rune
+		if err == nil {
+			symbol = '✅'
+		} else {
+			symbol = '❌'
+		}
+
+		cmd.Printf("%c: %s\n", symbol, re.Tests[i].Name)
+	}
+
+	formattedErrs := make([]error, 0, len(errs))
+	for i, err := range errs {
 		if err != nil {
-			return fmt.Errorf("test %s failed: %v", re.Tests[i].Name, err)
+			formattedErrs = append(formattedErrs, fmt.Errorf("test %s failed: %v", re.Tests[i].Name, err))
 		}
 	}
 
-	// TODO: Show pass for each test
-	cmd.Println("Tests passed successfully")
+	if len(formattedErrs) > 0 {
+		return fmt.Errorf("recipe tests failed: %w", errors.Join(formattedErrs...))
+	}
+
 	return nil
 }

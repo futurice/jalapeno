@@ -96,8 +96,7 @@ func mapCommandInfos(cmds []*cobra.Command) []CommandInfo {
 }
 
 func valueTypeToString(v pflag.Value) string {
-	t := v.Type()
-	switch t {
+	switch t := v.Type(); t {
 	case "stringArray":
 		return "[]string"
 	default:

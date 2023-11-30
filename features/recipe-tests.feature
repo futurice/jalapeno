@@ -11,5 +11,5 @@ Feature: Running tests for a recipe
     Given a recipes directory
     When I create a recipe with name "foo"
     And I run tests for recipe "foo"
-    Then CLI produced an output "Tests passed successfully"
+    Then CLI produced an output "✅: defaults"
     And no errors were printed
