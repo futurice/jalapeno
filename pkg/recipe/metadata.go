@@ -34,6 +34,11 @@ type Metadata struct {
 	// files will not be regenerated even if their templates change in future versions
 	// of the recipe.
 	IgnorePatterns []string `yaml:"ignorePatterns,omitempty"`
+
+	// File extension for which files in Sources should be templated. Files not matched by
+	// this extension will be copied as-is. If empty (the default) all files will be
+	// templated.
+	TemplateExtension string `yaml:"templateExtension,omitempty"`
 }
 
 func (m *Metadata) Validate() error {
