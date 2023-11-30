@@ -8,7 +8,7 @@
 | `version` | `string` | | Version of the recipe. Must be valid [semver](https://semver.org/). |
 | `description` | `string` | | Description of what the recipe does |
 | `sources` | `[]string` | | A list of URLs to source code for this recipe. |
-| `templateExtension` | `string` | `` | Extension of files in `sources` that are considered templates and are processed with the template engine. Must start with a period if not empty. |
+| `templateExtension` | `string` | | Extension of files in `sources` that are considered templates and are processed with the template engine. Must start with a period if not empty. |
 | `initHelp` | `string` | | A message which will be showed to an user after a succesful recipe execution. Can be used to guide the user what should be done next in the project directory. |
 | `ignorePatterns` | `[]string` | | Glob patterns for ignoring generated files from future recipe upgrades. Ignored files will not be regenerated even if their templates change in future versions of the recipe. |
 | `vars` | [`[]Variable`](#variable) | | An array of variables which can be used in templates. The user will be prompted to provide the value for the variable if not predefined with `--set` flag. |
