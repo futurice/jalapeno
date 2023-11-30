@@ -33,11 +33,6 @@ type CommandInfo struct {
 //go:embed templates
 var tmpls embed.FS
 
-var (
-	// https://goreleaser.com/cookbooks/using-main.version/
-	version string
-)
-
 // This is the entrypoint for generating API reference documentation
 func main() {
 	args := os.Args[1:]
@@ -46,7 +41,7 @@ func main() {
 		return
 	}
 
-	rootCmd := cli.NewRootCmd(version)
+	rootCmd := cli.NewRootCmd()
 	subCmds := rootCmd.Commands()
 
 	tmpl := template.Must(template.
@@ -108,5 +103,4 @@ func valueTypeToString(v pflag.Value) string {
 	default:
 		return t
 	}
-
 }

@@ -132,17 +132,17 @@ func TestFeatures(t *testing.T) {
  */
 
 func wrapCmdOutputs(ctx context.Context) (context.Context, *cobra.Command) {
-	cmd := cli.NewRootCmd("")
+	rootCmd := cli.NewRootCmd()
 	cmdStdOut, cmdStdErr := new(bytes.Buffer), new(bytes.Buffer)
 
-	cmd.SetOut(cmdStdOut)
-	cmd.SetErr(cmdStdErr)
-	cmd.SetContext(context.Background())
+	rootCmd.SetOut(cmdStdOut)
+	rootCmd.SetErr(cmdStdErr)
+	rootCmd.SetContext(context.Background())
 
 	ctx = context.WithValue(ctx, cmdStdOutCtxKey{}, cmdStdOut)
 	ctx = context.WithValue(ctx, cmdStdErrCtxKey{}, cmdStdErr)
 
-	return ctx, cmd
+	return ctx, rootCmd
 }
 
 func cleanTempDirs(ctx context.Context, sc *godog.Scenario, err error) (context.Context, error) {

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -15,11 +14,6 @@ import (
 const (
 	OutputResult   = "result"
 	OutputExitCode = "exitcode"
-)
-
-var (
-	// https://goreleaser.com/cookbooks/using-main.version/
-	version string
 )
 
 // This is the entrypoint for the Github Action
@@ -41,21 +35,13 @@ func main() {
 	delimiter := uuid.Must(uuid.NewV4()).String()
 	fmt.Fprintf(output, "%s<<%s\n", OutputResult, delimiter)
 
-	cmd := cli.NewRootCmd(version)
-	cmd.SetOut(out)
-	cmd.SetArgs(args)
+	rootCmd := cli.NewRootCmd()
+	rootCmd.SetOut(out)
+	rootCmd.SetArgs(args)
 
-	err = cmd.ExecuteContext(context.Background())
+	exitCode := cli.Execute(rootCmd)
+
 	fmt.Fprintf(output, "%s\n", delimiter)
-
-	exitCode, isExitCodeSet := cmd.Context().Value(cli.ExitCodeContextKey{}).(int)
-	if !isExitCodeSet {
-		if err == nil {
-			exitCode = 0
-		} else {
-			exitCode = 1
-		}
-	}
 	fmt.Fprintf(output, "%s=%d\n", OutputExitCode, exitCode)
 
 	// Write buffer to the file

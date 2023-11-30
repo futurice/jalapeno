@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -8,9 +9,28 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var (
+	// https://goreleaser.com/cookbooks/using-main.version/
+	version string
+)
+
 type ExitCodeContextKey struct{}
 
-func NewRootCmd(version string) *cobra.Command {
+func Execute(cmd *cobra.Command) int {
+	err := cmd.ExecuteContext(context.Background())
+	exitCode, isExitCodeSet := cmd.Context().Value(ExitCodeContextKey{}).(int)
+	if isExitCodeSet {
+		return exitCode
+	}
+
+	if err == nil {
+		return 0
+	} else {
+		return 1
+	}
+}
+
+func NewRootCmd() *cobra.Command {
 	// rootCmd represents the base command when called without any subcommands
 	var cmd = &cobra.Command{
 		Use:          "jalapeno",

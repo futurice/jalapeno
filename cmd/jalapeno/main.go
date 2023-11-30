@@ -1,30 +1,14 @@
 package main
 
 import (
-	"context"
 	"os"
 
 	"github.com/futurice/jalapeno/internal/cli"
 )
 
-var (
-	// https://goreleaser.com/cookbooks/using-main.version/
-	version string
-)
-
 // This is the entrypoint for the CLI
 func main() {
-	cmd := cli.NewRootCmd(version)
-	err := cmd.ExecuteContext(context.Background())
-
-	exitCode, isExitCodeSet := cmd.Context().Value(cli.ExitCodeContextKey{}).(int)
-	if !isExitCodeSet {
-		if err == nil {
-			exitCode = 0
-		} else {
-			exitCode = 1
-		}
-	}
-
+	rootCmd := cli.NewRootCmd()
+	exitCode := cli.Execute(rootCmd)
 	os.Exit(exitCode)
 }
