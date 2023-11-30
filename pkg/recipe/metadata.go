@@ -36,9 +36,9 @@ type Metadata struct {
 	// of the recipe.
 	IgnorePatterns []string `yaml:"ignorePatterns,omitempty"`
 
-	// File extension for which files in Sources should be templated. Files not matched by
-	// this extension will be copied as-is. If empty (the default) all files will be
-	// templated.
+	// File extension of files in "templates" directory which should be templated.
+	// Files not matched by this extension will be copied as-is.
+	// If left empty (the default), all files will be templated.
 	TemplateExtension string `yaml:"templateExtension,omitempty"`
 }
 
