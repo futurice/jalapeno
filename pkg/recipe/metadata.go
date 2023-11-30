@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/url"
 	"regexp"
+	"strings"
 
 	"golang.org/x/mod/semver"
 )
@@ -34,6 +35,11 @@ type Metadata struct {
 	// files will not be regenerated even if their templates change in future versions
 	// of the recipe.
 	IgnorePatterns []string `yaml:"ignorePatterns,omitempty"`
+
+	// File extension for which files in Sources should be templated. Files not matched by
+	// this extension will be copied as-is. If empty (the default) all files will be
+	// templated.
+	TemplateExtension string `yaml:"templateExtension,omitempty"`
 }
 
 func (m *Metadata) Validate() error {
@@ -52,6 +58,10 @@ func (m *Metadata) Validate() error {
 
 	if !semver.IsValid(m.Version) {
 		return fmt.Errorf("version \"%s\" is not a valid semver", m.Version)
+	}
+
+	if m.TemplateExtension != "" && !strings.HasPrefix(m.TemplateExtension, ".") {
+		return fmt.Errorf("template extension must start with a dot")
 	}
 
 	for _, sourceURL := range m.Sources {

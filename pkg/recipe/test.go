@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/futurice/jalapeno/pkg/engine"
 	"github.com/gofrs/uuid"
 )
 
@@ -43,7 +44,7 @@ func (t *Test) Validate() error {
 func (re *Recipe) RunTests() []error {
 	errors := make([]error, len(re.Tests))
 	for i, t := range re.Tests {
-		sauce, err := re.Execute(t.Values, TestID)
+		sauce, err := re.Execute(engine.Engine{}, t.Values, TestID)
 		if err != nil {
 			errors[i] = fmt.Errorf("%w", err)
 			continue

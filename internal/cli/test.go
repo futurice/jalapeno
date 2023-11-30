@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 
 	"github.com/futurice/jalapeno/internal/cli/option"
+	"github.com/futurice/jalapeno/pkg/engine"
 	"github.com/futurice/jalapeno/pkg/recipe"
 	"github.com/futurice/jalapeno/pkg/recipeutil"
 	"github.com/spf13/cobra"
@@ -83,7 +84,7 @@ func runTest(cmd *cobra.Command, opts testOptions) error {
 	if opts.UpdateSnapshots {
 		for i := range re.Tests {
 			test := &re.Tests[i]
-			sauce, err := re.Execute(test.Values, recipe.TestID)
+			sauce, err := re.Execute(engine.Engine{}, test.Values, recipe.TestID)
 			if err != nil {
 				return fmt.Errorf("failed to render templates: %w", err)
 			}

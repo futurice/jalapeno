@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/futurice/jalapeno/internal/cli/option"
+	"github.com/futurice/jalapeno/pkg/engine"
 	"github.com/futurice/jalapeno/pkg/oci"
 	"github.com/futurice/jalapeno/pkg/recipe"
 	"github.com/futurice/jalapeno/pkg/recipeutil"
@@ -191,7 +192,7 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 		values = recipeutil.MergeValues(values, promptedValues)
 	}
 
-	newSauce, err := re.Execute(values, oldSauce.ID)
+	newSauce, err := re.Execute(engine.Engine{}, values, oldSauce.ID)
 	if err != nil {
 		return err
 	}
