@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/url"
 	"regexp"
+	"strings"
 
 	"golang.org/x/mod/semver"
 )
@@ -59,7 +60,7 @@ func (m *Metadata) Validate() error {
 		return fmt.Errorf("version \"%s\" is not a valid semver", m.Version)
 	}
 
-	if m.TemplateExtension != "" && m.TemplateExtension[0] != '.' {
+	if m.TemplateExtension != "" && !strings.HasPrefix(m.TemplateExtension, ".") {
 		return fmt.Errorf("template extension must start with a dot")
 	}
 
