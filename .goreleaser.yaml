@@ -3,6 +3,9 @@ builds:
     dir: cmd/jalapeno
     env:
       - CGO_ENABLED=0
+    ldflags: &ldflags
+      - -s -w
+      - -X github.com/futurice/jalapeno/internal/cli.version={{.Version}}
     goos:
       - linux
       - windows
@@ -14,6 +17,7 @@ builds:
     dir: cmd/action
     env:
       - CGO_ENABLED=0
+    ldflags: *ldflags
     goos:
       - linux
     goarch:
@@ -35,8 +39,6 @@ kos:
     platforms:
       - linux/amd64
       - linux/arm64
-    ldflags: &ldflags
-      - -s -w -X github.com/futurice/jalapeno/internal/cli.version={{.Version}}
     labels: &labels
       org.opencontainers.image.authors: "Jalapeno contributors <github.com/futurice/jalapeno>"
       org.opencontainers.image.licenses: "Apache-2.0"
@@ -61,7 +63,6 @@ kos:
     preserve_import_paths: false
     platforms:
       - linux/amd64
-    ldflags: *ldflags
     labels: *labels
 
 archives:
