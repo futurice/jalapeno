@@ -9,6 +9,7 @@ import (
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/futurice/jalapeno/internal/cli/option"
+	"github.com/futurice/jalapeno/pkg/engine"
 	"github.com/futurice/jalapeno/pkg/oci"
 	"github.com/futurice/jalapeno/pkg/recipe"
 	"github.com/futurice/jalapeno/pkg/recipeutil"
@@ -156,7 +157,7 @@ func runExecute(cmd *cobra.Command, opts executeOptions) error {
 		values = recipeutil.MergeValues(values, promptedValues)
 	}
 
-	sauce, err := re.Execute(values, uuid.Must(uuid.NewV4()))
+	sauce, err := re.Execute(engine.Engine{}, values, uuid.Must(uuid.NewV4()))
 	if err != nil {
 		return err
 	}

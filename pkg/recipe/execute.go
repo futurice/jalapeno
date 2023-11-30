@@ -10,11 +10,7 @@ import (
 )
 
 // Execute executes the recipe and returns a sauce
-func (re *Recipe) Execute(values VariableValues, id uuid.UUID) (*Sauce, error) {
-	if re.engine == nil {
-		return nil, errors.New("render engine has not been set")
-	}
-
+func (re *Recipe) Execute(engine RenderEngine, values VariableValues, id uuid.UUID) (*Sauce, error) {
 	if id.IsNil() {
 		return nil, errors.New("ID was nil")
 	}
@@ -35,7 +31,7 @@ func (re *Recipe) Execute(values VariableValues, id uuid.UUID) (*Sauce, error) {
 		"Variables": values,
 	}
 
-	files, err := re.engine.Render(re.Templates, context)
+	files, err := engine.Render(re.Templates, context)
 	if err != nil {
 		return nil, err
 	}
