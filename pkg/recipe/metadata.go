@@ -59,6 +59,10 @@ func (m *Metadata) Validate() error {
 		return fmt.Errorf("version \"%s\" is not a valid semver", m.Version)
 	}
 
+	if m.TemplateExtension != "" && m.TemplateExtension[0] != '.' {
+		return fmt.Errorf("template extension must start with a dot")
+	}
+
 	for _, sourceURL := range m.Sources {
 		if _, err := url.ParseRequestURI(sourceURL); err != nil {
 			return fmt.Errorf("source url is invalid: %w", err)
