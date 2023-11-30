@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
+	"maps"
 	"strings"
 
 	"github.com/gofrs/uuid"
@@ -31,12 +32,27 @@ func (re *Recipe) Execute(engine RenderEngine, values VariableValues, id uuid.UU
 		"Variables": values,
 	}
 
-	files, err := engine.Render(re.Templates, context)
+	// Filter out templates we might not want to render
+	templates := make(map[string][]byte)
+	plainFiles := make(map[string][]byte)
+	for filename, content := range re.Templates {
+		if strings.HasSuffix(filename, re.TemplateExtension) {
+			templates[filename] = content
+		} else {
+			plainFiles[filename] = content
+		}
+	}
+
+	files, err := engine.Render(templates, context)
 	if err != nil {
 		return nil, err
 	}
 
-	sauce.Files = make(map[string]File, len(files))
+	// Add the plain files
+	maps.Copy(files, plainFiles)
+
+	sauce.Files = make(map[string]File, len(re.Templates))
+
 	idx := 0
 	for filename, content := range files {
 		// Skip empty files
@@ -48,6 +64,8 @@ func (re *Recipe) Execute(engine RenderEngine, values VariableValues, id uuid.UU
 		if strings.HasPrefix(filename, "_") {
 			continue
 		}
+
+		filename = strings.TrimSuffix(filename, re.TemplateExtension)
 
 		sum := sha256.Sum256(content)
 		sauce.Files[filename] = File{Content: content, Checksum: fmt.Sprintf("sha256:%x", sum)}
