@@ -4,50 +4,42 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/futurice/jalapeno/internal/cli"
 	re "github.com/futurice/jalapeno/pkg/recipe"
 )
 
-func iRunCheck(ctx context.Context, recipe string) (context.Context, error) {
+func iRunCheck(ctx context.Context) (context.Context, error) {
 	projectDir := ctx.Value(projectDirectoryPathCtxKey{}).(string)
 	ociRegistry := ctx.Value(ociRegistryCtxKey{}).(OCIRegistry)
-	optionalFlags, flagsAreSet := ctx.Value(cmdOptionalFlagsCtxKey{}).(map[string]string)
+	additionalFlags := ctx.Value(cmdAdditionalFlagsCtxKey{}).(map[string]string)
 
-	ctx, cmd := wrapCmdOutputs(ctx, cli.NewCheckCmd)
+	ctx, cmd := wrapCmdOutputs(ctx)
 
-	cmd.SetArgs([]string{recipe})
-
-	flags := cmd.Flags()
-	if err := flags.Set("dir", projectDir); err != nil {
-		return ctx, err
+	args := []string{
+		"check",
+		fmt.Sprintf("--dir=%s", projectDir),
 	}
+
 	if ociRegistry.TLSEnabled {
-		if err := flags.Set("insecure", "true"); err != nil {
-			return ctx, err
-		}
+		args = append(args, "--insecure=true")
 	} else {
-		if err := flags.Set("plain-http", "true"); err != nil {
-			return ctx, err
-		}
+		args = append(args, "--plain-http=true")
 	}
 
-	if flagsAreSet && optionalFlags != nil {
-		for name, value := range optionalFlags {
-			if err := flags.Set(name, value); err != nil {
-				return ctx, err
-			}
-		}
+	for name, value := range additionalFlags {
+		args = append(args, fmt.Sprintf("--%s=%s", name, value))
 	}
 
-	return ctx, cmd.Execute()
+	cmd.SetArgs(args)
+	_ = cmd.Execute()
+	return ctx, nil
 }
 
-func newRecipeVersionsWereFound(ctx context.Context) (context.Context, error) {
-	return ctx, expectGivenOutput(ctx, "New versions found")
-}
+func iRunCheckForRecipe(ctx context.Context, recipe string) (context.Context, error) {
+	additionalFlags := ctx.Value(cmdAdditionalFlagsCtxKey{}).(map[string]string)
+	additionalFlags["recipe"] = recipe
 
-func noNewRecipeVersionsWereFound(ctx context.Context) (context.Context, error) {
-	return ctx, expectGivenOutput(ctx, "No new versions found")
+	ctx = context.WithValue(ctx, cmdAdditionalFlagsCtxKey{}, additionalFlags)
+	return iRunCheck(ctx)
 }
 
 func sourceOfTheSauceIsTheLocalOCIRegistry(ctx context.Context, recipeName string) (context.Context, error) {

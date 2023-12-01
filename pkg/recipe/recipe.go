@@ -2,8 +2,6 @@ package recipe
 
 import (
 	"fmt"
-
-	"github.com/futurice/jalapeno/pkg/engine"
 )
 
 type Recipe struct {
@@ -11,7 +9,6 @@ type Recipe struct {
 	Variables []Variable        `yaml:"vars,omitempty"`
 	Templates map[string][]byte `yaml:"-"`
 	Tests     []Test            `yaml:"-"`
-	engine    RenderEngine
 }
 
 type RenderEngine interface {
@@ -23,7 +20,6 @@ func NewRecipe() *Recipe {
 		Metadata: Metadata{
 			APIVersion: "v1",
 		},
-		engine: engine.Engine{},
 	}
 }
 
@@ -50,8 +46,4 @@ func (re *Recipe) Validate() error {
 	}
 
 	return nil
-}
-
-func (re *Recipe) SetEngine(e RenderEngine) {
-	re.engine = e
 }

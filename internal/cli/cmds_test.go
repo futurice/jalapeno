@@ -27,6 +27,7 @@ import (
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 
+	"github.com/futurice/jalapeno/internal/cli"
 	re "github.com/futurice/jalapeno/pkg/recipe"
 )
 
@@ -39,7 +40,7 @@ type (
 	ociRegistryCtxKey               struct{}
 	cmdStdOutCtxKey                 struct{}
 	cmdStdErrCtxKey                 struct{}
-	cmdOptionalFlagsCtxKey          struct{}
+	cmdAdditionalFlagsCtxKey        struct{}
 	dockerResourcesCtxKey           struct{}
 )
 
@@ -79,10 +80,10 @@ func TestFeatures(t *testing.T) {
 			s.Step(`^CLI produced an output "([^"]*)"$`, expectGivenOutput)
 			s.Step(`^CLI produced an error "([^"]*)"$`, expectGivenError)
 			s.Step(`^I change recipe "([^"]*)" to version "([^"]*)"$`, iChangeRecipeToVersion)
-			s.Step(`^I check new versions for recipe "([^"]*)"$`, iRunCheck)
-			s.Step(`^newer recipe versions were found`, newRecipeVersionsWereFound)
-			s.Step(`^no newer recipe versions were found`, noNewRecipeVersionsWereFound)
-			s.Step(`^I upgrade sauce "([^"]*)"$`, iRunUpgrade)
+			s.Step(`^I check new versions$`, iRunCheck)
+			s.Step(`^I check new versions for recipe "([^"]*)"$`, iRunCheckForRecipe)
+			s.Step(`^I upgrade recipe "([^"]*)"$`, iRunUpgrade)
+			s.Step(`^I upgrade recipe from the local OCI repository "([^"]*)"$`, iRunUpgradeFromRemoteRecipe)
 			s.Step(`^I create a recipe with name "([^"]*)"$`, iRunCreate)
 			s.Step(`^recipe "([^"]*)" ignores pattern "([^"]*)"$`, recipeIgnoresPattern)
 			s.Step(`^the source of the sauce with recipe "([^"]*)" is in the local OCI registry$`, sourceOfTheSauceIsTheLocalOCIRegistry)
@@ -95,16 +96,21 @@ func TestFeatures(t *testing.T) {
 			s.Step(`^a local OCI registry with authentication$`, aLocalOCIRegistryWithAuth)
 			s.Step(`^registry credentials are not provided by the command$`, credentialsAreNotProvidedByTheCommand)
 			s.Step(`^registry credentials are provided by config file$`, generateDockerConfigFile)
-			s.Step(`^registry credentials are provided by default config file$`, generateDockerConfigFileAndSetDefaultConfig)
 			s.Step(`^I push the recipe "([^"]*)" to the local OCI repository$`, iRunPush)
 			s.Step(`^the recipe "([^"]*)" is pushed to the local OCI repository "([^"]*)"$`, iRunPush)
 			s.Step(`^I pull the recipe "([^"]*)" from the local OCI repository "([^"]*)"$`, iPullRecipe)
-			s.Step(`^push of the recipe was successful$`, pushOfTheRecipeWasSuccessful)
-			s.Step(`^pull of the recipe was successful$`, pullOfTheRecipeWasSuccessful)
 			s.Step(`^the recipes directory should contain recipe "([^"]*)"$`, theRecipesDirectoryShouldContainRecipe)
-			s.Step(`^I eject$`, iRunEject)
+			s.Step(`^I eject Jalapeno from the project$`, iRunEject)
 			s.Step(`^there should not be a sauce directory in the project directory$`, thereShouldNotBeASauceDirectoryInTheProjectDirectory)
 			s.Step(`I check why the file "([^"]*)" is created$`, iRunWhy)
+			s.Step(`I validate recipe "([^"]*)"$`, iRunValidate)
+			s.Before(func(ctx context.Context, sc *godog.Scenario) (context.Context, error) {
+				// Initialize additional flags to empty map before each step
+				return context.WithValue(
+					ctx,
+					cmdAdditionalFlagsCtxKey{},
+					make(map[string]string)), nil
+			})
 			s.After(cleanDockerResources)
 			s.After(cleanTempDirs)
 		},
@@ -125,34 +131,35 @@ func TestFeatures(t *testing.T) {
  * UTILITIES
  */
 
-func wrapCmdOutputs(ctx context.Context, cmdFactory func() *cobra.Command) (context.Context, *cobra.Command) {
-	cmd := cmdFactory()
+func wrapCmdOutputs(ctx context.Context) (context.Context, *cobra.Command) {
+	rootCmd := cli.NewRootCmd()
 	cmdStdOut, cmdStdErr := new(bytes.Buffer), new(bytes.Buffer)
-	cmd.SetOut(cmdStdOut)
-	cmd.SetErr(cmdStdErr)
+
+	rootCmd.SetOut(cmdStdOut)
+	rootCmd.SetErr(cmdStdErr)
+	rootCmd.SetContext(context.Background())
 
 	ctx = context.WithValue(ctx, cmdStdOutCtxKey{}, cmdStdOut)
 	ctx = context.WithValue(ctx, cmdStdErrCtxKey{}, cmdStdErr)
 
-	return ctx, cmd
+	return ctx, rootCmd
 }
 
 func cleanTempDirs(ctx context.Context, sc *godog.Scenario, err error) (context.Context, error) {
-	if dir := ctx.Value(projectDirectoryPathCtxKey{}); dir != nil {
-		os.RemoveAll(dir.(string))
+	directoryCtxKeys := []interface{}{
+		projectDirectoryPathCtxKey{},
+		recipesDirectoryPathCtxKey{},
+		certDirectoryPathCtxKey{},
+		htpasswdDirectoryPathCtxKey{},
+		dockerConfigDirectoryPathCtxKey{},
 	}
-	if dir := ctx.Value(recipesDirectoryPathCtxKey{}); dir != nil {
-		os.RemoveAll(dir.(string))
+
+	for _, key := range directoryCtxKeys {
+		if dir := ctx.Value(key); dir != nil {
+			os.RemoveAll(dir.(string))
+		}
 	}
-	if dir := ctx.Value(certDirectoryPathCtxKey{}); dir != nil {
-		os.RemoveAll(dir.(string))
-	}
-	if dir := ctx.Value(htpasswdDirectoryPathCtxKey{}); dir != nil {
-		os.RemoveAll(dir.(string))
-	}
-	if dir := ctx.Value(dockerConfigDirectoryPathCtxKey{}); dir != nil {
-		os.RemoveAll(dir.(string))
-	}
+
 	return ctx, err
 }
 
@@ -561,27 +568,19 @@ func generateDockerConfigFile(ctx context.Context) (context.Context, error) {
 		return ctx, err
 	}
 
-	contents := fmt.Sprintf(`{"auths":{"https://%s/v2/":{"auth":"Zm9vOmJhcg=="}}}`, registry.Resource.GetHostPort("5000/tcp"))
+	contents := fmt.Sprintf(`{
+  "auths": {
+    "https://%s/v2/": {
+      "auth": "Zm9vOmJhcg=="
+    }
+  }
+}`, registry.Resource.GetHostPort("5000/tcp"))
 	err = os.WriteFile(filepath.Join(dir, DOCKER_CONFIG_FILENAME), []byte(contents), 0666)
 	if err != nil {
 		return ctx, err
 	}
 
 	return context.WithValue(ctx, dockerConfigDirectoryPathCtxKey{}, dir), nil
-}
-
-func generateDockerConfigFileAndSetDefaultConfig(ctx context.Context) (context.Context, error) {
-	ctx, err := generateDockerConfigFile(ctx)
-	if err != nil {
-		return ctx, err
-	}
-
-	err = os.Setenv("DOCKER_CONFIG", ctx.Value(dockerConfigDirectoryPathCtxKey{}).(string))
-	if err != nil {
-		return ctx, err
-	}
-
-	return ctx, nil
 }
 
 func theFileExistInTheRecipe(ctx context.Context, file, recipe string) (context.Context, error) {

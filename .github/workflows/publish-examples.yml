@@ -1,0 +1,54 @@
+name: Publish recipe examples
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/publish-examples.yml"
+      - "examples/**"
+
+jobs:
+  publish:
+    name: Publish example recipes
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-go@v3
+        with:
+          go-version: "1.21"
+
+      - uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-golang-${{ hashFiles('go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-golang-
+
+      - uses: arduino/setup-task@v1
+        with:
+          version: 3.x
+          repo-token: ${{ secrets.GITHUB_TOKEN }} # https://github.com/arduino/setup-task#repo-token
+
+      - name: Push example recipes to GitHub Packages
+        run: |
+          for dir in examples/*/ # list directories in the form "examples/dirname/"
+          do
+              dir=${dir%*/} # remove the trailing "/"
+              task run -- test ${dir}
+              task run -- push ${dir} oci://ghcr.io/futurice/jalapeno/${dir}
+          done

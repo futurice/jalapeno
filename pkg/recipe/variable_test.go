@@ -6,12 +6,14 @@ func TestVariableRegExpValidation(t *testing.T) {
 	variable := &Variable{
 		Name:        "foo",
 		Description: "foo description",
-		RegExp: VariableRegExpValidator{
-			Pattern: "^[a-zA-Z0-9_.()-]{0,89}[a-zA-Z0-9_()-]$",
+		Validators: []VariableValidator{
+			{
+				Pattern: "^[a-zA-Z0-9_.()-]{0,89}[a-zA-Z0-9_()-]$",
+			},
 		},
 	}
 
-	validatorFunc := variable.RegExp.CreateValidatorFunc()
+	validatorFunc := variable.Validators[0].CreateValidatorFunc()
 
 	err := validatorFunc("")
 	if err == nil {

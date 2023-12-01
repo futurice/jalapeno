@@ -2,35 +2,34 @@ package cli_test
 
 import (
 	"context"
+	"fmt"
 	"path/filepath"
-
-	"github.com/futurice/jalapeno/internal/cli"
 )
 
 func iRunTest(ctx context.Context, recipe string) (context.Context, error) {
 	recipesDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
-	optionalFlags, flagsAreSet := ctx.Value(cmdOptionalFlagsCtxKey{}).(map[string]string)
+	additionalFlags := ctx.Value(cmdAdditionalFlagsCtxKey{}).(map[string]string)
 
-	ctx, cmd := wrapCmdOutputs(ctx, cli.NewTestCmd)
+	ctx, cmd := wrapCmdOutputs(ctx)
 
-	cmd.SetArgs([]string{filepath.Join(recipesDir, recipe)})
-
-	flags := cmd.Flags()
-	if flagsAreSet && optionalFlags != nil {
-		for name, value := range optionalFlags {
-			if err := flags.Set(name, value); err != nil {
-				return ctx, err
-			}
-		}
+	args := []string{
+		"test",
+		filepath.Join(recipesDir, recipe),
 	}
 
-	return ctx, cmd.Execute()
+	for name, value := range additionalFlags {
+		args = append(args, fmt.Sprintf("--%s=%s", name, value))
+	}
+
+	cmd.SetArgs(args)
+	_ = cmd.Execute()
+	return ctx, nil
 }
 
 func iCreateRecipeTestUsingCLI(ctx context.Context, recipe string) (context.Context, error) {
 	ctx = context.WithValue(
 		ctx,
-		cmdOptionalFlagsCtxKey{},
+		cmdAdditionalFlagsCtxKey{},
 		map[string]string{"create": "true"},
 	)
 

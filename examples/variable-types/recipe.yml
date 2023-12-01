@@ -12,7 +12,7 @@ vars:
 
   - name: BOOLEAN_VAR
     description: |
-      Boolean variable can have value either `true` or `false`. 
+      Boolean variable can have value either `true` or `false`.
 
       Defined by: `confirm: true`.
     confirm: true
@@ -32,7 +32,7 @@ vars:
       {{ .Variables.TABLE_VAR[0].COLUMN_1 }}
 
       You can pre-set the table variable by using CSV with having '\n' between the rows, for example:
-      `jalapeno execute examples/variables `--set 'TABLE_VAR=a;b;c\nx;y;z'`
+      `jalapeno execute examples/variables `--set 'TABLE_VAR=a,b,c\nx,y,z'`
 
       Defined by: non-empty `columns` property.
     columns: [COLUMN_1, COLUMN_2, COLUMN_3]
@@ -55,15 +55,29 @@ vars:
 
   - name: CONDITIONAL_VAR
     description: |
-      Conditional variable which depends on one value in the table.
-      You can read the syntax documentation here: https://expr.medv.io/docs/Language-Definition
+      Conditional variables uses `if` property to check if this variable should be prompted or not.
+      You can access values of the other variables inside the `if` expression, for example `if: STRING_VAR == "foo"`
+      You can read the expression syntax documentation here: https://expr.medv.io/docs/Language-Definition
+
+      In this case, we check has the user selected the first option in the SELECT_VAR variable.
+
+      Defined by: `if: <EXPRESSION>`.
     if: SELECT_VAR == "option_1"
     # To access cells in table variables:
     # if: TABLE_VAR[0].COLUMN_1 == "foo"
 
   - name: VAR_WITH_VALIDATOR
     description: |
-      Regular expression validators can be set for a variable by defining `regexp` property
-    regexp:
-      pattern: ".*"
-      help: "If the check doesn't pass, this help message will be shown"
+      Regular expression validators can be set for a variable by defining `validators` property
+    validators:
+      - pattern: ".+"
+        help: "If the value is empty, this help message will be shown"
+
+  - name: TABLE_VAR_WITH_VALIDATOR
+    description: |
+      Regular expression validators can be set for a table variable by defining `validators` and `column` property
+    columns: [NOT_EMPTY_COL, CAN_BE_EMPTY_COL]
+    validators:
+      - pattern: ".+"
+        column: NOT_EMPTY_COL
+        help: "If the cell is empty, this help message will be shown"

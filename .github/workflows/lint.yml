@@ -1,10 +1,9 @@
 name: Lint
 
 on:
+  workflow_call:
   pull_request:
   push:
-    tags:
-      - v*
     branches:
       - main
 

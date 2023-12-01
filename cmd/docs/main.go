@@ -7,6 +7,7 @@ import (
 	"os"
 	"text/template"
 
+	"github.com/Masterminds/sprig"
 	"github.com/futurice/jalapeno/internal/cli"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -22,6 +23,7 @@ type Flag struct {
 
 type CommandInfo struct {
 	Name        string
+	Aliases     []string
 	Description string
 	Usage       string
 	Example     string
@@ -31,6 +33,7 @@ type CommandInfo struct {
 //go:embed templates
 var tmpls embed.FS
 
+// This is the entrypoint for generating API reference documentation
 func main() {
 	args := os.Args[1:]
 	if len(args) != 1 {
@@ -38,16 +41,19 @@ func main() {
 		return
 	}
 
-	rootCmd, err := cli.NewRootCmd()
-	checkErr(err)
+	rootCmd := cli.NewRootCmd()
+	subCmds := rootCmd.Commands()
 
-	cmds := rootCmd.Commands()
-	infos := mapCommandInfos(cmds)
-
-	tmpl := template.Must(template.New("doc").ParseFS(tmpls, "templates/*"))
+	tmpl := template.Must(template.
+		New("doc").
+		Funcs(sprig.FuncMap()).
+		ParseFS(tmpls, "templates/*"),
+	)
 
 	var b bytes.Buffer
-	err = tmpl.ExecuteTemplate(&b, "main.tmpl", infos)
+	err := tmpl.ExecuteTemplate(&b, "main.tmpl", map[string]interface{}{
+		"Commands": mapCommandInfos(subCmds),
+	})
 	checkErr(err)
 
 	err = os.WriteFile(args[0], b.Bytes(), 0644)
@@ -66,6 +72,7 @@ func mapCommandInfos(cmds []*cobra.Command) []CommandInfo {
 	for i, c := range cmds {
 		info := CommandInfo{
 			Name:        c.Name(),
+			Aliases:     c.Aliases,
 			Description: c.Long,
 			Usage:       c.Use,
 			Example:     c.Example,
@@ -77,7 +84,7 @@ func mapCommandInfos(cmds []*cobra.Command) []CommandInfo {
 				Name:        f.Name,
 				Shorthand:   f.Shorthand,
 				Default:     f.DefValue,
-				Type:        f.Value.Type(),
+				Type:        valueTypeToString(f.Value),
 				Description: f.Usage,
 			})
 		})
@@ -86,4 +93,13 @@ func mapCommandInfos(cmds []*cobra.Command) []CommandInfo {
 	}
 
 	return infos
+}
+
+func valueTypeToString(v pflag.Value) string {
+	switch t := v.Type(); t {
+	case "stringArray":
+		return "[]string"
+	default:
+		return t
+	}
 }

@@ -5,11 +5,12 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/futurice/jalapeno/pkg/engine"
 	"github.com/gofrs/uuid"
 )
 
 type Test struct {
-	// Name of the test case. Defined by the test filename
+	// Name of the test case. Defined by directory name of the test case
 	Name string `yaml:"-"`
 
 	// Values to use to render the recipe templates
@@ -43,7 +44,7 @@ func (t *Test) Validate() error {
 func (re *Recipe) RunTests() []error {
 	errors := make([]error, len(re.Tests))
 	for i, t := range re.Tests {
-		sauce, err := re.Execute(t.Values, TestID)
+		sauce, err := re.Execute(engine.Engine{}, t.Values, TestID)
 		if err != nil {
 			errors[i] = fmt.Errorf("%w", err)
 			continue

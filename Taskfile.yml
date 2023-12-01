@@ -9,28 +9,26 @@ vars:
   ENTRYPOINT: ./cmd/jalapeno # Path to main package
 
 tasks:
-  mod:
-    desc: Downloads and tidy Go modules
-    cmds:
-      - go mod download
-      - go mod tidy
   lint:
     desc: Runs golangci-lint
     sources:
       - "./**/*.go"
     cmds:
       - golangci-lint run
+
   run:
     cmds:
       - go run {{.ENTRYPOINT}} {{.CLI_ARGS}}
+
   build:
     desc: Build the CLI
     sources:
       - "./**/*.go"
     generates:
-      - "bin/jalapeno"
+      - "bin/jalapeno{{exeExt}}"
     cmds:
-      - go build -o bin/jalapeno {{.ENTRYPOINT}}
+      - go build -o bin/jalapeno{{exeExt}} {{.ENTRYPOINT}}
+
   debug:
     desc: Starts the CLI in debug mode. After running the task, you can use for example VSCode to connect to the session
     cmds:
@@ -40,6 +38,7 @@ tasks:
         --listen 127.0.0.1:52800
         --api-version 2
         -- {{.CLI_ARGS}}
+
   test:
     desc: Run the test suite
     cmds:

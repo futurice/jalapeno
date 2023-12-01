@@ -2,38 +2,54 @@ package cli
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/futurice/jalapeno/internal/cli/option"
-	"github.com/futurice/jalapeno/pkg/oci"
 	re "github.com/futurice/jalapeno/pkg/recipe"
+	"github.com/futurice/jalapeno/pkg/recipeutil"
 	"github.com/spf13/cobra"
-	"golang.org/x/mod/semver"
 )
 
 type checkOptions struct {
-	RecipeName string
+	RecipeName          string
+	UseDetailedExitCode bool
 	option.Common
 	option.WorkingDirectory
 	option.OCIRepository
 }
 
+const (
+	ExitCodeOK               = 0
+	ExitCodeError            = 1
+	ExitCodeUpdatesAvailable = 2
+)
+
 func NewCheckCmd() *cobra.Command {
 	var opts checkOptions
 	var cmd = &cobra.Command{
-		Use:   "check RECIPE_NAME",
-		Short: "Check if there are new versions for a recipe",
-		Long:  "TODO",
-		Args:  cobra.ExactArgs(1),
+		Use:   "check",
+		Short: "Check if there are new versions for recipes",
+		Long:  "Check if there are newer versions available for recipes used in the project. By default it checks updates for all recipes, but it is possible to check updates for a specific recipe by using the `--recipe` flag.",
+		Args:  cobra.NoArgs,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			opts.RecipeName = args[0]
 			return option.Parse(&opts)
 		},
-		Run: func(cmd *cobra.Command, args []string) {
-			runCheck(cmd, opts)
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return runCheck(cmd, opts)
 		},
+		PostRun: func(cmd *cobra.Command, args []string) {
+			cmd.Root().SetContext(cmd.Context())
+		},
+		Example: `# Check updates for all recipes in the project
+jalapeno check
+
+# Check updates for a single recipe
+jalapeno check --recipe my-recipe`,
 	}
+
+	cmd.Flags().StringVar(&opts.RecipeName, "recipe", "", "Name of the recipe to check for new versions")
+	cmd.Flags().BoolVar(&opts.UseDetailedExitCode, "detailed-exitcode", false, fmt.Sprintf("Returns a detailed exit code when the command exits. When provided, this argument changes the exit codes and their meanings to provide more granular information about what the resulting plan contains: 0 = Succeeded with no updates available, 1 = Error, %d = Succeeded with updates available", ExitCodeUpdatesAvailable))
 
 	if err := option.ApplyFlags(&opts, cmd.Flags()); err != nil {
 		return nil
@@ -42,64 +58,62 @@ func NewCheckCmd() *cobra.Command {
 	return cmd
 }
 
-func runCheck(cmd *cobra.Command, opts checkOptions) {
-	sauce, err := re.LoadSauce(opts.Dir, opts.RecipeName)
+func runCheck(cmd *cobra.Command, opts checkOptions) error {
+	sauces, err := re.LoadSauces(opts.Dir)
 	if err != nil {
-		if errors.Is(err, re.ErrSauceNotFound) {
-			cmd.PrintErrf("Error: project %s does not contain sauce with recipe %s. Recipe name used in the project should match the recipe which is used for upgrading", opts.Dir, opts.RecipeName)
-		} else {
-			cmd.PrintErrf("Error: %s", err)
-		}
-		return
+		return fmt.Errorf("can not load sauces: %w", err)
 	}
 
-	if sauce.CheckFrom == "" {
-		cmd.PrintErr("Error: source of the sauce is undefined, can not check for new versions")
-		return
+	if len(sauces) == 0 {
+		return fmt.Errorf("working directory '%s' does not contain any sauces", opts.Dir)
 	}
 
-	ctx := context.Background()
-
-	repo, err := oci.NewRepository(oci.Repository{
-		Reference: strings.TrimPrefix(sauce.CheckFrom, "oci://"),
-		PlainHTTP: opts.PlainHTTP,
-		Credentials: oci.Credentials{
-			Username:      opts.Username,
-			Password:      opts.Password,
-			DockerConfigs: opts.Configs,
-		},
-		TLS: oci.TLSConfig{
-			CACertFilePath: opts.CACertFilePath,
-			Insecure:       opts.Insecure,
-		},
-	})
-
-	if err != nil {
-		cmd.PrintErrf("Error: %s", err)
-		return
-	}
-
-	newTags := []string{}
-	err = repo.Tags(ctx, "", func(tags []string) error {
-		for _, tag := range tags {
-			if semver.IsValid(tag) && semver.Compare(tag, sauce.Recipe.Version) > 0 {
-				newTags = append(newTags, tag)
+	// Check if we are looking updates for a specific recipe
+	if opts.RecipeName != "" {
+		filtered := make([]*re.Sauce, 0, len(sauces))
+		for _, sauce := range sauces {
+			if sauce.Recipe.Name == opts.RecipeName {
+				filtered = append(filtered, sauce)
 			}
 		}
-		semver.Sort(newTags)
-		return nil
-	})
 
-	if err != nil {
-		cmd.PrintErrf("Error: %s", err)
-		return
+		if len(filtered) == 0 {
+			return fmt.Errorf("project %s does not contain a sauce with recipe %s. Recipe name used in the project should match the recipe which is used for upgrading", opts.Dir, opts.RecipeName)
+		}
+
+		sauces = filtered
 	}
 
-	if len(newTags) > 0 {
-		cmd.Println("New versions found:")
-		cmd.Println(newTags)
-	} else {
-		// TODO: Use different exit code
-		cmd.Println("No new versions found")
+	cmd.Println("Checking for new versions...")
+
+	updatesAvailable, errorsFound := false, false
+	for _, sauce := range sauces {
+		versions, err := recipeutil.CheckForUpdates(sauce, opts.OCIRepository)
+		if err != nil {
+			errorsFound = true
+			cmd.Printf("%s: can not check for updates: %s\n", sauce.Recipe.Name, err)
+
+		} else if len(versions) > 0 {
+			updatesAvailable = true
+			cmd.Printf("%s: new versions found: %s\n", sauce.Recipe.Name, strings.Join(versions, ", "))
+
+		} else {
+			cmd.Printf("%s: no new versions found\n", sauce.Recipe.Name)
+		}
 	}
+
+	var exitCode int
+	switch {
+	case errorsFound:
+		exitCode = ExitCodeError
+	case updatesAvailable && opts.UseDetailedExitCode:
+		exitCode = ExitCodeUpdatesAvailable
+	default:
+		exitCode = ExitCodeOK
+	}
+
+	ctx := context.WithValue(cmd.Context(), ExitCodeContextKey{}, exitCode)
+	cmd.SetContext(ctx)
+
+	return nil
 }

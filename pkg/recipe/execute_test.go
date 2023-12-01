@@ -42,9 +42,7 @@ func TestRecipeRenderChecksums(t *testing.T) {
 		"README.md": []byte("{{ .Variables.foo }}"),
 	}
 
-	recipe.SetEngine(TestRenderEngine{})
-
-	sauce, err := recipe.Execute(VariableValues{"foo": "bar"}, uuid.Must(uuid.NewV4()))
+	sauce, err := recipe.Execute(TestRenderEngine{}, VariableValues{"foo": "bar"}, uuid.Must(uuid.NewV4()))
 	if err != nil {
 		t.Fatalf("Failed to render recipe: %s", err)
 	}
@@ -61,9 +59,7 @@ func TestRecipeRenderID(t *testing.T) {
 	recipe.Metadata.Name = "test"
 	recipe.Metadata.Version = "v1.0.0"
 
-	recipe.SetEngine(TestRenderEngine{})
-
-	sauce, err := recipe.Execute(nil, uuid.Must(uuid.NewV4()))
+	sauce, err := recipe.Execute(TestRenderEngine{}, nil, uuid.Must(uuid.NewV4()))
 	if err != nil {
 		t.Fatalf("Failed to render recipe: %s", err)
 	}
@@ -78,14 +74,12 @@ func TestRecipeRenderIDReuse(t *testing.T) {
 	recipe.Metadata.Name = "test"
 	recipe.Metadata.Version = "v1.0.0"
 
-	recipe.SetEngine(TestRenderEngine{})
-
-	sauce1, err := recipe.Execute(nil, TestID)
+	sauce1, err := recipe.Execute(TestRenderEngine{}, nil, TestID)
 	if err != nil {
 		t.Fatalf("Failed to render first recipe: %s", err)
 	}
 
-	sauce2, err := recipe.Execute(nil, TestID)
+	sauce2, err := recipe.Execute(TestRenderEngine{}, nil, TestID)
 	if err != nil {
 		t.Fatalf("Failed to render second recipe: %s", err)
 	}
@@ -110,9 +104,7 @@ func TestRecipeRenderEmptyFiles(t *testing.T) {
 		"file-with-empty-variable":             []byte(" {{ .Variables.foo }} "),
 	}
 
-	recipe.SetEngine(TestRenderEngine{})
-
-	sauce, err := recipe.Execute(VariableValues{"foo": ""}, uuid.Must(uuid.NewV4()))
+	sauce, err := recipe.Execute(TestRenderEngine{}, VariableValues{"foo": ""}, uuid.Must(uuid.NewV4()))
 	if err != nil {
 		t.Fatalf("Failed to render recipe: %s", err)
 	}
@@ -126,5 +118,34 @@ func TestRecipeRenderEmptyFiles(t *testing.T) {
 			i++
 		}
 		t.Fatalf("Rendered templates contains empty files, which exist on the output. Failing files: %s", failingFiles)
+	}
+}
+
+func TestRecipeRenderWithTemplateExtension(t *testing.T) {
+	recipe := NewRecipe()
+	recipe.Metadata.Name = "test"
+	recipe.Metadata.Version = "v1.0.0"
+	recipe.Variables = []Variable{{Name: "foo"}}
+	recipe.Templates = map[string][]byte{
+		"subdirectory/file.md.tmpl": []byte("{{ .Variables.foo }}"),
+		"file":                      []byte("{{ .Variables.foo }}"),
+	}
+	recipe.Metadata.TemplateExtension = ".tmpl"
+
+	sauce, err := recipe.Execute(TestRenderEngine{}, VariableValues{"foo": "bar"}, uuid.Must(uuid.NewV4()))
+	if err != nil {
+		t.Fatalf("Failed to render recipe: %s", err)
+	}
+
+	if len(sauce.Files) != 2 {
+		t.Fatalf("Expected 2 files, got %d", len(sauce.Files))
+	}
+
+	if string(sauce.Files["subdirectory/file.md"].Content) != "bar" {
+		t.Fatalf("Expected file content to be \"bar\", got \"%s\"", sauce.Files["subdirectory/file.md"].Content)
+	}
+
+	if string(sauce.Files["file"].Content) != "{{ .Variables.foo }}" {
+		t.Fatalf("Expected file content to be \"{{ .Variables.foo }}\", got \"%s\"", sauce.Files["file"].Content)
 	}
 }

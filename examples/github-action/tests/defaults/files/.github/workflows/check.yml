@@ -1,0 +1,26 @@
+name: Check for Jalapeno recipe updates
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 12 * * 1"
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    env:
+      DOCKER_CONFIG: $HOME/.docker
+    steps:
+      - uses: actions/checkout@v3
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: futurice/jalapeno@main
+        id: jalapeno
+        with:
+          cmd: check
+      - if: steps.jalapeno.outputs.exit-code == '2'
+        run: echo "::notice::Jalapeno updates available"

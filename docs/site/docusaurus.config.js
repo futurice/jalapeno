@@ -1,8 +1,10 @@
 // @ts-check
 // Note: type annotations allow type checking and IDEs autocompletion
 
-const lightCodeTheme = require("prism-react-renderer/themes/github");
-const darkCodeTheme = require("prism-react-renderer/themes/dracula");
+const { themes } = require("prism-react-renderer");
+const lightTheme = themes.github;
+const darkTheme = themes.dracula;
+
 const tabBlocksRemarkPlugin = require("docusaurus-remark-plugin-tab-blocks");
 
 /** @type {import('@docusaurus/types').Config} */
@@ -41,10 +43,8 @@ const config = {
         docs: {
           routeBasePath: "/",
           sidebarPath: require.resolve("./sidebars.js"),
-          editUrl: "https://github.com/futurice/jalapeno/tree/main/docs/",
-          remarkPlugins: [
-            tabBlocksRemarkPlugin
-          ],
+          editUrl: "https://github.com/futurice/jalapeno/tree/main/docs/site",
+          remarkPlugins: [tabBlocksRemarkPlugin],
         },
         blog: false,
         theme: {
@@ -66,7 +66,7 @@ const config = {
         items: [
           {
             type: "doc",
-            docId: "intro",
+            docId: "installation",
             position: "left",
             label: "Installation",
           },
@@ -75,6 +75,12 @@ const config = {
             docId: "usage",
             position: "left",
             label: "Usage",
+          },
+          {
+            type: "doc",
+            docId: "api",
+            position: "left",
+            label: "API",
           },
           {
             href: "https://github.com/futurice/jalapeno",
@@ -97,6 +103,10 @@ const config = {
                 label: "Usage",
                 to: "/usage",
               },
+              {
+                label: "API",
+                to: "/api",
+              },
             ],
           },
           {
@@ -111,9 +121,9 @@ const config = {
         ],
       },
       prism: {
-        theme: lightCodeTheme,
-        darkTheme: darkCodeTheme,
-        additionalLanguages: ['batch', 'powershell'],
+        theme: lightTheme,
+        darkTheme: darkTheme,
+        additionalLanguages: ["bash", "powershell"],
       },
     }),
 };

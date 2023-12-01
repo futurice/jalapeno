@@ -1,9 +1,12 @@
 package cli
 
 import (
+	"errors"
+	"fmt"
 	"path/filepath"
 
 	"github.com/futurice/jalapeno/internal/cli/option"
+	"github.com/futurice/jalapeno/pkg/engine"
 	"github.com/futurice/jalapeno/pkg/recipe"
 	"github.com/futurice/jalapeno/pkg/recipeutil"
 	"github.com/spf13/cobra"
@@ -21,15 +24,23 @@ func NewTestCmd() *cobra.Command {
 	var cmd = &cobra.Command{
 		Use:   "test RECIPE_PATH",
 		Short: "Run tests for the recipe",
-		Long:  "TODO",
+		Long:  "Run tests for the recipe.",
 		Args:  cobra.ExactArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			opts.RecipePath = args[0]
 			return option.Parse(&opts)
 		},
-		Run: func(cmd *cobra.Command, args []string) {
-			runTest(cmd, opts)
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return runTest(cmd, opts)
 		},
+		Example: `# Run recipe tests
+jalapeno test path/to/recipe
+
+# Bootstrap a new test case
+jalapeno test path/to/recipe --create
+
+# Update test file snapshots with the current outputs
+jalapeno test path/to/recipe --update-snapshots`,
 	}
 
 	cmd.Flags().BoolVarP(&opts.UpdateSnapshots, "update-snapshots", "u", false, "Update test file snapshots")
@@ -42,11 +53,10 @@ func NewTestCmd() *cobra.Command {
 	return cmd
 }
 
-func runTest(cmd *cobra.Command, opts testOptions) {
+func runTest(cmd *cobra.Command, opts testOptions) error {
 	re, err := recipe.LoadRecipe(opts.RecipePath)
 	if err != nil {
-		cmd.PrintErrf("Can't load the recipe: %v\n", err)
-		return
+		return fmt.Errorf("can not load the recipe: %w", err)
 	}
 
 	if opts.Create {
@@ -60,26 +70,24 @@ func runTest(cmd *cobra.Command, opts testOptions) {
 
 		err := re.Save(filepath.Dir(opts.RecipePath))
 		if err != nil {
-			cmd.PrintErrf("Error: failed to save recipe: %s", err)
-			return
+			return fmt.Errorf("failed to save recipe: %w", err)
 		}
 
 		cmd.Println("Test created")
-		return
+		return nil
 	}
 
 	if len(re.Tests) == 0 {
 		cmd.Println("No tests specified")
-		return
+		return nil
 	}
 
 	if opts.UpdateSnapshots {
 		for i := range re.Tests {
 			test := &re.Tests[i]
-			sauce, err := re.Execute(test.Values, recipe.TestID)
+			sauce, err := re.Execute(engine.Engine{}, test.Values, recipe.TestID)
 			if err != nil {
-				cmd.PrintErrf("Error: failed to render templates: %s", err)
-				return
+				return fmt.Errorf("failed to render templates: %w", err)
 			}
 
 			test.Files = make(map[string][]byte)
@@ -90,27 +98,37 @@ func runTest(cmd *cobra.Command, opts testOptions) {
 
 		err := re.Save(filepath.Dir(opts.RecipePath))
 		if err != nil {
-			cmd.PrintErrf("Error: failed to save recipe: %s", err)
-			return
+			return fmt.Errorf("failed to save recipe: %w", err)
 		}
 
 		// TODO: Show which tests were modified
 		cmd.Println("Recipe tests updated successfully")
-		return
+		return nil
 	}
 
+	cmd.Printf("Running tests for recipe \"%s\"...\n", re.Name)
 	errs := re.RunTests()
-	errFound := false
 	for i, err := range errs {
+		var symbol rune
 		if err == nil {
-			continue
+			symbol = '✅'
+		} else {
+			symbol = '❌'
 		}
-		cmd.PrintErrf("Test %s failed: %v\n", re.Tests[i].Name, err)
-		errFound = true
+
+		cmd.Printf("%c: %s\n", symbol, re.Tests[i].Name)
 	}
 
-	if !errFound {
-		// TODO: Show pass for each test
-		cmd.Println("Tests passed successfully")
+	formattedErrs := make([]error, 0, len(errs))
+	for i, err := range errs {
+		if err != nil {
+			formattedErrs = append(formattedErrs, fmt.Errorf("test %s failed: %v", re.Tests[i].Name, err))
+		}
 	}
+
+	if len(formattedErrs) > 0 {
+		return fmt.Errorf("recipe tests failed: %w", errors.Join(formattedErrs...))
+	}
+
+	return nil
 }

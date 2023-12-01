@@ -2,58 +2,48 @@ package cli_test
 
 import (
 	"context"
+	"fmt"
 	"path/filepath"
-
-	"github.com/futurice/jalapeno/internal/cli"
 )
 
 func iRunPush(ctx context.Context, recipeName string) (context.Context, error) {
 	recipesDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
 	ociRegistry := ctx.Value(ociRegistryCtxKey{}).(OCIRegistry)
 	configDir, configFileExists := ctx.Value(dockerConfigDirectoryPathCtxKey{}).(string)
-	optionalFlags, flagsAreSet := ctx.Value(cmdOptionalFlagsCtxKey{}).(map[string]string)
+	additionalFlags := ctx.Value(cmdAdditionalFlagsCtxKey{}).(map[string]string)
 
-	ctx, cmd := wrapCmdOutputs(ctx, cli.NewPushCmd)
+	ctx, cmd := wrapCmdOutputs(ctx)
 
-	cmd.SetArgs([]string{filepath.Join(recipesDir, recipeName), filepath.Join(ociRegistry.Resource.GetHostPort("5000/tcp"), recipeName)})
+	args := []string{
+		"push",
+		filepath.Join(recipesDir, recipeName),
+		filepath.Join(ociRegistry.Resource.GetHostPort("5000/tcp"), recipeName),
+	}
 
-	flags := cmd.Flags()
 	if ociRegistry.TLSEnabled {
-		if err := flags.Set("insecure", "true"); err != nil {
-			return ctx, err
-		}
+		args = append(args, "--insecure=true")
 	} else {
-		if err := flags.Set("plain-http", "true"); err != nil {
-			return ctx, err
-		}
+		args = append(args, "--plain-http=true")
 	}
 
 	if ociRegistry.AuthEnabled {
-		if err := flags.Set("username", "foo"); err != nil {
-			return ctx, err
-		}
-		if err := flags.Set("password", "bar"); err != nil {
-			return ctx, err
-		}
+		args = append(args,
+			"--username=foo",
+			"--password=bar",
+		)
 	}
 
 	if configFileExists {
-		if err := flags.Set("registry-config", filepath.Join(configDir, DOCKER_CONFIG_FILENAME)); err != nil {
-			return ctx, err
-		}
+		args = append(args,
+			fmt.Sprintf("--registry-config=%s", filepath.Join(configDir, DOCKER_CONFIG_FILENAME)),
+		)
 	}
 
-	if flagsAreSet && optionalFlags != nil {
-		for name, value := range optionalFlags {
-			if err := flags.Set(name, value); err != nil {
-				return ctx, err
-			}
-		}
+	for name, value := range additionalFlags {
+		args = append(args, fmt.Sprintf("--%s=%s", name, value))
 	}
 
-	return ctx, cmd.Execute()
-}
-
-func pushOfTheRecipeWasSuccessful(ctx context.Context) (context.Context, error) {
-	return ctx, expectGivenOutput(ctx, "") // TODO
+	cmd.SetArgs(args)
+	_ = cmd.Execute()
+	return ctx, nil
 }

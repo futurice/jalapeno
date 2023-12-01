@@ -4,17 +4,14 @@ import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
+	"maps"
 	"strings"
 
 	"github.com/gofrs/uuid"
 )
 
-// Renders recipe templates
-func (re *Recipe) Execute(values VariableValues, id uuid.UUID) (*Sauce, error) {
-	if re.engine == nil {
-		return nil, errors.New("render engine has not been set")
-	}
-
+// Execute executes the recipe and returns a sauce
+func (re *Recipe) Execute(engine RenderEngine, values VariableValues, id uuid.UUID) (*Sauce, error) {
 	if id.IsNil() {
 		return nil, errors.New("ID was nil")
 	}
@@ -26,17 +23,36 @@ func (re *Recipe) Execute(values VariableValues, id uuid.UUID) (*Sauce, error) {
 
 	// Define the context which is available on templates
 	context := map[string]interface{}{
-		"ID":        sauce.ID.String(),
-		"Recipe":    re.Metadata,
+		"ID": sauce.ID.String(),
+		"Recipe": struct{ APIVersion, Name, Version string }{
+			re.APIVersion,
+			re.Name,
+			re.Version,
+		},
 		"Variables": values,
 	}
 
-	files, err := re.engine.Render(re.Templates, context)
+	// Filter out templates we might not want to render
+	templates := make(map[string][]byte)
+	plainFiles := make(map[string][]byte)
+	for filename, content := range re.Templates {
+		if strings.HasSuffix(filename, re.TemplateExtension) {
+			templates[filename] = content
+		} else {
+			plainFiles[filename] = content
+		}
+	}
+
+	files, err := engine.Render(templates, context)
 	if err != nil {
 		return nil, err
 	}
 
-	sauce.Files = make(map[string]File, len(files))
+	// Add the plain files
+	maps.Copy(files, plainFiles)
+
+	sauce.Files = make(map[string]File, len(re.Templates))
+
 	idx := 0
 	for filename, content := range files {
 		// Skip empty files
@@ -48,6 +64,8 @@ func (re *Recipe) Execute(values VariableValues, id uuid.UUID) (*Sauce, error) {
 		if strings.HasPrefix(filename, "_") {
 			continue
 		}
+
+		filename = strings.TrimSuffix(filename, re.TemplateExtension)
 
 		sum := sha256.Sum256(content)
 		sauce.Files[filename] = File{Content: content, Checksum: fmt.Sprintf("sha256:%x", sum)}

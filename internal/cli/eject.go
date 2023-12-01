@@ -1,6 +1,8 @@
 package cli
 
 import (
+	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -22,9 +24,10 @@ func NewEjectCmd() *cobra.Command {
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			return option.Parse(&opts)
 		},
-		Run: func(cmd *cobra.Command, args []string) {
-			runEject(cmd, opts)
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return runEject(cmd, opts)
 		},
+		Example: `jalapeno eject`,
 	}
 
 	if err := option.ApplyFlags(&opts, cmd.Flags()); err != nil {
@@ -34,25 +37,23 @@ func NewEjectCmd() *cobra.Command {
 	return cmd
 }
 
-func runEject(cmd *cobra.Command, opts ejectOptions) {
+func runEject(cmd *cobra.Command, opts ejectOptions) error {
 	if _, err := os.Stat(opts.Dir); os.IsNotExist(err) {
-		cmd.PrintErrln("Error: project path does not exist")
-		return
+		return errors.New("project path does not exist")
 	}
 
 	jalapenoPath := filepath.Join(opts.Dir, recipe.SauceDirName)
 
 	if stat, err := os.Stat(jalapenoPath); os.IsNotExist(err) || !stat.IsDir() {
-		cmd.PrintErrf("Error: '%s' is not a Jalapeno project\n", opts.Dir)
-		return
+		return fmt.Errorf("'%s' is not a Jalapeno project", opts.Dir)
 	}
 
 	cmd.Printf("Deleting %s...", jalapenoPath)
 	err := os.RemoveAll(jalapenoPath)
 	if err != nil {
-		cmd.PrintErrf("Error: %s", err)
-		return
+		return err
 	}
 
 	cmd.Println("\nEjected successfully")
+	return nil
 }

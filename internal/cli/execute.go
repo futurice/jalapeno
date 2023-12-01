@@ -2,13 +2,18 @@ package cli
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"os"
 	"strings"
 
+	"github.com/charmbracelet/lipgloss"
 	"github.com/futurice/jalapeno/internal/cli/option"
+	"github.com/futurice/jalapeno/pkg/engine"
 	"github.com/futurice/jalapeno/pkg/oci"
 	"github.com/futurice/jalapeno/pkg/recipe"
 	"github.com/futurice/jalapeno/pkg/recipeutil"
+	"github.com/futurice/jalapeno/pkg/survey"
 	"github.com/gofrs/uuid"
 	"github.com/spf13/cobra"
 )
@@ -24,18 +29,36 @@ type executeOptions struct {
 func NewExecuteCmd() *cobra.Command {
 	var opts executeOptions
 	var cmd = &cobra.Command{
-		Use:     "execute RECIPE_PATH",
-		Aliases: []string{"exec", "e"},
+		Use:     "execute RECIPE_URL",
+		Aliases: []string{"exec", "e", "run"},
 		Short:   "Execute a recipe",
-		Long:    "TODO",
+		Long:    "Executes (renders) a recipe and outputs the files to the directory. Recipe URL can be a local path or a remote URL (ex. 'oci://docker.io/my-recipe').",
 		Args:    cobra.ExactArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			opts.RecipeURL = args[0]
 			return option.Parse(&opts)
 		},
-		Run: func(cmd *cobra.Command, args []string) {
-			runExecute(cmd, opts)
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return runExecute(cmd, opts)
 		},
+		Example: `# Execute local recipe
+jalapeno execute path/to/recipe
+
+# Execute recipe from OCI repository
+jalapeno execute oci://ghcr.io/user/my-recipe:latest
+
+# Execute recipe from OCI repository with inline authentication
+jalapeno execute oci://ghcr.io/user/my-recipe:latest --username user --password pass
+
+# Execute recipe from OCI repository with Docker authentication
+docker login ghcr.io
+jalapeno execute oci://ghcr.io/user/my-recipe:latest
+
+# Execute recipe to different directory
+jalapeno execute path/to/recipe --dir other/dir
+
+# Predefine variable values
+jalapeno execute path/to/recipe --set MY_VAR=foo --set MY_OTHER_VAR=bar`,
 	}
 
 	if err := option.ApplyFlags(&opts, cmd.Flags()); err != nil {
@@ -45,10 +68,9 @@ func NewExecuteCmd() *cobra.Command {
 	return cmd
 }
 
-func runExecute(cmd *cobra.Command, opts executeOptions) {
+func runExecute(cmd *cobra.Command, opts executeOptions) error {
 	if _, err := os.Stat(opts.Dir); os.IsNotExist(err) {
-		cmd.PrintErrln("Error: output path does not exist")
-		return
+		return errors.New("output path does not exist")
 	}
 
 	var (
@@ -60,41 +82,27 @@ func runExecute(cmd *cobra.Command, opts executeOptions) {
 	if strings.HasPrefix(opts.RecipeURL, "oci://") {
 		wasRemoteRecipe = true
 		ctx := context.Background()
-		re, err = oci.PullRecipe(ctx,
-			oci.Repository{
-				Reference: strings.TrimPrefix(opts.RecipeURL, "oci://"),
-				PlainHTTP: opts.PlainHTTP,
-				Credentials: oci.Credentials{
-					Username:      opts.Username,
-					Password:      opts.Password,
-					DockerConfigs: opts.Configs,
-				},
-				TLS: oci.TLSConfig{
-					CACertFilePath: opts.CACertFilePath,
-					Insecure:       opts.Insecure,
-				},
-			})
+		re, err = oci.PullRecipe(ctx, opts.Repository(opts.RecipeURL))
 
 	} else {
 		re, err = recipe.LoadRecipe(opts.RecipeURL)
 	}
 
 	if err != nil {
-		cmd.PrintErrf("Error: can not load the recipe: %s\n", err)
-		return
+		return fmt.Errorf("can not load the recipe: %s", err)
 	}
 
-	cmd.Printf("Recipe name: %s\n", re.Metadata.Name)
+	style := lipgloss.NewStyle().Foreground(opts.Colors.Primary)
+	cmd.Printf("%s: %s\n", style.Render("Recipe name"), re.Metadata.Name)
 
 	if re.Metadata.Description != "" {
-		cmd.Printf("Description: %s\n", re.Metadata.Description)
+		cmd.Printf("%s: %s\n", style.Render("Description"), re.Metadata.Description)
 	}
 
 	// Load all existing sauces
 	existingSauces, err := recipe.LoadSauces(opts.Dir)
 	if err != nil {
-		cmd.PrintErrf("Error: %s", err)
-		return
+		return err
 	}
 
 	reusedValues := make(recipe.VariableValues)
@@ -113,36 +121,51 @@ func runExecute(cmd *cobra.Command, opts executeOptions) {
 		}
 	}
 
-	providedValues, err := recipeutil.ParseProvidedValues(re.Variables, opts.Values.Flags)
+	providedValues, err := recipeutil.ParseProvidedValues(re.Variables, opts.Values.Flags, opts.Values.CSVDelimiter)
 	if err != nil {
-		cmd.PrintErrf("Error when parsing provided values: %v\n", err)
-		return
+		return fmt.Errorf("failed to parse provided values: %w", err)
 	}
 
-	predefinedValues := recipeutil.MergeValues(reusedValues, providedValues)
+	values := recipeutil.MergeValues(reusedValues, providedValues)
 
 	// Filter out variables which don't have value yet
-	filteredVariables := recipeutil.FilterVariablesWithoutValues(re.Variables, predefinedValues)
-	promptedValues, err := recipeutil.PromptUserForValues(filteredVariables, predefinedValues)
-	if err != nil {
-		cmd.PrintErrf("Error when prompting for values: %v\n", err)
-		return
+	varsWithoutValues := recipeutil.FilterVariablesWithoutValues(re.Variables, values)
+	if len(varsWithoutValues) > 0 {
+		if opts.NoInput {
+			var errMsg string
+			if len(varsWithoutValues) == 1 {
+				errMsg = fmt.Sprintf("value for variable %s is", varsWithoutValues[0].Name)
+			} else {
+				vars := make([]string, len(varsWithoutValues))
+				for i, v := range varsWithoutValues {
+					vars[i] = v.Name
+				}
+				errMsg = fmt.Sprintf("values for variables [%s] are", strings.Join(vars, ","))
+			}
+
+			return fmt.Errorf("%s missing and `--no-input` flag was set to true", errMsg)
+		}
+
+		promptedValues, err := survey.PromptUserForValues(cmd.InOrStdin(), cmd.OutOrStdout(), varsWithoutValues, values)
+		if err != nil {
+			if errors.Is(err, survey.ErrUserAborted) {
+				return nil
+			} else {
+				return fmt.Errorf("error when prompting for values: %s", err)
+			}
+		}
+		values = recipeutil.MergeValues(values, promptedValues)
 	}
 
-	sauce, err := re.Execute(
-		recipeutil.MergeValues(predefinedValues, promptedValues),
-		uuid.Must(uuid.NewV4()),
-	)
+	sauce, err := re.Execute(engine.Engine{}, values, uuid.Must(uuid.NewV4()))
 	if err != nil {
-		cmd.PrintErrf("Error: %s", err)
-		return
+		return err
 	}
 
 	// Check for conflicts
 	for _, s := range existingSauces {
 		if conflicts := s.Conflicts(sauce); conflicts != nil {
-			cmd.PrintErrf("Error: conflict in recipe '%s': file '%s' was already created by recipe '%s'\n", re.Name, conflicts[0].Path, s.Recipe.Name)
-			return
+			return fmt.Errorf("conflict in recipe '%s': file '%s' was already created by recipe '%s'", re.Name, conflicts[0].Path, s.Recipe.Name)
 		}
 	}
 
@@ -153,11 +176,10 @@ func runExecute(cmd *cobra.Command, opts executeOptions) {
 
 	err = sauce.Save(opts.Dir)
 	if err != nil {
-		cmd.PrintErrf("Error: %s", err)
-		return
+		return err
 	}
 
-	cmd.Println("\nRecipe executed successfully!")
+	cmd.Println("Recipe executed successfully!")
 
 	tree := recipeutil.CreateFileTree(opts.Dir, sauce.Files)
 	cmd.Printf("The following files were created:\n\n%s", tree)
@@ -165,4 +187,6 @@ func runExecute(cmd *cobra.Command, opts executeOptions) {
 	if re.InitHelp != "" {
 		cmd.Printf("\nNext up: %s\n", re.InitHelp)
 	}
+
+	return nil
 }

@@ -17,14 +17,16 @@ const (
 // Save saves recipe to given destination
 func (re *Recipe) Save(dest string) error {
 	// TODO: Make sure recipe name is path friendly
-	recipeDir := filepath.Join(dest, re.Name)
-
-	err := os.MkdirAll(recipeDir, defaultFileMode)
-	if err != nil {
-		return fmt.Errorf("can not create directory %s: %v", recipeDir, err)
+	if filepath.Base(dest) != re.Name {
+		dest = filepath.Join(dest, re.Name)
 	}
 
-	recipeFilepath := filepath.Join(recipeDir, RecipeFileName+YAMLExtension)
+	err := os.MkdirAll(dest, defaultFileMode)
+	if err != nil {
+		return fmt.Errorf("can not create directory %s: %v", dest, err)
+	}
+
+	recipeFilepath := filepath.Join(dest, RecipeFileName+YAMLExtension)
 	file, err := os.Create(recipeFilepath)
 	if err != nil {
 		return fmt.Errorf("failed to create recipe file: %w", err)
@@ -43,12 +45,12 @@ func (re *Recipe) Save(dest string) error {
 		return fmt.Errorf("failed to close recipe file: %w", err)
 	}
 
-	err = re.saveTemplates(recipeDir)
+	err = re.saveTemplates(dest)
 	if err != nil {
 		return fmt.Errorf("can not save recipe templates: %w", err)
 	}
 
-	err = re.saveTests(recipeDir)
+	err = re.saveTests(dest)
 	if err != nil {
 		return fmt.Errorf("can not save recipe tests: %w", err)
 	}
@@ -90,12 +92,12 @@ func (re *Recipe) saveTests(dest string) error {
 		}
 
 		testFileDirPath := filepath.Join(testDirPath, RecipeTestFilesDirName)
-		if len(test.Files) > 0 {
-			err := os.MkdirAll(testFileDirPath, defaultFileMode)
-			if err != nil {
-				return fmt.Errorf("failed to create test file directory for test '%s': %w", test.Name, err)
-			}
+		err = os.MkdirAll(testFileDirPath, defaultFileMode)
+		if err != nil {
+			return fmt.Errorf("failed to create test file directory for test '%s': %w", test.Name, err)
+		}
 
+		if len(test.Files) > 0 {
 			err = saveFileMap(test.Files, testFileDirPath)
 			if err != nil {
 				return fmt.Errorf("failed to save template files: %w", err)

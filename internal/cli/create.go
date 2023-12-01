@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/futurice/jalapeno/internal/cli/option"
@@ -21,8 +22,9 @@ func NewCreateCmd() *cobra.Command {
 	var cmd = &cobra.Command{
 		Use:   "create RECIPE_NAME",
 		Short: "Create a new recipe",
-		Long: fmt.Sprintf(`TODO
+		Long: fmt.Sprintf(`Create a new recipe with the given name.
 
+The following files will be created:
 %[1]s
 my-recipe
 ├── %[2]s
@@ -47,8 +49,8 @@ my-recipe
 			opts.RecipeName = args[0]
 			return option.Parse(&opts)
 		},
-		Run: func(cmd *cobra.Command, args []string) {
-			runCreate(cmd, opts)
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return runCreate(cmd, opts)
 		},
 	}
 
@@ -59,20 +61,19 @@ my-recipe
 	return cmd
 }
 
-func runCreate(cmd *cobra.Command, opts createOptions) {
+func runCreate(cmd *cobra.Command, opts createOptions) error {
 	re := recipeutil.CreateExampleRecipe(opts.RecipeName)
 
 	err := re.Validate()
 	if err != nil {
-		cmd.PrintErrln("Internal error: placeholder recipe is not valid")
-		return
+		return errors.New("placeholder recipe is not valid")
 	}
 
 	err = re.Save(opts.Dir)
 	if err != nil {
-		cmd.PrintErrf("Error: can not save recipe to the directory: %v\n", err)
-		return
+		return fmt.Errorf("can not save recipe to the directory: %w", err)
 	}
 
 	cmd.Printf("Recipe '%s' created!\n", opts.RecipeName)
+	return nil
 }

@@ -1,7 +1,16 @@
 name: "Jalapeno"
-description: "Run Jalapeno check-updates on a project"
+description: "Run arbitrary Jalapeno commands"
+inputs:
+  cmd:
+    description: "The command which should be run"
+    required: true
+outputs:
+  result:
+    description: "stdout after running the command"
+  exitcode:
+    description: "Exit code of the operation"
 runs:
   using: "docker"
-  image: "docker://ghcr.io/futurice/jalapeno:v0.0.2-pre.1"
+  image: "docker://ghcr.io/futurice/jalapeno:v0-githubaction"
   args:
-    - check-updates
+    - ${{ inputs.cmd }}

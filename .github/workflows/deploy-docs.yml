@@ -6,7 +6,7 @@ on:
       - main
       - docs
     paths:
-      - ".github/workflows/deploy-docs.yaml"
+      - ".github/workflows/deploy-docs.yml"
       - "docs/**"
       - "internal/cli/**"
 
@@ -21,8 +21,7 @@ jobs:
         with:
           go-version: "1.21"
 
-      - name: Setup Golang caches
-        uses: actions/cache@v3
+      - uses: actions/cache@v3
         with:
           path: |
             ~/.cache/go-build

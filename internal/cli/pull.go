@@ -2,6 +2,7 @@ package cli
 
 import (
 	"context"
+	"errors"
 	"strings"
 
 	"github.com/futurice/jalapeno/internal/cli/option"
@@ -22,15 +23,27 @@ func NewPullCmd() *cobra.Command {
 	var cmd = &cobra.Command{
 		Use:   "pull URL",
 		Short: "Pull a recipe from OCI repository",
-		Long:  "TODO",
+		Long:  "Pull a recipe from OCI repository and save it locally. You can authenticate by using the `--username` and `--password` flags or logging in first with `docker login`.",
 		Args:  cobra.ExactArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			opts.TargetRef = args[0]
 			return option.Parse(&opts)
 		},
-		Run: func(cmd *cobra.Command, args []string) {
-			runPull(cmd, opts)
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return runPull(cmd, opts)
 		},
+		Example: `# Pull recipe from OCI repository
+jalapeno pull ghcr.io/user/recipe:latest
+
+# Pull recipe from OCI repository with inline authentication
+jalapeno pull oci://ghcr.io/user/my-recipe:latest --username user --password pass
+
+# Pull recipe from OCI repository with Docker authentication
+docker login ghcr.io
+jalapeno pull oci://ghcr.io/user/my-recipe:latest
+
+# Pull recipe to different directory
+jalapeno pull oci://ghcr.io/user/my-recipe:latest --dir other/dir`,
 	}
 
 	if err := option.ApplyFlags(&opts, cmd.Flags()); err != nil {
@@ -40,33 +53,19 @@ func NewPullCmd() *cobra.Command {
 	return cmd
 }
 
-func runPull(cmd *cobra.Command, opts pullOptions) {
+func runPull(cmd *cobra.Command, opts pullOptions) error {
 	ctx := context.Background()
 
-	err := oci.SaveRemoteRecipe(ctx, opts.Dir,
-		oci.Repository{
-			Reference: opts.TargetRef,
-			PlainHTTP: opts.PlainHTTP,
-			Credentials: oci.Credentials{
-				Username:      opts.Username,
-				Password:      opts.Password,
-				DockerConfigs: opts.Configs,
-			},
-			TLS: oci.TLSConfig{
-				CACertFilePath: opts.CACertFilePath,
-				Insecure:       opts.Insecure,
-			},
-		},
-	)
+	err := oci.SaveRemoteRecipe(ctx, opts.Dir, opts.Repository(opts.TargetRef))
 
 	if err != nil {
 		if strings.Contains(err.Error(), "not found") {
-			cmd.PrintErrln("Error: recipe not found") // TODO: Give more descriptive error message
-		} else {
-			cmd.PrintErrf("Error: %s", err)
+			return errors.New("recipe not found") // TODO: Give more descriptive error message
 		}
-		return
+
+		return err
 	}
 
 	cmd.Println("Recipe pulled successfully")
+	return nil
 }

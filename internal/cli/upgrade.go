@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io/fs"
@@ -8,16 +9,19 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/AlecAivazis/survey/v2"
 	"github.com/futurice/jalapeno/internal/cli/option"
+	"github.com/futurice/jalapeno/pkg/engine"
+	"github.com/futurice/jalapeno/pkg/oci"
 	"github.com/futurice/jalapeno/pkg/recipe"
 	"github.com/futurice/jalapeno/pkg/recipeutil"
+	"github.com/futurice/jalapeno/pkg/survey"
 	"github.com/spf13/cobra"
 	"golang.org/x/mod/semver"
 )
 
 type upgradeOptions struct {
-	SourcePath string
+	RecipeURL string
+	option.OCIRepository
 	option.WorkingDirectory
 	option.Values
 	option.Common
@@ -26,17 +30,35 @@ type upgradeOptions struct {
 func NewUpgradeCmd() *cobra.Command {
 	var opts upgradeOptions
 	var cmd = &cobra.Command{
-		Use:   "upgrade RECIPE_PATH",
+		Use:   "upgrade RECIPE_URL",
 		Short: "Upgrade a recipe in a project",
-		Long:  "Upgrade a recipe in a project with a newer version.",
+		Long:  "Upgrade a recipe in a project with a newer version. Recipe URL can be a local path or a remote URL (ex. 'oci://docker.io/my-recipe').",
 		Args:  cobra.ExactArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			opts.SourcePath = args[0]
+			opts.RecipeURL = args[0]
 			return option.Parse(&opts)
 		},
-		Run: func(cmd *cobra.Command, args []string) {
-			runUpgrade(cmd, opts)
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return runUpgrade(cmd, opts)
 		},
+		Example: `# Upgrade recipe with local recipe
+jalapeno upgrade path/to/recipe
+
+# Upgrade recipe with remote recipe from OCI repository
+jalapeno upgrade oci://ghcr.io/user/my-recipe:v2.0.0
+
+# Upgrade recipe with remote recipe from OCI repository with inline authentication
+jalapeno upgrade oci://ghcr.io/user/my-recipe:v2.0.0 --username user --password pass
+
+# Upgrade recipe with remote recipe from OCI repository with Docker authentication
+docker login ghcr.io
+jalapeno upgrade oci://ghcr.io/user/my-recipe:v2.0.0
+
+# Upgrade recipe to different directory
+jalapeno upgrade path/to/recipe --dir other/dir
+
+# Predefine values for new variables introduced in the upgrade
+jalapeno upgrade path/to/recipe --set NEW_VAR=foo`,
 	}
 
 	if err := option.ApplyFlags(&opts, cmd.Flags()); err != nil {
@@ -46,31 +68,43 @@ func NewUpgradeCmd() *cobra.Command {
 	return cmd
 }
 
-func runUpgrade(cmd *cobra.Command, opts upgradeOptions) {
-	re, err := recipe.LoadRecipe(opts.SourcePath)
+func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
+	var (
+		re  *recipe.Recipe
+		err error
+	)
+
+	if strings.HasPrefix(opts.RecipeURL, "oci://") {
+		ctx := context.Background()
+		re, err = oci.PullRecipe(ctx, opts.Repository(opts.RecipeURL))
+
+	} else {
+		re, err = recipe.LoadRecipe(opts.RecipeURL)
+	}
+
 	if err != nil {
-		cmd.PrintErrf("Error: %s", err)
-		return
+		return err
 	}
 
 	oldSauce, err := recipe.LoadSauce(opts.Dir, re.Name)
 	if err != nil {
-		var msg string
 		if errors.Is(err, recipe.ErrSauceNotFound) {
-			msg = fmt.Sprintf("project '%s' does not contain sauce with recipe '%s'. Recipe name used in the project should match the recipe which is used for upgrading", opts.Dir, re.Name)
-		} else {
-			msg = err.Error()
+			return fmt.Errorf("project '%s' does not contain sauce with recipe '%s'. Recipe name used in the project should match the recipe which is used for upgrading", opts.Dir, re.Name)
 		}
-		cmd.PrintErrf("Error: %s", msg)
-		return
+
+		return err
 	}
 
 	if semver.Compare(re.Metadata.Version, oldSauce.Recipe.Metadata.Version) <= 0 {
-		cmd.PrintErrln("Error: new recipe version is lower or same than the existing one")
-		return
+		return errors.New("new recipe version is lower or same than the existing one")
 	}
 
-	cmd.Printf("Upgrading recipe %s from version %s to %s\n", oldSauce.Recipe.Name, oldSauce.Recipe.Metadata.Version, re.Metadata.Version)
+	cmd.Printf(
+		"Upgrading recipe %s from version %s to %s\n",
+		oldSauce.Recipe.Name,
+		oldSauce.Recipe.Metadata.Version,
+		re.Metadata.Version,
+	)
 
 	// Check if the new version of the recipe has removed some variables
 	// which existed on previous version
@@ -91,8 +125,7 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) {
 	if opts.ReuseSauceValues {
 		sauces, err := recipe.LoadSauces(opts.Dir)
 		if err != nil {
-			cmd.PrintErrf("Error: %s", err)
-			return
+			return err
 		}
 		for _, sauce := range sauces {
 			// Skip if the sauce is the one which is being upgraded
@@ -113,13 +146,13 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) {
 		}
 	}
 
-	providedValues, err := recipeutil.ParseProvidedValues(re.Variables, opts.Values.Flags)
+	providedValues, err := recipeutil.ParseProvidedValues(re.Variables, opts.Values.Flags, opts.CSVDelimiter)
 	if err != nil {
-		cmd.PrintErrf("Error when parsing provided values: %v\n", err)
-		return
+		return fmt.Errorf("failed to parse provided values: %w", err)
 	}
 
 	predefinedValues := recipeutil.MergeValues(reusedValues, providedValues)
+	values := recipeutil.MergeValues(oldSauce.Values, predefinedValues)
 
 	// Don't prompt variables which already has a value in existing sauce or is predefined
 	varsWithoutValues := make([]recipe.Variable, 0, len(re.Variables))
@@ -131,16 +164,37 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) {
 		}
 	}
 
-	values, err := recipeutil.PromptUserForValues(varsWithoutValues, predefinedValues)
-	if err != nil {
-		cmd.PrintErrf("Error: %s", err)
-		return
+	if len(varsWithoutValues) > 0 {
+		if opts.NoInput {
+			var errMsg string
+			if len(varsWithoutValues) == 1 {
+				errMsg = fmt.Sprintf("value for variable %s is", varsWithoutValues[0].Name)
+			} else {
+				vars := make([]string, len(varsWithoutValues))
+				for i, v := range varsWithoutValues {
+					vars[i] = v.Name
+				}
+				errMsg = fmt.Sprintf("values for variables [%s] are", strings.Join(vars, ","))
+			}
+
+			return fmt.Errorf("%s missing and `--no-input` flag was set to true", errMsg)
+		}
+
+		promptedValues, err := survey.PromptUserForValues(cmd.InOrStdin(), cmd.OutOrStdout(), varsWithoutValues, predefinedValues)
+		if err != nil {
+			if errors.Is(err, survey.ErrUserAborted) {
+				return nil
+			}
+
+			return fmt.Errorf("error when prompting for values: %w", err)
+		}
+
+		values = recipeutil.MergeValues(values, promptedValues)
 	}
 
-	newSauce, err := re.Execute(recipeutil.MergeValues(values, oldSauce.Values, predefinedValues), oldSauce.ID)
+	newSauce, err := re.Execute(engine.Engine{}, values, oldSauce.ID)
 	if err != nil {
-		cmd.PrintErrf("Error: %s", err)
-		return
+		return err
 	}
 
 	// read common ignore file if it exists
@@ -149,8 +203,7 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) {
 		ignorePatterns = append(ignorePatterns, strings.Split(string(data), "\n")...)
 	} else if !errors.Is(err, fs.ErrNotExist) {
 		// something else happened than trying to read an ignore file that does not exist
-		cmd.PrintErrf("Error: failed to read ignore file: %s\n", err)
-		return
+		return fmt.Errorf("failed to read ignore file: %w", err)
 	}
 	ignorePatterns = append(ignorePatterns, re.IgnorePatterns...)
 
@@ -162,8 +215,7 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) {
 		skip := false
 		for _, pattern := range ignorePatterns {
 			if matched, err := filepath.Match(pattern, path); err != nil {
-				cmd.PrintErrf("Error: bad ignore pattern '%s': %s\n", pattern, err)
-				return
+				return fmt.Errorf("bad ignore pattern '%s': %w", pattern, err)
 			} else if matched {
 				// file was marked as ignored for upgrades
 				skip = true
@@ -178,8 +230,7 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) {
 			// Check if file was modified after rendering
 			filePath := filepath.Join(opts.Dir, path)
 			if modified, err := recipeutil.IsFileModified(filePath, prevFile); err != nil {
-				cmd.PrintErrf("Error: %s", err)
-				return
+				return err
 			} else if modified {
 				// The file contents has been modified
 				if !overrideNoticed {
@@ -189,15 +240,8 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) {
 
 				// TODO: We could do better in terms of merge conflict management. Like show the diff or something
 				var override bool
-				prompt := &survey.Confirm{
-					Message: path,
-					Default: true,
-				}
-
-				err = survey.AskOne(prompt, &override)
 				if err != nil {
-					cmd.PrintErrf("Error when prompting for question: %s", err)
-					return
+					return fmt.Errorf("error when prompting for question: %w", err)
 				}
 
 				if !override {
@@ -216,7 +260,8 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) {
 
 	err = newSauce.Save(opts.Dir)
 	if err != nil {
-		cmd.PrintErrf("Error: %s", err)
-		return
+		return err
 	}
+
+	return nil
 }

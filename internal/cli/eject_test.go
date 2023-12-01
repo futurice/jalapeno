@@ -7,21 +7,21 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/futurice/jalapeno/internal/cli"
 	"github.com/futurice/jalapeno/pkg/recipe"
 )
 
 func iRunEject(ctx context.Context) (context.Context, error) {
 	projectDir := ctx.Value(projectDirectoryPathCtxKey{}).(string)
 
-	ctx, cmd := wrapCmdOutputs(ctx, cli.NewEjectCmd)
-
-	flags := cmd.Flags()
-	if err := flags.Set("dir", projectDir); err != nil {
-		return ctx, err
+	ctx, cmd := wrapCmdOutputs(ctx)
+	args := []string{
+		"eject",
+		fmt.Sprintf("--dir=%s", projectDir),
 	}
 
-	return ctx, cmd.Execute()
+	cmd.SetArgs(args)
+	_ = cmd.Execute()
+	return ctx, nil
 }
 
 func thereShouldNotBeASauceDirectoryInTheProjectDirectory(ctx context.Context) (context.Context, error) {

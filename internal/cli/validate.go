@@ -1,13 +1,18 @@
 package cli
 
 import (
+	"fmt"
+	"path/filepath"
+
 	"github.com/futurice/jalapeno/internal/cli/option"
 	"github.com/futurice/jalapeno/pkg/recipe"
 	"github.com/spf13/cobra"
 )
 
 type validateOptions struct {
-	TargetPath string
+	RecipePath string
+
+	option.WorkingDirectory
 	option.Common
 }
 
@@ -16,15 +21,16 @@ func NewValidateCmd() *cobra.Command {
 	var cmd = &cobra.Command{
 		Use:   "validate RECIPE_PATH",
 		Short: "Validate a recipe",
-		Long:  "TODO",
+		Long:  "Validate a recipe in a local path.",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			opts.TargetPath = args[0]
+			opts.RecipePath = args[0]
 			return option.Parse(&opts)
 		},
-		Run: func(cmd *cobra.Command, args []string) {
-			runValidate(cmd, opts)
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return runValidate(cmd, opts)
 		},
-		Args: cobra.ExactArgs(1),
+		Args:    cobra.ExactArgs(1),
+		Example: `jalapeno validate path/to/recipe`,
 	}
 
 	if err := option.ApplyFlags(&opts, cmd.Flags()); err != nil {
@@ -34,16 +40,22 @@ func NewValidateCmd() *cobra.Command {
 	return cmd
 }
 
-func runValidate(cmd *cobra.Command, opts validateOptions) {
-	r, err := recipe.LoadRecipe(opts.TargetPath)
+func runValidate(cmd *cobra.Command, opts validateOptions) error {
+	path := opts.RecipePath
+	if !filepath.IsAbs(opts.RecipePath) {
+		path = filepath.Join(opts.Dir, opts.RecipePath)
+	}
+
+	r, err := recipe.LoadRecipe(path)
 	if err != nil {
-		cmd.PrintErrf("Error: could not load the recipe: %s\n", err)
+		return fmt.Errorf("could not load the recipe: %w", err)
 	}
 
 	err = r.Validate()
 	if err != nil {
-		cmd.PrintErrf("Error: validation failed: %s\n", err)
+		return fmt.Errorf("validation failed: %w", err)
 	}
 
 	cmd.Println("Validation ok")
+	return nil
 }

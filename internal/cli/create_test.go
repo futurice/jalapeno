@@ -2,21 +2,21 @@ package cli_test
 
 import (
 	"context"
-
-	"github.com/futurice/jalapeno/internal/cli"
+	"fmt"
 )
 
 func iRunCreate(ctx context.Context, recipe string) (context.Context, error) {
 	recipesDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
 
-	ctx, cmd := wrapCmdOutputs(ctx, cli.NewCreateCmd)
+	ctx, cmd := wrapCmdOutputs(ctx)
 
-	cmd.SetArgs([]string{recipe})
-
-	flags := cmd.Flags()
-	if err := flags.Set("dir", recipesDir); err != nil {
-		return ctx, err
+	args := []string{
+		"create",
+		recipe,
+		fmt.Sprintf("--dir=%s", recipesDir),
 	}
 
-	return ctx, cmd.Execute()
+	cmd.SetArgs(args)
+	_ = cmd.Execute()
+	return ctx, nil
 }
