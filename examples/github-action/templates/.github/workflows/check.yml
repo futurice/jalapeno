@@ -21,6 +21,6 @@ jobs:
       - uses: futurice/jalapeno@main
         id: jalapeno
         with:
-          cmd: check
+          cmd: check --detailed-exitcode
       - if: steps.jalapeno.outputs.exit-code == '2'
         run: echo "::notice::Jalapeno updates available"
