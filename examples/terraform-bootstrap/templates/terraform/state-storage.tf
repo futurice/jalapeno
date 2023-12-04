@@ -9,9 +9,9 @@
 locals {
   resource_groups = {
     {{- range $index, $env := .Variables.ENVIRONMENTS }}
-    {{ $env.NAME | quote }}: {{ $env.RESOURCE_GROUP_NAME | quote }}
+    {{ $env.NAME | quote }} : {{ $env.RESOURCE_GROUP_NAME | quote }}
     {{- end }}
-    "default": {{ (index .Variables.ENVIRONMENTS 0).RESOURCE_GROUP_NAME | quote }}
+    "default" : {{ (index .Variables.ENVIRONMENTS 0).RESOURCE_GROUP_NAME | quote }}
   }
 }
 
@@ -25,7 +25,7 @@ resource "azurerm_resource_group" "main" {
 }
 {{- else -}}
 data "azurerm_resource_group" "main" {
-  name     = local.resource_groups[terraform.workspace]
+  name = local.resource_groups[terraform.workspace]
 }
 {{- end }}
 
@@ -39,8 +39,8 @@ resource "azurerm_storage_account" "tfstate" {
 }
 
 resource "azurerm_storage_container" "tfstate" {
-  name                  = "tfstate"
-  storage_account_name  = azurerm_storage_account.tfstate.name
+  name                 = "tfstate"
+  storage_account_name = azurerm_storage_account.tfstate.name
 }
 
 resource "azurerm_role_assignment" "tfstate" {
