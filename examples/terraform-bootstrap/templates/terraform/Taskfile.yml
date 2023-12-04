@@ -17,6 +17,7 @@ tasks:
           ENVIRONMENT: "{{ "{{ .ITEM }}" }}"
       {{- if .Variables.CREATE_GITHUB_ACTIONS_PIPELINE }}
       - task: gh:add-ci-service-principals
+      - task: gh:set-ci-vars
       {{- end }}
 
   init-environment:
@@ -77,6 +78,13 @@ tasks:
       - gh secret set ARM_SUBSCRIPTION_ID_{{ $env.NAME | upper }}
       - gh secret set ARM_TENANT_ID_{{ $env.NAME | upper }}
       {{- end }}
+  {{ end }}
+
+  {{ if .Variables.CREATE_GITHUB_ACTIONS_PIPELINE -}}
+  gh:set-ci-vars:
+    deps: [gh:login]
+    cmds:
+      - gh variable set TERRAFORM_VERSION --body 1.5.7
   {{ end }}
 # TODO: task to delete state resources for a particular env
 # TODO: validate resource group name when prompting

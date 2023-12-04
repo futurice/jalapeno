@@ -8,9 +8,6 @@ on:
       - "terraform/**"
       - ".github/workflows/terraform*.yml"
 
-env:
-  TERRAFORM_VERSION: 1.5.7
-
 jobs:
   {{- range $i, $env := .Variables.ENVIRONMENTS }}
   {{- if (gt $i 0) }}
@@ -21,7 +18,7 @@ jobs:
     uses: ./.github/workflows/terraform-plan.yml
     with:
       ENVIRONMENT: {{ $env.NAME }}
-      TERRAFORM_VERSION: {{ "${{ env.TERRAFORM.VERSION }}" }}
+      TERRAFORM_VERSION: {{ "${{ vars.TERRAFORM_VERSION }}" }}
       TERRAFORM_BACKEND_STORAGE_NAME: {{ template "storage_account_name_prefix" $ }}{{ $env.NAME }}
       RESOURCE_GROUP_NAME: {{ $env.RESOURCE_GROUP_NAME }}
     secrets:
@@ -36,7 +33,7 @@ jobs:
     uses: ./.github/workflows/terraform-apply.yml
     with:
       ENVIRONMENT: {{ $env.NAME }}
-      TERRAFORM_VERSION: {{ "${{ env.TERRAFORM.VERSION }}"}}
+      TERRAFORM_VERSION: {{ "${{ vars.TERRAFORM_VERSION }}"}}
     secrets:
       ARM_CLIENT_ID: {{ printf "${{ secrets.ARM_CLIENT_ID_%s }}" ($env.NAME | upper) }}
       ARM_CLIENT_SECRET: {{ printf "${{ secrets.ARM_CLIENT_SECRET_%s }}" ($env.NAME | upper) }}
