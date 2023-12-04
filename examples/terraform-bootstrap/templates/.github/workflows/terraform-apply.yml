@@ -10,13 +10,11 @@ on:
       TERRAFORM_VERSION:
         required: true
         type: string
+    secrets:
       ARM_SUBSCRIPTION_ID:
         required: true
-        type: string
       ARM_TENANT_ID:
         required: true
-        type: string
-    secrets:
       ARM_CLIENT_ID:
         required: true
       ARM_CLIENT_SECRET:
