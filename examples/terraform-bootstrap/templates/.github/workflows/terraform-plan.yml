@@ -55,8 +55,11 @@ jobs:
         id: init
         run: >-
           terraform init
-          --backend-config="resource_group_name={{ "${{ inputs.RESOURCE_GROUP_NAME }}" }}"
-          --backend-config="storage_account_name={{ "${{ inputs.TERRAFORM_BACKEND_STORAGE_NAME }}" }}"
+          -backend-config="resource_group_name={{ "${{ inputs.RESOURCE_GROUP_NAME }}" }}"
+          -backend-config="storage_account_name={{ "${{ inputs.TERRAFORM_BACKEND_STORAGE_NAME }}" }}"
+          -backend-config="container_name=tfstate"
+          -backend-config="key=tfstate_"
+
         working-directory: ./terraform
 
       - name: Terraform Workspace
