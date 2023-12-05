@@ -8,7 +8,7 @@ Feature: Execute recipes
     When I execute recipe "foo"
     Then execution of the recipe has succeeded
     And the project directory should contain file "README.md"
-    And the sauce file contains a sauce in index 0 which should have property "name" with value "foo"
+    And the sauce file contains a sauce in index 0 which should have property "name" with value "^foo$"
     And the sauce file contains a sauce in index 0 which should have property "id" that is a valid UUID
 
   Scenario: Execute single recipe from remote registry
@@ -34,8 +34,8 @@ Feature: Execute recipes
     And no errors were printed
     And the project directory should contain file "README.md"
     And the project directory should contain file "Taskfile.yml"
-    And the sauce file contains a sauce in index 0 which should have property "name" with value "foo"
-    And the sauce file contains a sauce in index 1 which should have property "name" with value "bar"
+    And the sauce file contains a sauce in index 0 which should have property "name" with value "^foo$"
+    And the sauce file contains a sauce in index 1 which should have property "name" with value "^bar$"
 
   Scenario: New recipe conflicts with the previous recipe
     Given a project directory

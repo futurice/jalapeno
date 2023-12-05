@@ -42,6 +42,17 @@ func iRunCheckForRecipe(ctx context.Context, recipe string) (context.Context, er
 	return iRunCheck(ctx)
 }
 
+func iRunCheckForRecipeFrom(ctx context.Context, recipe, from string) (context.Context, error) {
+	ociRegistry := ctx.Value(ociRegistryCtxKey{}).(OCIRegistry)
+	additionalFlags := ctx.Value(cmdAdditionalFlagsCtxKey{}).(map[string]string)
+
+	additionalFlags["recipe"] = recipe
+	additionalFlags["from"] = fmt.Sprintf("oci://%s/%s", ociRegistry.Resource.GetHostPort("5000/tcp"), from)
+
+	ctx = context.WithValue(ctx, cmdAdditionalFlagsCtxKey{}, additionalFlags)
+	return iRunCheck(ctx)
+}
+
 func sourceOfTheSauceIsTheLocalOCIRegistry(ctx context.Context, recipeName string) (context.Context, error) {
 	projectDir := ctx.Value(projectDirectoryPathCtxKey{}).(string)
 	ociRegistry := ctx.Value(ociRegistryCtxKey{}).(OCIRegistry)
