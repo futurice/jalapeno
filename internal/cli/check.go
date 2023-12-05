@@ -92,7 +92,10 @@ func runCheck(cmd *cobra.Command, opts checkOptions) error {
 			for i := range sauces {
 				// Save new check URL for sauces
 				sauces[i].CheckFrom = opts.CheckFrom
-				sauces[i].Save(opts.Dir)
+				err = sauces[i].Save(opts.Dir)
+				if err != nil {
+					return err
+				}
 			}
 		}
 	} else if opts.CheckFrom != "" {
