@@ -51,7 +51,7 @@ resource "azurerm_role_assignment" "tfstate" {
 
 resource "local_file" "backend_config" {
   filename = "backend.tf"
-  content = <<-EOT
+  content  = <<-EOT
 terraform {
   backend "azurerm" {
     use_azuread_auth = true
