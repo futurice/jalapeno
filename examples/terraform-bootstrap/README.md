@@ -17,8 +17,8 @@ Pre-creating resources is optional, but permissions management is easier if you
 do. The following resources are required:
 
 1. A subscription
-2. As many resource groups as you want to have environments (e.g. dev, qa,
-   prod). These resource groups should be empty, but they don't have to be.
+2. (OPTIONAL) As many resource groups as you want to have environments (e.g. dev,
+   qa, prod). These resource groups should be empty, but they don't have to be.
 3. A service principal with contributor access to the resource groups, and a
    client secret for the SP.
 
