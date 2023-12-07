@@ -24,8 +24,9 @@ do. The following resources are required:
 
 ### Generating a service principal
 
-1. Go to Azure Portal and the Entra ID blade and add an application. It does not
-   matter what the redirect URL is. Everything can be left at default.
+1. Go to Azure Portal and the Entra ID blade and add an Enterprise Application.
+   It does not matter what the redirect URL is. Everything can be left at default.
+   An App Registration should also be generated in your chosen tenant.
 2. For each resource group, go to the IAM blade and add the application as a
    contributor.
 3. Go to the Certificates & secrets blade for the Service Principal and add a
