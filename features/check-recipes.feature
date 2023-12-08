@@ -106,3 +106,17 @@ Feature: Check for new recipe versions
     # Note the lack of explicitly setting the source for the sauce
     And I check new versions for recipe "foo"
     Then CLI produced an output "new versions found: v0.0.2"
+
+  Scenario: Manually override the check from URL for locally executed recipe
+    Given a project directory
+    And a recipes directory
+    And a recipe "foo" that generates file "README.md"
+    And a local OCI registry
+    When I execute recipe "foo"
+    Then execution of the recipe has succeeded
+    When the recipe "foo" is pushed to the local OCI repository "foo:v0.0.1"
+    And I change recipe "foo" to version "v0.0.2"
+    And the recipe "foo" is pushed to the local OCI repository "foo:v0.0.2"
+    And I check new versions for recipe "foo" from the local OCI repository "foo"
+    Then CLI produced an output "new versions found: v0.0.2"
+    And the sauce file contains a sauce in index 0 which should have property "from" with value "^oci://localhost:\d+/foo$"

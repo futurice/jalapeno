@@ -30,9 +30,9 @@ kos:
     base_image: alpine
     tags:
       - latest
-      - "v{{.Version}}"
       - "v{{.Major}}"
       - "v{{.Major}}.{{.Minor}}"
+      - "v{{.Version}}"
     sbom: none
     bare: true
     preserve_import_paths: false
@@ -55,9 +55,9 @@ kos:
     base_image: alpine
     tags:
       - "latest-githubaction"
-      - "v{{.Version}}-githubaction"
       - "v{{.Major}}-githubaction"
       - "v{{.Major}}.{{.Minor}}-githubaction"
+      - "v{{.Version}}-githubaction"
     sbom: none
     bare: true
     preserve_import_paths: false

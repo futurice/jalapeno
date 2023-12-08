@@ -82,6 +82,7 @@ func TestFeatures(t *testing.T) {
 			s.Step(`^I change recipe "([^"]*)" to version "([^"]*)"$`, iChangeRecipeToVersion)
 			s.Step(`^I check new versions$`, iRunCheck)
 			s.Step(`^I check new versions for recipe "([^"]*)"$`, iRunCheckForRecipe)
+			s.Step(`^I check new versions for recipe "([^"]*)" from the local OCI repository "([^"]*)"$`, iRunCheckForRecipeFrom)
 			s.Step(`^I upgrade recipe "([^"]*)"$`, iRunUpgrade)
 			s.Step(`^I upgrade recipe from the local OCI repository "([^"]*)"$`, iRunUpgradeFromRemoteRecipe)
 			s.Step(`^I create a recipe with name "([^"]*)"$`, iRunCreate)
@@ -383,8 +384,9 @@ func theSauceFileShouldHavePropertyWithValue(ctx context.Context, index int, pro
 	if !exists {
 		return fmt.Errorf("recipe file does not have property %s", propertyName)
 	}
-	if value != expectedValue {
-		return fmt.Errorf("expected property %s to have value %s, got %s", propertyName, expectedValue, value)
+
+	if !regexp.MustCompile(expectedValue).MatchString(value) {
+		return fmt.Errorf("expected property %s to match regex '%s', got '%s'", propertyName, expectedValue, value)
 	}
 	return nil
 }

@@ -80,6 +80,10 @@ The following context is available on the templates:
 - `.ID`: UUID which is generated after the first execution of the recipe. It will keep its value over upgrades. Can be used to generate unique pseudo-random values which stays the same over the upgrades, for example `my-resource-{{ sha1sum .ID | trunc 5 }}`
 - `.Variables`: Object which contains the values of the variables defined for the recipe. Example: `{{ .Variables.FOO }}`
 
+### Template only specific files
+
+By defining `templateExtension` property in the `recipe.yml` file, you can define that only the files with the given file extensions should be rendered from the `templates` directory. The rest of the files will be copied as is. This is useful when there are files that do not need templating, but you would still need to escape the `{{` and `}}` characters (for example [Taskfiles](https://taskfile.dev/usage/)).
+
 ## Variables
 
 Recipe variables let you define values which user need to provide to be able to render the tempaltes. Variables are defined in the `recipe.yml` file. You can check schema [here](/api#variable).
