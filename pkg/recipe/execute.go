@@ -1,7 +1,6 @@
 package recipe
 
 import (
-	"crypto/sha256"
 	"errors"
 	"fmt"
 	"maps"
@@ -35,11 +34,11 @@ func (re *Recipe) Execute(engine RenderEngine, values VariableValues, id uuid.UU
 	// Filter out templates we might not want to render
 	templates := make(map[string][]byte)
 	plainFiles := make(map[string][]byte)
-	for filename, content := range re.Templates {
+	for filename, file := range re.Templates {
 		if strings.HasSuffix(filename, re.TemplateExtension) {
-			templates[filename] = content
+			templates[filename] = file.Content
 		} else {
-			plainFiles[filename] = content
+			plainFiles[filename] = file.Content
 		}
 	}
 
@@ -67,8 +66,7 @@ func (re *Recipe) Execute(engine RenderEngine, values VariableValues, id uuid.UU
 
 		filename = strings.TrimSuffix(filename, re.TemplateExtension)
 
-		sum := sha256.Sum256(content)
-		sauce.Files[filename] = File{Content: content, Checksum: fmt.Sprintf("sha256:%x", sum)}
+		sauce.Files[filename] = NewFile(content)
 		idx += 1
 		if idx > len(files) {
 			return nil, errors.New("files array grew during execution")

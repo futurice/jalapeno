@@ -38,8 +38,8 @@ func TestRecipeRenderChecksums(t *testing.T) {
 	recipe.Metadata.Name = "test"
 	recipe.Metadata.Version = "v1.0.0"
 	recipe.Variables = []Variable{{Name: "foo"}}
-	recipe.Templates = map[string][]byte{
-		"README.md": []byte("{{ .Variables.foo }}"),
+	recipe.Templates = map[string]File{
+		"README.md": NewFile([]byte("{{ .Variables.foo }}")),
 	}
 
 	sauce, err := recipe.Execute(TestRenderEngine{}, VariableValues{"foo": "bar"}, uuid.Must(uuid.NewV4()))
@@ -95,13 +95,13 @@ func TestRecipeRenderEmptyFiles(t *testing.T) {
 	recipe.Metadata.Name = "test"
 	recipe.Metadata.Version = "v1.0.0"
 	recipe.Variables = []Variable{{Name: "foo"}}
-	recipe.Templates = map[string][]byte{
-		"empty-file":                           []byte(""),
-		"empty-file-with-spaces":               []byte(" "),
-		"empty-file-with-tabulator":            []byte("\t"),
-		"empty-file-with-spaces-and-newline-1": []byte(" \n"),
-		"empty-file-with-spaces-and-newline-2": []byte(" \n "),
-		"file-with-empty-variable":             []byte(" {{ .Variables.foo }} "),
+	recipe.Templates = map[string]File{
+		"empty-file":                           NewFile([]byte("")),
+		"empty-file-with-spaces":               NewFile([]byte(" ")),
+		"empty-file-with-tabulator":            NewFile([]byte("\t")),
+		"empty-file-with-spaces-and-newline-1": NewFile([]byte(" \n")),
+		"empty-file-with-spaces-and-newline-2": NewFile([]byte(" \n ")),
+		"file-with-empty-variable":             NewFile([]byte(" {{ .Variables.foo }} ")),
 	}
 
 	sauce, err := recipe.Execute(TestRenderEngine{}, VariableValues{"foo": ""}, uuid.Must(uuid.NewV4()))
@@ -126,9 +126,9 @@ func TestRecipeRenderWithTemplateExtension(t *testing.T) {
 	recipe.Metadata.Name = "test"
 	recipe.Metadata.Version = "v1.0.0"
 	recipe.Variables = []Variable{{Name: "foo"}}
-	recipe.Templates = map[string][]byte{
-		"subdirectory/file.md.tmpl": []byte("{{ .Variables.foo }}"),
-		"file":                      []byte("{{ .Variables.foo }}"),
+	recipe.Templates = map[string]File{
+		"subdirectory/file.md.tmpl": NewFile([]byte("{{ .Variables.foo }}")),
+		"file":                      NewFile([]byte("{{ .Variables.foo }}")),
 	}
 	recipe.Metadata.TemplateExtension = ".tmpl"
 

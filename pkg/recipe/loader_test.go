@@ -132,7 +132,7 @@ description: foo recipe
 		t.Fatal("failed to load recipe tests")
 	}
 
-	if !bytes.Equal(loaded.Tests[0].Files["file.md"], []byte(contents)) {
+	if !bytes.Equal(loaded.Tests[0].Files["file.md"].Content, []byte(contents)) {
 		t.Fatalf("loader did not load recipe test file correctly, expected %s, actual %s", contents, loaded.Tests[0].Files["file.md"])
 	}
 }

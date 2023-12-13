@@ -1,6 +1,7 @@
 package recipe
 
 import (
+	"crypto/sha256"
 	"errors"
 	"fmt"
 	"os"
@@ -60,8 +61,8 @@ func LoadRecipe(path string) (*Recipe, error) {
 	return recipe, nil
 }
 
-func loadTemplates(recipePath string) (map[string][]byte, error) {
-	templates := make(map[string][]byte)
+func loadTemplates(recipePath string) (map[string]File, error) {
+	templates := make(map[string]File)
 
 	walk := func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -72,7 +73,7 @@ func loadTemplates(recipePath string) (map[string][]byte, error) {
 			return nil
 		}
 
-		data, err := os.ReadFile(path)
+		content, err := os.ReadFile(path)
 		if err != nil {
 			return err
 		}
@@ -81,7 +82,7 @@ func loadTemplates(recipePath string) (map[string][]byte, error) {
 		prefix := fmt.Sprintf("%s%c", recipePath, filepath.Separator)
 		name := filepath.ToSlash(strings.TrimPrefix(path, prefix))
 
-		templates[name] = data
+		templates[name] = NewFile(content)
 		return nil
 	}
 
@@ -123,7 +124,7 @@ func loadTests(path string) ([]Test, error) {
 		}
 
 		test.Name = dir.Name()
-		test.Files = make(map[string][]byte)
+		test.Files = make(map[string]File)
 		testFileDirPath := filepath.Join(testDirPath, RecipeTestFilesDirName)
 
 		walk := func(path string, info os.FileInfo, err error) error {
@@ -135,7 +136,7 @@ func loadTests(path string) ([]Test, error) {
 				return nil
 			}
 
-			contents, err := os.ReadFile(path)
+			content, err := os.ReadFile(path)
 			if err != nil {
 				return err
 			}
@@ -144,7 +145,8 @@ func loadTests(path string) ([]Test, error) {
 			prefix := fmt.Sprintf("%s%c", testFileDirPath, filepath.Separator)
 			trimmedPath := filepath.ToSlash(strings.TrimPrefix(path, prefix))
 
-			test.Files[trimmedPath] = contents
+			test.Files[trimmedPath] = NewFile(content)
+
 			return nil
 		}
 
@@ -157,4 +159,11 @@ func loadTests(path string) ([]Test, error) {
 	}
 
 	return tests, nil
+}
+
+func NewFile(content []byte) File {
+	return File{
+		Content:  content,
+		Checksum: fmt.Sprintf("sha256:%x", sha256.Sum256(content)),
+	}
 }

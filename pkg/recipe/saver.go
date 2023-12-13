@@ -169,7 +169,7 @@ func (s *Sauce) Save(dest string) error {
 		fileMap[filename] = file.Content
 	}
 
-	err = saveFileMap(fileMap, dest)
+	err = saveFileMap(s.Files, dest)
 	if err != nil {
 		return fmt.Errorf("failed to save sauce files: %w", err)
 	}
@@ -177,7 +177,7 @@ func (s *Sauce) Save(dest string) error {
 	return nil
 }
 
-func saveFileMap(files map[string][]byte, dest string) error {
+func saveFileMap(files map[string]File, dest string) error {
 	if len(files) == 0 {
 		return nil
 	}
@@ -203,7 +203,7 @@ func saveFileMap(files map[string][]byte, dest string) error {
 		defer f.Close()
 
 		// Write the data to the file
-		_, err = f.Write(file)
+		_, err = f.Write(file.Content)
 		if err != nil {
 			return err
 		}

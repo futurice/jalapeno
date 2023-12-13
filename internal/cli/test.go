@@ -83,17 +83,55 @@ func runTest(cmd *cobra.Command, opts testOptions) error {
 	}
 
 	if opts.UpdateSnapshots {
+		anyUpdatesFound := false
 		for i := range re.Tests {
 			test := &re.Tests[i]
+			fileUpdatesFound := make(map[string]recipe.File)
 			sauce, err := re.Execute(engine.Engine{}, test.Values, recipe.TestID)
 			if err != nil {
 				return fmt.Errorf("failed to render templates: %w", err)
 			}
 
-			test.Files = make(map[string][]byte)
 			for filename, file := range sauce.Files {
-				test.Files[filename] = file.Content
+				if _, found := test.Files[filename]; test.IgnoreExtraFiles && !found {
+					continue
+				}
+
+				if file.Checksum != test.Files[filename].Checksum {
+					fileUpdatesFound[filename] = file
+				}
 			}
+
+			// Update test files
+			for filename, update := range fileUpdatesFound {
+				test.Files[filename] = update
+			}
+
+			// Remove files which do not exist anymore in the templates
+			for filename := range test.Files {
+				if _, found := sauce.Files[filename]; !found {
+					delete(test.Files, filename)
+				}
+			}
+
+			if len(fileUpdatesFound) > 0 {
+				if !anyUpdatesFound {
+					cmd.Print("The following files have been updated:\n\n")
+					anyUpdatesFound = true
+				}
+
+				cmd.Print(
+					recipeutil.CreateFileTree(
+						fmt.Sprintf("%s/files", test.Name),
+						fileUpdatesFound,
+					),
+				)
+			}
+		}
+
+		if !anyUpdatesFound {
+			cmd.Println("No snapshot updates for any test")
+			return nil
 		}
 
 		err := re.Save(filepath.Dir(opts.RecipePath))
@@ -101,8 +139,7 @@ func runTest(cmd *cobra.Command, opts testOptions) error {
 			return fmt.Errorf("failed to save recipe: %w", err)
 		}
 
-		// TODO: Show which tests were modified
-		cmd.Println("Recipe tests updated successfully")
+		cmd.Printf("\nRecipe test snapshots updated %s\n", opts.Colors.Green.Render("successfully!"))
 		return nil
 	}
 

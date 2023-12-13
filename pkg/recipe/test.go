@@ -17,7 +17,7 @@ type Test struct {
 	Values VariableValues `yaml:"values"`
 
 	// Snapshots of the rendered templates which were rendered with the values specified in the test
-	Files map[string][]byte `yaml:"-"`
+	Files map[string]File `yaml:"-"`
 
 	// If true, test will not fail if the templates generates more files than the test specifies
 	IgnoreExtraFiles bool `yaml:"ignoreExtraFiles"`
@@ -61,7 +61,7 @@ func (re *Recipe) RunTests() []error {
 				errors[i] = fmt.Errorf("%w: file '%s'", ErrTestMissingFile, key)
 				continue
 			} else {
-				if !bytes.Equal(tFile, file.Content) {
+				if !bytes.Equal(tFile.Content, file.Content) {
 					errors[i] = fmt.Errorf("%w: file '%s'.\nExpected:\n%s\n\nActual:\n%s", ErrTestContentMismatch, key, tFile, file.Content)
 					continue
 				}

@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/futurice/jalapeno/internal/cli/option"
-	"github.com/futurice/jalapeno/pkg/oci"
+	"github.com/futurice/jalapeno/pkg/recipe"
 	"github.com/spf13/cobra"
 )
 
@@ -52,7 +52,7 @@ jalapeno push path/to/recipe oci://ghcr.io/user/my-recipe:latest`,
 func runPush(cmd *cobra.Command, opts pushOptions) error {
 	ctx := context.Background()
 
-	err := oci.PushRecipe(ctx, opts.RecipePath, opts.Repository(opts.TargetURL))
+	err := recipe.PushRecipe(ctx, opts.RecipePath, opts.Repository(opts.TargetURL))
 
 	if err != nil {
 		return fmt.Errorf("failed to push recipe: %w", err)

@@ -11,7 +11,6 @@ import (
 
 	"github.com/futurice/jalapeno/internal/cli/option"
 	"github.com/futurice/jalapeno/pkg/engine"
-	"github.com/futurice/jalapeno/pkg/oci"
 	"github.com/futurice/jalapeno/pkg/recipe"
 	"github.com/futurice/jalapeno/pkg/recipeutil"
 	"github.com/futurice/jalapeno/pkg/survey"
@@ -76,7 +75,7 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 
 	if strings.HasPrefix(opts.RecipeURL, "oci://") {
 		ctx := context.Background()
-		re, err = oci.PullRecipe(ctx, opts.Repository(opts.RecipeURL))
+		re, err = recipe.PullRecipe(ctx, opts.Repository(opts.RecipeURL))
 
 	} else {
 		re, err = recipe.LoadRecipe(opts.RecipeURL)
