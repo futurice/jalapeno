@@ -19,18 +19,18 @@ func TestSaveRecipe(t *testing.T) {
 	re := NewRecipe()
 	re.Name = "Test"
 	re.Version = "v0.0.1"
-	re.Templates = map[string][]byte{
-		"foo.md":         []byte("foo"),
-		"foo/bar.md":     []byte("bar"),
-		"foo/bar/baz.md": []byte("baz"),
+	re.Templates = map[string]File{
+		"foo.md":         NewFile([]byte("foo")),
+		"foo/bar.md":     NewFile([]byte("bar")),
+		"foo/bar/baz.md": NewFile([]byte("baz")),
 	}
 	re.Tests = []Test{
 		{
 			Name: "baz_test",
-			Files: map[string][]byte{
-				"foo.md":         []byte("foo"),
-				"foo/bar.md":     []byte("bar"),
-				"foo/bar/baz.md": []byte("baz"),
+			Files: map[string]File{
+				"foo.md":         NewFile([]byte("foo")),
+				"foo/bar.md":     NewFile([]byte("bar")),
+				"foo/bar/baz.md": NewFile([]byte("baz")),
 			},
 		},
 	}
@@ -74,16 +74,16 @@ func TestSaveSauce(t *testing.T) {
 	re := NewRecipe()
 	re.Name = "Test"
 	re.Version = "v0.0.1"
-	re.Templates = map[string][]byte{
-		"foo.md":         []byte("foo"),
-		"foo/bar.md":     []byte("bar"),
-		"foo/bar/baz.md": []byte("baz"),
+	re.Templates = map[string]File{
+		"foo.md":         NewFile([]byte("foo")),
+		"foo/bar.md":     NewFile([]byte("bar")),
+		"foo/bar/baz.md": NewFile([]byte("baz")),
 	}
 	re.Tests = []Test{
 		{
 			Name: "baz_test",
-			Files: map[string][]byte{
-				"foo/bar/baz.md": []byte("baz"),
+			Files: map[string]File{
+				"foo/bar/baz.md": NewFile([]byte("baz")),
 			},
 		},
 	}

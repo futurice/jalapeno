@@ -1,4 +1,4 @@
-package oci
+package recipe
 
 import (
 	"context"
@@ -6,12 +6,12 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/futurice/jalapeno/pkg/recipe"
+	"github.com/futurice/jalapeno/pkg/oci"
 	"oras.land/oras-go/v2"
 	"oras.land/oras-go/v2/content/file"
 )
 
-func PullRecipe(ctx context.Context, repo Repository) (*recipe.Recipe, error) {
+func PullRecipe(ctx context.Context, repo oci.Repository) (*Recipe, error) {
 	dir, err := os.MkdirTemp("", "jalapeno-remote-recipe")
 	if err != nil {
 		return nil, err
@@ -35,7 +35,7 @@ func PullRecipe(ctx context.Context, repo Repository) (*recipe.Recipe, error) {
 
 	recipeName := entries[0].Name()
 
-	re, err := recipe.LoadRecipe(filepath.Join(dir, recipeName))
+	re, err := LoadRecipe(filepath.Join(dir, recipeName))
 	if err != nil {
 		return nil, err
 	}
@@ -44,8 +44,8 @@ func PullRecipe(ctx context.Context, repo Repository) (*recipe.Recipe, error) {
 }
 
 // SaveRemoteRecipe pulls a recipe from repository and saves it to dest directory
-func SaveRemoteRecipe(ctx context.Context, dest string, opts Repository) error {
-	repo, err := NewRepository(opts)
+func SaveRemoteRecipe(ctx context.Context, dest string, opts oci.Repository) error {
+	repo, err := oci.NewRepository(opts)
 	if err != nil {
 		return err
 	}

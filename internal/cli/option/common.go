@@ -14,8 +14,8 @@ type Common struct {
 }
 
 type Colors struct {
-	Primary   lipgloss.Color
-	Secondary lipgloss.Color
+	Green lipgloss.Style
+	Red   lipgloss.Style
 }
 
 func (opts *Common) ApplyFlags(fs *pflag.FlagSet) {
@@ -31,8 +31,8 @@ func (opts *Common) Parse() error {
 	}
 
 	opts.Colors = Colors{
-		Primary:   lipgloss.Color("#EF4136"),
-		Secondary: lipgloss.Color("#26A568"),
+		Red:   lipgloss.NewStyle().Foreground(lipgloss.Color("#EF4136")),
+		Green: lipgloss.NewStyle().Foreground(lipgloss.Color("#26A568")),
 	}
 
 	return nil

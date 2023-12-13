@@ -14,15 +14,15 @@ func CreateExampleRecipe(name string) *recipe.Recipe {
 	r.Variables = []recipe.Variable{
 		{Name: variableName, Default: defaultValue},
 	}
-	r.Templates = map[string][]byte{
-		"README.md": []byte("{{ .Variables.MY_VAR }}"),
+	r.Templates = map[string]recipe.File{
+		"README.md": recipe.NewFile([]byte("{{ .Variables.MY_VAR }}")),
 	}
 	r.Tests = []recipe.Test{
 		{
 			Name:   "defaults",
 			Values: recipe.VariableValues{variableName: defaultValue},
-			Files: map[string][]byte{
-				"README.md": []byte(defaultValue),
+			Files: map[string]recipe.File{
+				"README.md": recipe.NewFile([]byte(defaultValue)),
 			},
 		},
 	}

@@ -7,10 +7,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/charmbracelet/lipgloss"
 	"github.com/futurice/jalapeno/internal/cli/option"
 	"github.com/futurice/jalapeno/pkg/engine"
-	"github.com/futurice/jalapeno/pkg/oci"
 	"github.com/futurice/jalapeno/pkg/recipe"
 	"github.com/futurice/jalapeno/pkg/recipeutil"
 	"github.com/futurice/jalapeno/pkg/survey"
@@ -82,7 +80,7 @@ func runExecute(cmd *cobra.Command, opts executeOptions) error {
 	if strings.HasPrefix(opts.RecipeURL, "oci://") {
 		wasRemoteRecipe = true
 		ctx := context.Background()
-		re, err = oci.PullRecipe(ctx, opts.Repository(opts.RecipeURL))
+		re, err = recipe.PullRecipe(ctx, opts.Repository(opts.RecipeURL))
 
 	} else {
 		re, err = recipe.LoadRecipe(opts.RecipeURL)
@@ -92,11 +90,10 @@ func runExecute(cmd *cobra.Command, opts executeOptions) error {
 		return fmt.Errorf("can not load the recipe: %s", err)
 	}
 
-	style := lipgloss.NewStyle().Foreground(opts.Colors.Primary)
-	cmd.Printf("%s: %s\n", style.Render("Recipe name"), re.Metadata.Name)
+	cmd.Printf("%s: %s\n", opts.Colors.Red.Render("Recipe name"), re.Metadata.Name)
 
 	if re.Metadata.Description != "" {
-		cmd.Printf("%s: %s\n", style.Render("Description"), re.Metadata.Description)
+		cmd.Printf("%s: %s\n", opts.Colors.Red.Render("Description"), re.Metadata.Description)
 	}
 
 	// Load all existing sauces

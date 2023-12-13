@@ -6,9 +6,9 @@ import (
 
 type Recipe struct {
 	Metadata  `yaml:",inline"`
-	Variables []Variable        `yaml:"vars,omitempty"`
-	Templates map[string][]byte `yaml:"-"`
-	Tests     []Test            `yaml:"-"`
+	Variables []Variable      `yaml:"vars,omitempty"`
+	Templates map[string]File `yaml:"-"`
+	Tests     []Test          `yaml:"-"`
 }
 
 type RenderEngine interface {

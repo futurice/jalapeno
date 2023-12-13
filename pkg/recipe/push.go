@@ -1,11 +1,11 @@
-package oci
+package recipe
 
 import (
 	"context"
 	"errors"
 	"strings"
 
-	"github.com/futurice/jalapeno/pkg/recipe"
+	"github.com/futurice/jalapeno/pkg/oci"
 	v1 "github.com/opencontainers/image-spec/specs-go/v1"
 	"oras.land/oras-go/v2"
 	"oras.land/oras-go/v2/content/file"
@@ -15,13 +15,13 @@ var (
 	ErrorUnauthorized = errors.New("unauthorized")
 )
 
-func PushRecipe(ctx context.Context, path string, opts Repository) error {
-	re, err := recipe.LoadRecipe(path)
+func PushRecipe(ctx context.Context, path string, opts oci.Repository) error {
+	re, err := LoadRecipe(path)
 	if err != nil {
 		return err
 	}
 
-	repo, err := NewRepository(opts)
+	repo, err := oci.NewRepository(opts)
 	if err != nil {
 		return err
 	}

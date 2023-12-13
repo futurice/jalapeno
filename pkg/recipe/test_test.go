@@ -13,15 +13,15 @@ type TestWithExpectedOutcome struct {
 func TestRecipeTests(t *testing.T) {
 	scenarios := []struct {
 		name      string
-		templates map[string][]byte
+		templates map[string]File
 		tests     []TestWithExpectedOutcome
 	}{
 		{
 			"single_pass",
-			map[string][]byte{
-				"foo.txt":                []byte("foo"),
-				"var.txt":                []byte("{{ .Variables.VAR }}"),
-				"var_with_func_pipe.txt": []byte("{{ sha1sum .Variables.VAR }}"),
+			map[string]File{
+				"foo.txt":                NewFile([]byte("foo")),
+				"var.txt":                NewFile([]byte("{{ .Variables.VAR }}")),
+				"var_with_func_pipe.txt": NewFile([]byte("{{ sha1sum .Variables.VAR }}")),
 			},
 			[]TestWithExpectedOutcome{
 				{
@@ -29,10 +29,10 @@ func TestRecipeTests(t *testing.T) {
 						Values: VariableValues{
 							"VAR": "var",
 						},
-						Files: map[string][]byte{
-							"foo.txt":                []byte("foo"),
-							"var.txt":                []byte("var"),
-							"var_with_func_pipe.txt": []byte("e5b4e786e382d03c28e9edfab2d8149378ae69df"), // echo -n "var" | shasum -a 1
+						Files: map[string]File{
+							"foo.txt":                NewFile([]byte("foo")),
+							"var.txt":                NewFile([]byte("var")),
+							"var_with_func_pipe.txt": NewFile([]byte("e5b4e786e382d03c28e9edfab2d8149378ae69df")), // echo -n "var" | shasum -a 1
 						},
 					},
 					ExpectedError: nil,
@@ -41,22 +41,22 @@ func TestRecipeTests(t *testing.T) {
 		},
 		{
 			"one_pass_one_failing",
-			map[string][]byte{
-				"foo.txt": []byte("foo"),
+			map[string]File{
+				"foo.txt": NewFile([]byte("foo")),
 			},
 			[]TestWithExpectedOutcome{
 				{
 					Test: Test{
-						Files: map[string][]byte{
-							"foo.txt": []byte("foo"),
+						Files: map[string]File{
+							"foo.txt": NewFile([]byte("foo")),
 						},
 					},
 					ExpectedError: nil,
 				},
 				{
 					Test: Test{
-						Files: map[string][]byte{
-							"foo.txt": []byte("bar"),
+						Files: map[string]File{
+							"foo.txt": NewFile([]byte("bar")),
 						},
 					},
 					ExpectedError: ErrTestContentMismatch,
@@ -65,19 +65,19 @@ func TestRecipeTests(t *testing.T) {
 		},
 		{
 			"no_tests",
-			map[string][]byte{},
+			map[string]File{},
 			nil,
 		},
 		{
 			"content_mismatch",
-			map[string][]byte{
-				"foo.txt": []byte("bar"),
+			map[string]File{
+				"foo.txt": NewFile([]byte("bar")),
 			},
 			[]TestWithExpectedOutcome{
 				{
 					Test: Test{
-						Files: map[string][]byte{
-							"foo.txt": []byte("foo"),
+						Files: map[string]File{
+							"foo.txt": NewFile([]byte("foo")),
 						},
 					},
 					ExpectedError: ErrTestContentMismatch,
@@ -86,15 +86,15 @@ func TestRecipeTests(t *testing.T) {
 		},
 		{
 			"expected_more_files",
-			map[string][]byte{
-				"foo.txt": []byte("foo"),
+			map[string]File{
+				"foo.txt": NewFile([]byte("foo")),
 			},
 			[]TestWithExpectedOutcome{
 				{
 					Test: Test{
-						Files: map[string][]byte{
-							"foo.txt": []byte("foo"),
-							"bar.txt": []byte("bar"),
+						Files: map[string]File{
+							"foo.txt": NewFile([]byte("foo")),
+							"bar.txt": NewFile([]byte("bar")),
 						},
 					},
 					ExpectedError: ErrTestWrongFileAmount,
@@ -103,15 +103,15 @@ func TestRecipeTests(t *testing.T) {
 		},
 		{
 			"expected_less_files",
-			map[string][]byte{
-				"foo.txt": []byte("foo"),
-				"bar.txt": []byte("bar"),
+			map[string]File{
+				"foo.txt": NewFile([]byte("foo")),
+				"bar.txt": NewFile([]byte("bar")),
 			},
 			[]TestWithExpectedOutcome{
 				{
 					Test: Test{
-						Files: map[string][]byte{
-							"foo.txt": []byte("foo"),
+						Files: map[string]File{
+							"foo.txt": NewFile([]byte("foo")),
 						},
 					},
 					ExpectedError: ErrTestWrongFileAmount,
@@ -120,16 +120,16 @@ func TestRecipeTests(t *testing.T) {
 		},
 		{
 			"unexpected_file_rendered",
-			map[string][]byte{
-				"foo.txt": []byte("foo"),
-				"baz.txt": []byte("baz"),
+			map[string]File{
+				"foo.txt": NewFile([]byte("foo")),
+				"baz.txt": NewFile([]byte("baz")),
 			},
 			[]TestWithExpectedOutcome{
 				{
 					Test: Test{
-						Files: map[string][]byte{
-							"foo.txt": []byte("foo"),
-							"bar.txt": []byte("bar"),
+						Files: map[string]File{
+							"foo.txt": NewFile([]byte("foo")),
+							"bar.txt": NewFile([]byte("bar")),
 						},
 					},
 					ExpectedError: ErrTestMissingFile,
@@ -138,17 +138,17 @@ func TestRecipeTests(t *testing.T) {
 		},
 		{
 			"skip_extra_files",
-			map[string][]byte{
-				"foo.txt":   []byte("foo"),
-				"bar.txt":   []byte("bar"),
-				"extra.txt": []byte("extra"),
+			map[string]File{
+				"foo.txt":   NewFile([]byte("foo")),
+				"bar.txt":   NewFile([]byte("bar")),
+				"extra.txt": NewFile([]byte("extra")),
 			},
 			[]TestWithExpectedOutcome{
 				{
 					Test: Test{
-						Files: map[string][]byte{
-							"foo.txt": []byte("foo"),
-							"bar.txt": []byte("bar"),
+						Files: map[string]File{
+							"foo.txt": NewFile([]byte("foo")),
+							"bar.txt": NewFile([]byte("bar")),
 						},
 						IgnoreExtraFiles: true,
 					},
@@ -158,17 +158,17 @@ func TestRecipeTests(t *testing.T) {
 		},
 		{
 			"missing_file_with_skip_extra_files_enabled",
-			map[string][]byte{
-				"foo.txt": []byte("foo"),
-				"bar.txt": []byte("bar"),
+			map[string]File{
+				"foo.txt": NewFile([]byte("foo")),
+				"bar.txt": NewFile([]byte("bar")),
 			},
 			[]TestWithExpectedOutcome{
 				{
 					Test: Test{
-						Files: map[string][]byte{
-							"foo.txt":   []byte("foo"),
-							"bar.txt":   []byte("bar"),
-							"extra.txt": []byte("extra"),
+						Files: map[string]File{
+							"foo.txt":   NewFile([]byte("foo")),
+							"bar.txt":   NewFile([]byte("bar")),
+							"extra.txt": NewFile([]byte("extra")),
 						},
 						IgnoreExtraFiles: true,
 					},
