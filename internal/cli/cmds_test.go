@@ -72,7 +72,7 @@ func TestFeatures(t *testing.T) {
 			s.Step(`^the project directory should contain file "([^"]*)"$`, theProjectDirectoryShouldContainFile)
 			s.Step(`^the project directory should contain file "([^"]*)" with "([^"]*)"$`, theProjectDirectoryShouldContainFileWith)
 			s.Step(`^the sauce file contains a sauce in index (\d) which should have property "([^"]*)" with value "([^"]*)"$`, theSauceFileShouldHavePropertyWithValue)
-			s.Step(`^the sauce file contains a sauce in index (\d) which should have property "([^"]*)" that is a valid UUID$`, theSauceFileFileShouldHavePropertyThatIsAValidUUID)
+			s.Step(`^the sauce file contains a sauce in index (\d) which should have property "([^"]*)" that is a valid UUID$`, theSauceFileShouldHavePropertyThatIsAValidUUID)
 			s.Step(`^CLI produced an output "([^"]*)"$`, expectGivenOutput)
 			s.Step(`^CLI produced an error "([^"]*)"$`, expectGivenError)
 			s.Step(`^recipe "([^"]*)" ignores pattern "([^"]*)"$`, recipeIgnoresPattern)
@@ -343,7 +343,7 @@ func theProjectDirectoryShouldContainFileWith(ctx context.Context, filename, sea
 	return nil
 }
 
-func theSauceFileFileShouldHavePropertyThatIsAValidUUID(ctx context.Context, index int, propertyName string) error {
+func theSauceFileShouldHavePropertyThatIsAValidUUID(ctx context.Context, index int, propertyName string) error {
 	recipes, err := readSauceFile(ctx)
 	if err != nil {
 		return err

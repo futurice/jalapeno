@@ -10,7 +10,8 @@ import (
 
 func AddTestSteps(s *godog.ScenarioContext) {
 	s.Step(`^I run tests for recipe "([^"]*)"$`, iRunTest)
-	s.Step(`^I create a placeholder test for recipe "([^"]*)" using the CLI$`, iCreateRecipeTestUsingCLI)
+	s.Step(`^I run tests for recipe "([^"]*)" while updating snapshots$`, iRunTestWithSnapshotUpdate)
+	s.Step(`^I create a test for recipe "([^"]*)"$`, iCreateRecipeTest)
 }
 
 func iRunTest(ctx context.Context, recipe string) (context.Context, error) {
@@ -33,11 +34,21 @@ func iRunTest(ctx context.Context, recipe string) (context.Context, error) {
 	return ctx, nil
 }
 
-func iCreateRecipeTestUsingCLI(ctx context.Context, recipe string) (context.Context, error) {
+func iCreateRecipeTest(ctx context.Context, recipe string) (context.Context, error) {
 	ctx = context.WithValue(
 		ctx,
 		cmdAdditionalFlagsCtxKey{},
 		map[string]string{"create": "true"},
+	)
+
+	return iRunTest(ctx, recipe)
+}
+
+func iRunTestWithSnapshotUpdate(ctx context.Context, recipe string) (context.Context, error) {
+	ctx = context.WithValue(
+		ctx,
+		cmdAdditionalFlagsCtxKey{},
+		map[string]string{"update-snapshots": "true"},
 	)
 
 	return iRunTest(ctx, recipe)
