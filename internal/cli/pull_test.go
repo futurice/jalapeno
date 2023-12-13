@@ -4,7 +4,13 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
+
+	"github.com/cucumber/godog"
 )
+
+func AddPullSteps(s *godog.ScenarioContext) {
+	s.Step(`^I pull the recipe "([^"]*)" from the local OCI repository "([^"]*)"$`, iPullRecipe)
+}
 
 func iPullRecipe(ctx context.Context, recipeName, repoName string) (context.Context, error) {
 	recipesDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)

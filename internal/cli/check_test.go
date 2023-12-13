@@ -4,8 +4,16 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/cucumber/godog"
 	re "github.com/futurice/jalapeno/pkg/recipe"
 )
+
+func AddCheckSteps(s *godog.ScenarioContext) {
+	s.Step(`^I check new versions$`, iRunCheck)
+	s.Step(`^I check new versions for recipe "([^"]*)"$`, iRunCheckForRecipe)
+	s.Step(`^I check new versions for recipe "([^"]*)" from the local OCI repository "([^"]*)"$`, iRunCheckForRecipeFrom)
+	s.Step(`^the source of the sauce with recipe "([^"]*)" is in the local OCI registry$`, sourceOfTheSauceIsTheLocalOCIRegistry)
+}
 
 func iRunCheck(ctx context.Context) (context.Context, error) {
 	projectDir := ctx.Value(projectDirectoryPathCtxKey{}).(string)

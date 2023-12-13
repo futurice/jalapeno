@@ -4,7 +4,14 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
+
+	"github.com/cucumber/godog"
 )
+
+func AddPushSteps(s *godog.ScenarioContext) {
+	s.Step(`^I push the recipe "([^"]*)" to the local OCI repository$`, iRunPush)
+	s.Step(`^the recipe "([^"]*)" is pushed to the local OCI repository "([^"]*)"$`, iRunPush)
+}
 
 func iRunPush(ctx context.Context, recipeName string) (context.Context, error) {
 	recipesDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)

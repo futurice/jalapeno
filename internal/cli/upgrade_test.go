@@ -9,8 +9,19 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/cucumber/godog"
 	"github.com/futurice/jalapeno/pkg/recipe"
 )
+
+func AddUpgradeSteps(s *godog.ScenarioContext) {
+	s.Step(`^I upgrade recipe "([^"]*)"$`, iRunUpgrade)
+	s.Step(`^I upgrade recipe from the local OCI repository "([^"]*)"$`, iRunUpgradeFromRemoteRecipe)
+	s.Step(`^no conflicts were reported$`, noConflictsWereReported)
+	s.Step(`^conflicts are reported$`, conflictsAreReported)
+	s.Step(`^I change project file "([^"]*)" to contain "([^"]*)"$`, iChangeProjectFileToContain)
+	s.Step(`^I change recipe "([^"]*)" template "([^"]*)" to render "([^"]*)"$`, iChangeRecipeTemplateToRender)
+	s.Step(`^I change recipe "([^"]*)" to version "([^"]*)"$`, iChangeRecipeToVersion)
+}
 
 func iRunUpgrade(ctx context.Context, recipe string) (context.Context, error) {
 	projectDir := ctx.Value(projectDirectoryPathCtxKey{}).(string)

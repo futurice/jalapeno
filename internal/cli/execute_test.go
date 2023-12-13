@@ -6,7 +6,15 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/cucumber/godog"
 )
+
+func AddExecuteSteps(s *godog.ScenarioContext) {
+	s.Step(`^I execute recipe "([^"]*)"$`, iRunExecute)
+	s.Step(`^I execute the recipe from the local OCI repository "([^"]*)"$`, iExecuteRemoteRecipe)
+	s.Step(`^execution of the recipe has succeeded$`, executionOfTheRecipeHasSucceeded)
+}
 
 func iRunExecute(ctx context.Context, recipe string) (context.Context, error) {
 	projectDir := ctx.Value(projectDirectoryPathCtxKey{}).(string)

@@ -4,7 +4,14 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
+
+	"github.com/cucumber/godog"
 )
+
+func AddTestSteps(s *godog.ScenarioContext) {
+	s.Step(`^I run tests for recipe "([^"]*)"$`, iRunTest)
+	s.Step(`^I create a placeholder test for recipe "([^"]*)" using the CLI$`, iCreateRecipeTestUsingCLI)
+}
 
 func iRunTest(ctx context.Context, recipe string) (context.Context, error) {
 	recipesDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)

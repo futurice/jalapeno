@@ -7,8 +7,14 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/cucumber/godog"
 	"github.com/futurice/jalapeno/pkg/recipe"
 )
+
+func AddEjectSteps(s *godog.ScenarioContext) {
+	s.Step(`^I eject Jalapeno from the project$`, iRunEject)
+	s.Step(`^there should not be a sauce directory in the project directory$`, thereShouldNotBeASauceDirectoryInTheProjectDirectory)
+}
 
 func iRunEject(ctx context.Context) (context.Context, error) {
 	projectDir := ctx.Value(projectDirectoryPathCtxKey{}).(string)
