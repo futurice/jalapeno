@@ -15,6 +15,8 @@ jobs:
     permissions:
       contents: write
       packages: write
+    env:
+      DOCKER_CONFIG: $HOME/.docker
     steps:
       - uses: actions/checkout@v3
         with:
@@ -26,29 +28,16 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: actions/setup-go@v3
+      # TODO: Loop over dynamically through all examples
+      - uses: futurice/jalapeno@main
         with:
-          go-version: "1.21"
-
-      - uses: actions/cache@v3
+          cmd: push ./examples/github-action oci://ghcr.io/futurice/jalapeno/examples/github-action
+      - uses: futurice/jalapeno@main
         with:
-          path: |
-            ~/.cache/go-build
-            ~/go/pkg/mod
-          key: ${{ runner.os }}-golang-${{ hashFiles('go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-golang-
-
-      - uses: arduino/setup-task@v1
+          cmd: push ./examples/minimal oci://ghcr.io/futurice/jalapeno/examples/minimal
+      - uses: futurice/jalapeno@main
         with:
-          version: 3.x
-          repo-token: ${{ secrets.GITHUB_TOKEN }} # https://github.com/arduino/setup-task#repo-token
-
-      - name: Push example recipes to GitHub Packages
-        run: |
-          for dir in examples/*/ # list directories in the form "examples/dirname/"
-          do
-              dir=${dir%*/} # remove the trailing "/"
-              task run -- test ${dir}
-              task run -- push ${dir} oci://ghcr.io/futurice/jalapeno/${dir}
-          done
+          cmd: push ./examples/variable-types oci://ghcr.io/futurice/jalapeno/examples/variable-types
+      - uses: futurice/jalapeno@main
+        with:
+          cmd: push ./examples/with-tests oci://ghcr.io/futurice/jalapeno/examples/with-tests
