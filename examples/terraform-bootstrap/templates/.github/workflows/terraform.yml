@@ -19,7 +19,7 @@ jobs:
     with:
       ENVIRONMENT: {{ $env.NAME }}
       TERRAFORM_VERSION: {{ "${{ vars.TERRAFORM_VERSION }}" }}
-      TERRAFORM_BACKEND_STORAGE_NAME: {{ template "storage_account_name_prefix" $ }}{{ $env.NAME }}
+      TERRAFORM_BACKEND_STORAGE_NAME: {{ template "storage_account_name_prefix" $ }}{{ template "resource_tag" $ }}{{ $env.NAME }}
       RESOURCE_GROUP_NAME: {{ $env.RESOURCE_GROUP_NAME }}
     secrets:
       ARM_CLIENT_ID: {{ printf "${{ secrets.ARM_CLIENT_ID_%s }}" ($env.NAME | upper) }}
