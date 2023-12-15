@@ -121,13 +121,13 @@ tasks:
       - gh secret set ARM_CLIENT_SECRET_{{ `{{ upper .ENVIRONMENT }}` }}
       - gh secret set ARM_SUBSCRIPTION_ID_{{ `{{ upper .ENVIRONMENT }}` }} --body {{ `{{ .ARM_SUBSCRIPTION_ID }}` }}
       - gh secret set ARM_TENANT_ID_{{ `{{ upper .ENVIRONMENT }}` }}
-  {{ end }}
+  {{- end }}
 
   {{ if .Variables.CREATE_GITHUB_ACTIONS_PIPELINE -}}
   gh:set-ci-vars:
     deps: [gh:login]
     cmds:
       - gh variable set TERRAFORM_VERSION --body 1.6.6
-  {{ end }}
+  {{- end }}
 # TODO: task to delete state resources for a particular env
 # TODO: validate resource group name when prompting
