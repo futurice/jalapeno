@@ -4,7 +4,7 @@ slug: /usage/
 title: Usage
 ---
 
-# Usage [WIP]
+# Usage
 
 ## Getting started
 
@@ -109,12 +109,68 @@ If you need to use numbers in the templates, you can use the `atoi` function to 
 
 Variables can be validated by defining [`validators`](/api#variable) property for the variable. Validators support regular expression pattern matching.
 
-## Using recipes in Container Registry
+## Publishing recipes
+
+Jalapeno supports publishing and storing recipes in OCI compatible registries. This means that versioned recipes can be pushed and pulled to/from ordinary Container Registries. This is useful when you want to make your recipes available or you want to check for updates for the recipe manually or programatically from CI/CD pipeline.
 
 ### Pushing a recipe to Container registry
 
+You can push a recipe to a Container registry by using `jalapeno push` command. For authentication you can use `docker login` before pushing the recipe or provide credentials directly to `jalapeno push` command by using flags. For example:
+
+```bash
+jalapeno create my-recipe
+
+# You can find possible authentication methods to Github Container Registry at https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry#authenticating-to-the-container-registry
+docker login ghcr.io -u my-user
+
+jalapeno push my-recipe ghcr.io/my-user/my-recipe
+```
+
+After this you should be able to see the recipe in the Container registry from the UI or by running:
+
+```bash
+docker inspect ghcr.io/my-user/my-recipe:0.0.0
+```
+
+:::note
+
+The tag of the recipe image in Container Registry is determined by the version in `recipe.yml` file. So if you want to push a new version of the recipe, you need to update the version in `recipe.yml` file first.
+
+:::
+
 ### Executing a recipe from Container registry
+
+You can execute a recipe directly from Container registry by using `jalapeno execute` command. For example:
+
+```bash
+mkdir my-project && cd my-project
+jalapeno execute oci://ghcr.io/my-user/my-recipe:0.0.0
+```
+
+Another way is to pull the recipe first on your local machine and then execute it:
+
+```bash
+mkdir my-project && cd my-project
+jalapeno pull oci://ghcr.io/my-user/my-recipe:0.0.0
+jalapeno execute my-recipe
+```
 
 ### Checking updates for a recipe
 
-`jalapeno check`
+After you have executed a recipe, Jalapeno will create a `.jalapeno/sauces.yml` file to the project directory. This file contains information about the executed recipes and their versions. If the recipe was executed directly from a Container Registry, the registry URL is also stored in the file for checking for new versions. To check the new versions for the recipes, you can run:
+
+```bash
+jalapeno check
+```
+
+This will check for updates for all the recipes in the project directory. You can also check for updates for a specific recipe by running:
+
+```bash
+jalapeno check -r my-recipe
+```
+
+If you've executed the recipe from local directory and the registry URL is still unknown, you can set the registry URL manually by running:
+
+```bash
+jalapeno check -r my-recipe --from oci://ghcr.io/my-user/my-recipe
+```

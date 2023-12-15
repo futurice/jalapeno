@@ -32,14 +32,14 @@ func NewPushCmd() *cobra.Command {
 			return runPush(cmd, opts)
 		},
 		Example: `# Push recipe to OCI repository
-jalapeno push path/to/recipe ghcr.io/user/recipe:latest
+jalapeno push path/to/recipe ghcr.io/user/recipe
 
 # Push recipe to OCI repository with inline authentication
-jalapeno push path/to/recipe oci://ghcr.io/user/my-recipe:latest --username user --password pass
+jalapeno push path/to/recipe oci://ghcr.io/user/my-recipe --username user --password pass
 
 # Push recipe to OCI repository with Docker authentication
 docker login ghcr.io
-jalapeno push path/to/recipe oci://ghcr.io/user/my-recipe:latest`,
+jalapeno push path/to/recipe oci://ghcr.io/user/my-recipe`,
 	}
 
 	if err := option.ApplyFlags(&opts, cmd.Flags()); err != nil {
