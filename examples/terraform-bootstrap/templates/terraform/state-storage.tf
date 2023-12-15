@@ -2,8 +2,12 @@
 {{- ternary "resource" "data" .Variables.CREATE_RESOURCE_GROUPS -}}
 {{- end -}}
 
+{{- define "resource_tag" -}}
+{{- printf "%.6s" (sha1sum .ID) -}}
+{{- end -}}
+
 {{- define "storage_account_name_prefix" -}}
-{{- printf "tfs%.11s%.6s" (regexReplaceAll "[^a-z0-9]" (.Variables.SERVICE_NAME | lower) "") (sha1sum .ID) -}}
+{{- printf "tfs%.11s" (regexReplaceAll "[^a-z0-9]" (.Variables.SERVICE_NAME | lower) "") -}}
 {{- end -}}
 
 locals {
@@ -13,6 +17,8 @@ locals {
     {{- end }}
     "default" : {{ (index .Variables.ENVIRONMENTS 0).RESOURCE_GROUP_NAME | quote }}
   }
+
+  resource_tag = "{{ template "resource_tag" . }}"
 }
 
 data "azurerm_client_config" "current" {
@@ -30,7 +36,7 @@ data "azurerm_resource_group" "main" {
 {{- end }}
 
 resource "azurerm_storage_account" "tfstate" {
-  name                     = "{{ template "storage_account_name_prefix" . }}${terraform.workspace}"
+  name                     = "{{ template "storage_account_name_prefix" . }}{{ template "resource_tag" . }}${terraform.workspace}"
   resource_group_name      = {{ template "rg_block_type" . }}.azurerm_resource_group.main.name
   location                 = {{ template "rg_block_type" . }}.azurerm_resource_group.main.location
   account_tier             = "Standard"
