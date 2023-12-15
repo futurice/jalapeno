@@ -27,10 +27,10 @@ tasks:
         - ENVIRONMENT
     cmds:
       - >-
-        read -p "Enter CI Service Principal Client ID for {{ .ENVIRONMENT }}: " CI_ARM_CLIENT_ID;
-        read -p "Enter subscription ID for {{ .ENVIRONMENT }}: " ARM_SUBSCRIPTION_ID;
-        task gh:add-ci-service-principals ARM_SUBSCRIPTION_ID=$ARM_SUBSCRIPTION_ID ARM_CLIENT_ID=$CI_ARM_CLIENT_ID ENVIRONMENT={{ .ENVIRONMENT }};
-        task init-environment-with-service-provider ARM_SUBSCRIPTION_ID=$ARM_SUBSCRIPTION_ID ARM_CLIENT_ID=$CI_ARM_CLIENT_ID ENVIRONMENT={{ .ENVIRONMENT }};
+        read -p "Enter CI Service Principal Client ID for {{ `{{ .ENVIRONMENT }}` }}: " CI_ARM_CLIENT_ID;
+        read -p "Enter subscription ID for {{ `{{ .ENVIRONMENT }}` }}: " ARM_SUBSCRIPTION_ID;
+        task gh:add-ci-service-principals ARM_SUBSCRIPTION_ID=$ARM_SUBSCRIPTION_ID ARM_CLIENT_ID=$CI_ARM_CLIENT_ID ENVIRONMENT={{ `{{ .ENVIRONMENT }}` }};
+        task init-environment-with-service-provider ARM_SUBSCRIPTION_ID=$ARM_SUBSCRIPTION_ID ARM_CLIENT_ID=$CI_ARM_CLIENT_ID ENVIRONMENT={{ `{{ .ENVIRONMENT }}` }};
 
   init-environment-with-service-provider:
   {{- end }}
