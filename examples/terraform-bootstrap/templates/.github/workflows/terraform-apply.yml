@@ -1,0 +1,52 @@
+{{- if .Variables.CREATE_GITHUB_ACTIONS_PIPELINE }}
+name: Terraform Apply
+
+on:
+  workflow_call:
+    inputs:
+      ENVIRONMENT:
+        required: true
+        type: string
+      TERRAFORM_VERSION:
+        required: true
+        type: string
+    secrets:
+      ARM_SUBSCRIPTION_ID:
+        required: true
+      ARM_TENANT_ID:
+        required: true
+      ARM_CLIENT_ID:
+        required: true
+      ARM_CLIENT_SECRET:
+        required: true
+
+env:
+  TF_IN_AUTOMATION: "true"
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    environment: {{ "${{ inputs.ENVIRONMENT }}" }}
+    env:
+      ARM_CLIENT_ID: {{ "${{ secrets.ARM_CLIENT_ID }}" }}
+      ARM_CLIENT_SECRET: {{ "${{ secrets.ARM_CLIENT_SECRET }}" }}
+      ARM_SUBSCRIPTION_ID: {{ "${{ secrets.ARM_SUBSCRIPTION_ID }}" }}
+      ARM_TENANT_ID: {{ "${{ secrets.ARM_TENANT_ID }}" }}
+    steps:
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: {{ "${{ inputs.TERRAFORM_VERSION }}" }}
+
+      - name: Download the plan
+        uses: actions/download-artifact@v2
+        with:
+          name: terraform-plan-{{ "${{ inputs.ENVIRONMENT }}" }}
+
+      - name: Restore run permissions
+        run: chmod -R +x .terraform
+
+      - name: Terraform Apply
+        id: apply
+        run: terraform apply -input=false -no-color terraform.tfplan
+{{- end }}

@@ -1,0 +1,25 @@
+apiVersion: v1
+name: terraform-bootstrap
+version: v0.0.1
+description: Set up Terraform basics like state file bootstrapping
+initHelp: Install Task from https://taskfile.dev and run `task init` in the 'terraform' subdirectory of the project directory to set up terraform.
+vars:
+  - name: ENVIRONMENTS
+    description: Comma-separated list of environments to create, e.g. "dev, qa, prod"
+    columns: [NAME, RESOURCE_GROUP_NAME]
+
+  - name: SERVICE_NAME
+    description: Service name
+
+  - name: CREATE_RESOURCE_GROUPS
+    confirm: true
+
+  - name: RESOURCE_GROUP_LOCATION
+    if: CREATE_RESOURCE_GROUPS == true
+    options:
+      - "North Europe"
+      - "West Europe"
+      # ...
+
+  - name: CREATE_GITHUB_ACTIONS_PIPELINE
+    confirm: true

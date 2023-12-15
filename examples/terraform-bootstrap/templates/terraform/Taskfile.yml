@@ -1,0 +1,133 @@
+version: "3"
+
+{{- $envs := list }}
+{{- range $env := .Variables.ENVIRONMENTS -}}
+{{- $envs = append $envs $env.NAME -}}
+{{- end }}
+
+vars:
+  ENVIRONMENTS: {{ $envs | join "," }}
+
+tasks:
+  init:
+    cmds:
+      - for: { var: ENVIRONMENTS, split: "," }
+        task: init-environment
+        vars:
+          ENVIRONMENT: "{{ "{{ .ITEM }}" }}"
+      {{- if .Variables.CREATE_GITHUB_ACTIONS_PIPELINE }}
+      - task: gh:set-ci-vars
+      {{- end }}
+
+  init-environment:
+  {{- if .Variables.CREATE_GITHUB_ACTIONS_PIPELINE }}
+    internal: true
+    requires:
+      vars:
+        - ENVIRONMENT
+    cmds:
+      - >-
+        read -p "Enter CI Service Principal Client ID for {{ `{{ .ENVIRONMENT }}` }}: " CI_ARM_CLIENT_ID;
+        read -p "Enter subscription ID for {{ `{{ .ENVIRONMENT }}` }}: " ARM_SUBSCRIPTION_ID;
+        task gh:add-ci-service-principals ARM_SUBSCRIPTION_ID=$ARM_SUBSCRIPTION_ID ARM_CLIENT_ID=$CI_ARM_CLIENT_ID ENVIRONMENT={{ `{{ .ENVIRONMENT }}` }};
+        task init-environment-with-service-provider ARM_SUBSCRIPTION_ID=$ARM_SUBSCRIPTION_ID ARM_CLIENT_ID=$CI_ARM_CLIENT_ID ENVIRONMENT={{ `{{ .ENVIRONMENT }}` }};
+
+  init-environment-with-service-provider:
+  {{- end }}
+    deps: [az:login]
+    requires:
+      vars:
+        - ENVIRONMENT
+        {{- if .Variables.CREATE_GITHUB_ACTIONS_PIPELINE }}
+        - ARM_SUBSCRIPTION_ID
+        - ARM_CLIENT_ID
+        {{ end }}
+    cmds:
+      - rm -Rf .terraform/terraform.tfstate backend.tf # Remove backend from previous run
+      - terraform init
+      - terraform workspace new {{ `{{ .ENVIRONMENT }}` }}
+      # Create storage account and container for remote state
+      - >-
+        terraform apply
+        -target azurerm_storage_container.tfstate
+        -target azurerm_role_assignment.tfstate
+        -auto-approve
+        -input=false
+      # Save output values to variables before migrating the backend
+      - >-
+        RESOURCE_GROUP_NAME=$(terraform output -raw resource_group_name);
+        STORAGE_ACCOUNT_NAME=$(terraform output -raw tfstate_storage_account_name);
+        STORAGE_CONTAINER_NAME=$(terraform output -raw tfstate_storage_container_name);
+
+        terraform apply
+        -target local_file.backend_config
+        -auto-approve
+        -input=false;
+
+        terraform init
+        -migrate-state
+        -force-copy
+        -input=false
+        -backend-config="resource_group_name=$RESOURCE_GROUP_NAME"
+        -backend-config="storage_account_name=$STORAGE_ACCOUNT_NAME"
+        -backend-config="container_name=$STORAGE_CONTAINER_NAME"
+        -backend-config="key=tfstate_";
+
+        {{- if .Variables.CREATE_GITHUB_ACTIONS_PIPELINE }}
+        echo "Adding owner role assignment to the CI service principal...";
+        NEW_ROLE_ASSIGNMENT_ID=$(az role assignment create
+        --role "Storage Blob Data Owner"
+        --assignee {{ `{{ .ARM_CLIENT_ID }}` }}
+        --scope "/subscriptions/{{ `{{.ARM_SUBSCRIPTION_ID}}` }}/resourceGroups/${RESOURCE_GROUP_NAME}/providers/Microsoft.Storage/storageAccounts/${STORAGE_ACCOUNT_NAME}/blobServices/default/containers/${STORAGE_CONTAINER_NAME}"
+        --output tsv
+        --query id);
+
+        echo Grabbing old role assignment ID from terraform...;
+        OLD_ROLE_ASSIGNMENT_ID=$(terraform output -raw tfstate_storage_role_assignment_id);
+
+        echo Removing old role assignment from terraform state...;
+        terraform state rm azurerm_role_assignment.tfstate;
+
+        echo Importing new role assignment into state on top of the one created for the logged in user...;
+        terraform import azurerm_role_assignment.tfstate ${NEW_ROLE_ASSIGNMENT_ID};
+
+        echo Removing old role assignment...;
+        az role assignment delete --ids ${OLD_ROLE_ASSIGNMENT_ID};
+        {{ end }}
+      - rm -Rf terraform.tfstate.d # Remove local state files
+
+  az:login:
+    cmds:
+      - az login
+    status:
+      - az account show
+
+  gh:login:
+    cmds:
+      - gh auth login
+    status:
+      - gh auth token
+
+  {{ if .Variables.CREATE_GITHUB_ACTIONS_PIPELINE -}}
+  gh:add-ci-service-principals:
+    deps: [gh:login]
+    requires:
+      vars:
+        - ENVIRONMENT
+        - ARM_SUBSCRIPTION_ID
+        - ARM_CLIENT_ID
+    cmds:
+      - gh secret set ARM_CLIENT_ID_{{ `{{ upper .ENVIRONMENT }}` }} --body {{ `{{ .ARM_CLIENT_ID }}` }}
+      - gh secret set ARM_CLIENT_SECRET_{{ `{{ upper .ENVIRONMENT }}` }}
+      - gh secret set ARM_SUBSCRIPTION_ID_{{ `{{ upper .ENVIRONMENT }}` }} --body {{ `{{ .ARM_SUBSCRIPTION_ID }}` }}
+      - gh secret set ARM_TENANT_ID_{{ `{{ upper .ENVIRONMENT }}` }}
+  {{- end }}
+
+  {{ if .Variables.CREATE_GITHUB_ACTIONS_PIPELINE -}}
+  gh:set-ci-vars:
+    deps: [gh:login]
+    cmds:
+      - gh variable set TERRAFORM_VERSION --body 1.6.6
+  {{- end }}
+# TODO: task to delete state resources for a particular env
+# TODO: validate resource group name when prompting
