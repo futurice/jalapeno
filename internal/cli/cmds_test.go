@@ -338,7 +338,7 @@ func theProjectDirectoryShouldContainFileWith(ctx context.Context, filename, sea
 		return err
 	}
 	if !strings.Contains(content, searchTerm) {
-		return fmt.Errorf("substring %s not found in %s", searchTerm, filename)
+		return fmt.Errorf("substring '%s' not found in file %s", searchTerm, filename)
 	}
 	return nil
 }
@@ -399,7 +399,7 @@ func expectGivenOutput(ctx context.Context, expected string) error {
 	cmdStdOut := ctx.Value(cmdStdOutCtxKey{}).(*bytes.Buffer)
 
 	if matched, err := regexp.MatchString(expected, cmdStdOut.String()); !matched {
-		return fmt.Errorf("command produced unexpected output: Expected: '%s', Actual: '%s'", expected, cmdStdOut)
+		return fmt.Errorf("command produced unexpected output: Expected: '%s', Actual: '%s'", expected, strings.TrimSpace(cmdStdOut.String()))
 	} else if err != nil {
 		return fmt.Errorf("regexp pattern matching caused an error: %w", err)
 	}

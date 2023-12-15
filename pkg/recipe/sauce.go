@@ -27,11 +27,6 @@ type Sauce struct {
 	CheckFrom string `yaml:"from,omitempty"`
 }
 
-type File struct {
-	Checksum string `yaml:"checksum"` // e.g. "sha256:xxxxxxxxx" w. default algo
-	Content  []byte `yaml:"-"`
-}
-
 type RecipeConflict struct {
 	Path           string
 	Sha256Sum      string
@@ -113,6 +108,9 @@ func LoadSauces(projectDir string) ([]*Sauce, error) {
 			if err != nil {
 				return nil, fmt.Errorf("failed to read rendered file: %w", err)
 			}
+			// Note that we use the file checksum from the sauce file,
+			// but read contents from the files. This means that if the checksum
+			// does not match the data, the file has been modified outside of Jalapeno
 			file.Content = data
 			sauce.Files[path] = file
 		}

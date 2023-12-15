@@ -99,7 +99,7 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 	}
 
 	cmd.Printf(
-		"Upgrading recipe %s from version %s to %s\n",
+		"Upgrading recipe '%s' from version %s to %s\n",
 		oldSauce.Recipe.Name,
 		oldSauce.Recipe.Metadata.Version,
 		re.Metadata.Version,
@@ -225,29 +225,24 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 			continue
 		}
 
-		if prevFile, exists := oldSauce.Files[path]; exists {
-			// Check if file was modified after rendering
-			filePath := filepath.Join(opts.Dir, path)
-			if modified, err := recipeutil.IsFileModified(filePath, prevFile); err != nil {
-				return err
-			} else if modified {
-				// The file contents has been modified
-				if !overrideNoticed {
-					cmd.Println("Some of the files has been manually modified. Do you want to override the following files:")
-					overrideNoticed = true
-				}
+		if prevFile, exists := oldSauce.Files[path]; exists && prevFile.HasBeenModified() {
+			// The file contents has been modified
+			if !overrideNoticed {
+				cmd.Println("Some of the files has been manually modified. Do you want to override the following files:")
+				overrideNoticed = true
+			}
 
-				// TODO: We could do better in terms of merge conflict management. Like show the diff or something
-				var override bool
-				if err != nil {
-					return fmt.Errorf("error when prompting for question: %w", err)
-				}
+			// TODO: Ask the user should we override the file or not
+			// TODO: We could do better in terms of merge conflict management. Like show the diff or something
+			var override bool
+			if err != nil {
+				return fmt.Errorf("error when prompting for question: %w", err)
+			}
 
-				if !override {
-					// User decided not to override the file with manual changes, remove from
-					// list of changes to write
-					continue
-				}
+			if !override {
+				// User decided not to override the file with manual changes, remove from
+				// list of changes to write
+				continue
 			}
 		}
 

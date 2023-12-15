@@ -1,7 +1,6 @@
 package recipe
 
 import (
-	"crypto/sha256"
 	"errors"
 	"fmt"
 	"os"
@@ -159,11 +158,4 @@ func loadTests(path string) ([]Test, error) {
 	}
 
 	return tests, nil
-}
-
-func NewFile(content []byte) File {
-	return File{
-		Content:  content,
-		Checksum: fmt.Sprintf("sha256:%x", sha256.Sum256(content)),
-	}
 }
