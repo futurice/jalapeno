@@ -108,7 +108,7 @@ func TestFeatures(t *testing.T) {
 		Options: &godog.Options{
 			Concurrency: 4,
 			Format:      "pretty",
-			Paths:       []string{"../../features"},
+			Paths:       []string{"../../test"},
 			TestingT:    t, // Testing instance that will run subtests.
 		},
 	}
