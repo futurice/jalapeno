@@ -174,3 +174,9 @@ If you've executed the recipe from local directory and the registry URL is still
 ```bash
 jalapeno check -r my-recipe --from oci://ghcr.io/my-user/my-recipe
 ```
+
+:::tip
+
+If you want to run the check in a CI/CD pipeline (like Github Actions), you can check the [`examples/github-action`](https://github.com/futurice/jalapeno/tree/main/examples/github-action) recipe how to do it or you can execute it to your project with `jalapeno execute oci://ghcr.io/futurice/jalapeno/examples/github-action:v0.0.0`.
+
+:::
