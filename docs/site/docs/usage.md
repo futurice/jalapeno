@@ -49,7 +49,7 @@ jalapeno execute ./jalapeno/examples/variable-types -d my-project
 Or execute them directly from GitHub Container Registry:
 
 ```bash
-jalapeno execute oci://ghcr.io/futurice/jalapeno/examples/variable-types:0.0.0 -d my-project
+jalapeno execute oci://ghcr.io/futurice/jalapeno/examples/variable-types:v0.0.0 -d my-project
 ```
 
 :::
@@ -129,7 +129,7 @@ jalapeno push my-recipe ghcr.io/my-user/my-recipe
 After this you should be able to see the recipe in the Container registry from the UI or by running:
 
 ```bash
-docker inspect ghcr.io/my-user/my-recipe:0.0.0
+docker inspect ghcr.io/my-user/my-recipe:v0.0.0
 ```
 
 :::note
@@ -144,14 +144,14 @@ You can execute a recipe directly from Container registry by using `jalapeno exe
 
 ```bash
 mkdir my-project && cd my-project
-jalapeno execute oci://ghcr.io/my-user/my-recipe:0.0.0
+jalapeno execute oci://ghcr.io/my-user/my-recipe:v0.0.0
 ```
 
 Another way is to pull the recipe first on your local machine and then execute it:
 
 ```bash
 mkdir my-project && cd my-project
-jalapeno pull oci://ghcr.io/my-user/my-recipe:0.0.0
+jalapeno pull oci://ghcr.io/my-user/my-recipe:v0.0.0
 jalapeno execute my-recipe
 ```
 
