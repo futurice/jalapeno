@@ -266,10 +266,9 @@ func aFailingRecipeWithVariableThatGeneratesFile(ctx context.Context, recipe, va
 name: %[1]s
 version: v0.0.1
 description: %[1]s
-variables:
-  %[2]s:
-    type: string
-	description: %[2]s
+vars:
+  - name: %[2]s
+    description: %[2]s
 `
 	if err := os.WriteFile(filepath.Join(dir, recipe, re.RecipeFileName+re.YAMLExtension), []byte(fmt.Sprintf(template, recipe, variable)), 0644); err != nil {
 		return ctx, err
