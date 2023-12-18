@@ -141,5 +141,5 @@ winget:
 announce:
   slack:
     enabled: true
-    message_template: "Jalapeno {{.Tag}} is out! Check it out at {{ .ReleaseURL }}"
+    message_template: "Jalapeno {{.Tag}} is out! Check the release notes at {{ .ReleaseURL }}"
     channel: "#jalapeno"
