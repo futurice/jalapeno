@@ -2,16 +2,38 @@ name: Release
 
 on:
   push:
+    branches:
+      - main
     tags:
       - "v*"
 
 jobs:
-  lint:
-    uses: ./.github/workflows/lint.yml
-  test:
-    uses: ./.github/workflows/test.yml
   release:
-    name: Create release
+    name: Release
+    permissions:
+      contents: write
+      pull-requests: write
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: google-github-actions/release-please-action@v3
+        id: release
+        with:
+          release-type: go
+
+  lint:
+    name: Lint
+    uses: ./.github/workflows/lint.yml
+
+  test:
+    name: Test
+    uses: ./.github/workflows/test.yml
+
+  publish:
+    name: Publish artifacts
+    needs: [release, lint, test]
+    if: ${{ needs.release.outputs.release_created }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
