@@ -13,7 +13,9 @@ import (
 	"github.com/futurice/jalapeno/pkg/engine"
 	"github.com/futurice/jalapeno/pkg/recipe"
 	"github.com/futurice/jalapeno/pkg/recipeutil"
-	"github.com/futurice/jalapeno/pkg/survey"
+	"github.com/futurice/jalapeno/pkg/ui/conflict"
+	"github.com/futurice/jalapeno/pkg/ui/survey"
+	uiutil "github.com/futurice/jalapeno/pkg/ui/util"
 	"github.com/spf13/cobra"
 	"golang.org/x/mod/semver"
 )
@@ -165,23 +167,12 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 
 	if len(varsWithoutValues) > 0 {
 		if opts.NoInput {
-			var errMsg string
-			if len(varsWithoutValues) == 1 {
-				errMsg = fmt.Sprintf("value for variable %s is", varsWithoutValues[0].Name)
-			} else {
-				vars := make([]string, len(varsWithoutValues))
-				for i, v := range varsWithoutValues {
-					vars[i] = v.Name
-				}
-				errMsg = fmt.Sprintf("values for variables [%s] are", strings.Join(vars, ","))
-			}
-
-			return fmt.Errorf("%s missing and `--no-input` flag was set to true", errMsg)
+			return recipeutil.NewNoInputError(varsWithoutValues)
 		}
 
 		promptedValues, err := survey.PromptUserForValues(cmd.InOrStdin(), cmd.OutOrStdout(), varsWithoutValues, predefinedValues)
 		if err != nil {
-			if errors.Is(err, survey.ErrUserAborted) {
+			if errors.Is(err, uiutil.ErrUserAborted) {
 				return nil
 			}
 
@@ -226,28 +217,37 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 		}
 
 		if prevFile, exists := oldSauce.Files[path]; exists && prevFile.HasBeenModified() {
+			if opts.NoInput {
+				return recipeutil.NewNoInputError(varsWithoutValues)
+			}
+
 			// The file contents has been modified
 			if !overrideNoticed {
-				cmd.Println("Some of the files has been manually modified. Do you want to override the following files:")
+				cmd.Println("\nSome of the files has been manually modified. Do you want to override the following files:")
 				overrideNoticed = true
 			}
 
-			// TODO: Ask the user should we override the file or not
-			// TODO: We could do better in terms of merge conflict management. Like show the diff or something
-			var override bool
+			override, err := conflict.Solve(cmd.InOrStdin(), cmd.OutOrStdout(), path)
 			if err != nil {
+				if errors.Is(err, uiutil.ErrUserAborted) {
+					cmd.Println("User aborted")
+					return nil
+				}
+
 				return fmt.Errorf("error when prompting for question: %w", err)
 			}
 
 			if !override {
 				// User decided not to override the file with manual changes, remove from
 				// list of changes to write
+				cmd.Printf("%s: keep\n", path)
 				continue
 			}
 		}
 
 		// Add new file or replace existing one
 		output[path] = newSauce.Files[path]
+		cmd.Printf("%s: replace\n", path)
 	}
 
 	newSauce.Files = output
@@ -256,6 +256,8 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 	if err != nil {
 		return err
 	}
+
+	cmd.Printf("\nRecipe upgraded %s\n", opts.Colors.Green.Render("successfully!"))
 
 	return nil
 }

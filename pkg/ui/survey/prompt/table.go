@@ -7,14 +7,14 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/futurice/jalapeno/pkg/recipe"
 	"github.com/futurice/jalapeno/pkg/recipeutil"
-	"github.com/futurice/jalapeno/pkg/survey/editable"
-	"github.com/futurice/jalapeno/pkg/survey/util"
+	"github.com/futurice/jalapeno/pkg/ui/editable"
+	"github.com/futurice/jalapeno/pkg/ui/survey/style"
 )
 
 type TableModel struct {
 	variable        recipe.Variable
 	table           editable.Model
-	styles          util.Styles
+	styles          style.Styles
 	submitted       bool
 	showDescription bool
 
@@ -25,7 +25,7 @@ type TableModel struct {
 
 var _ Model = TableModel{}
 
-func NewTableModel(v recipe.Variable, styles util.Styles) TableModel {
+func NewTableModel(v recipe.Variable, styles style.Styles) TableModel {
 	cols := make([]editable.Column, len(v.Columns))
 
 	validators := make(map[string][]func(string) error)

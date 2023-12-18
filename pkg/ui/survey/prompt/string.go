@@ -7,13 +7,14 @@ import (
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/futurice/jalapeno/pkg/recipe"
-	"github.com/futurice/jalapeno/pkg/survey/util"
+	"github.com/futurice/jalapeno/pkg/ui/survey/style"
+	"github.com/futurice/jalapeno/pkg/ui/util"
 )
 
 type StringModel struct {
 	variable        recipe.Variable
 	textInput       textinput.Model
-	styles          util.Styles
+	styles          style.Styles
 	submitted       bool
 	showDescription bool
 	err             error
@@ -21,7 +22,7 @@ type StringModel struct {
 
 var _ Model = StringModel{}
 
-func NewStringModel(v recipe.Variable, styles util.Styles) StringModel {
+func NewStringModel(v recipe.Variable, styles style.Styles) StringModel {
 	ti := textinput.New()
 	ti.Focus()
 	ti.CharLimit = 156

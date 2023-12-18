@@ -38,5 +38,5 @@ Feature: Upgrade sauce
     And I change recipe "foo" template "README.md" to render "New version"
     And I change project file "README.md" to contain "Locally modified"
     When I upgrade recipe "foo"
-    Then conflicts are reported
+    Then CLI produced an error "file conflicts"
     And the project directory should contain file "README.md" with "Locally modified"

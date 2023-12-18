@@ -138,3 +138,20 @@ func RowsToTable(columns []string, rows [][]string) ([]map[string]string, error)
 
 	return table, nil
 }
+
+func NewNoInputError(vars []recipe.Variable) error {
+	var errMsg string
+	switch len(vars) {
+	case 0:
+		return errors.New("there was file conflicts which needs to be manually resolved while `--no-input` flag was set to true")
+	case 1:
+		return fmt.Errorf("value for variable %s is missing and `--no-input` flag was set to true", vars[0].Name)
+	default:
+		varNames := make([]string, len(vars))
+		for i, v := range vars {
+			varNames[i] = v.Name
+		}
+		errMsg = fmt.Sprintf("values for variables [%s] are", strings.Join(varNames, ","))
+		return fmt.Errorf("%s missing and `--no-input` flag was set to true", errMsg)
+	}
+}

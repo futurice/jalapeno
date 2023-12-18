@@ -411,7 +411,7 @@ func expectGivenError(ctx context.Context, expectedError string) error {
 	cmdStdErr := ctx.Value(cmdStdErrCtxKey{}).(*bytes.Buffer)
 
 	if matched, err := regexp.MatchString(expectedError, cmdStdErr.String()); !matched {
-		return fmt.Errorf("command produced unexpected error: Expected: '%s', Actual: '%s'", expectedError, cmdStdErr)
+		return fmt.Errorf("command produced unexpected error: Expected: '%s', Actual: '%s'", expectedError, strings.TrimSpace(cmdStdErr.String()))
 	} else if err != nil {
 		return fmt.Errorf("regexp pattern matching caused an error: %w", err)
 	}

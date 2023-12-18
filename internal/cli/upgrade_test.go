@@ -40,6 +40,7 @@ func iRunUpgrade(ctx context.Context, recipe string) (context.Context, error) {
 	args := []string{
 		"upgrade",
 		url,
+		"--no-input",
 		fmt.Sprintf("--dir=%s", projectDir),
 	}
 

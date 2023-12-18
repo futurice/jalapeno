@@ -11,8 +11,9 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/futurice/jalapeno/pkg/recipe"
 	"github.com/futurice/jalapeno/pkg/recipeutil"
-	"github.com/futurice/jalapeno/pkg/survey/prompt"
-	"github.com/futurice/jalapeno/pkg/survey/util"
+	"github.com/futurice/jalapeno/pkg/ui/survey/prompt"
+	"github.com/futurice/jalapeno/pkg/ui/survey/style"
+	"github.com/futurice/jalapeno/pkg/ui/util"
 	"github.com/muesli/termenv"
 )
 
@@ -22,20 +23,16 @@ type SurveyModel struct {
 	variables      []recipe.Variable
 	existingValues recipe.VariableValues
 	prompts        []prompt.Model
-	styles         util.Styles
+	styles         style.Styles
 	err            error
 }
-
-var (
-	ErrUserAborted = errors.New("user aborted")
-)
 
 func NewModel(variables []recipe.Variable, existingValues recipe.VariableValues) SurveyModel {
 	model := SurveyModel{
 		prompts:        make([]prompt.Model, 0, len(variables)),
 		variables:      variables,
 		existingValues: existingValues,
-		styles:         util.DefaultStyles(),
+		styles:         style.DefaultStyles(),
 	}
 
 	p, err := model.createNextPrompt()
@@ -218,6 +215,6 @@ func PromptUserForValues(in io.Reader, out io.Writer, variables []recipe.Variabl
 			return m.(SurveyModel).Values(), nil
 		}
 
-		return nil, ErrUserAborted
+		return nil, util.ErrUserAborted
 	}
 }

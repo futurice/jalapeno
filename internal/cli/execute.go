@@ -11,7 +11,8 @@ import (
 	"github.com/futurice/jalapeno/pkg/engine"
 	"github.com/futurice/jalapeno/pkg/recipe"
 	"github.com/futurice/jalapeno/pkg/recipeutil"
-	"github.com/futurice/jalapeno/pkg/survey"
+	"github.com/futurice/jalapeno/pkg/ui/survey"
+	uiutil "github.com/futurice/jalapeno/pkg/ui/util"
 	"github.com/gofrs/uuid"
 	"github.com/spf13/cobra"
 )
@@ -129,23 +130,12 @@ func runExecute(cmd *cobra.Command, opts executeOptions) error {
 	varsWithoutValues := recipeutil.FilterVariablesWithoutValues(re.Variables, values)
 	if len(varsWithoutValues) > 0 {
 		if opts.NoInput {
-			var errMsg string
-			if len(varsWithoutValues) == 1 {
-				errMsg = fmt.Sprintf("value for variable %s is", varsWithoutValues[0].Name)
-			} else {
-				vars := make([]string, len(varsWithoutValues))
-				for i, v := range varsWithoutValues {
-					vars[i] = v.Name
-				}
-				errMsg = fmt.Sprintf("values for variables [%s] are", strings.Join(vars, ","))
-			}
-
-			return fmt.Errorf("%s missing and `--no-input` flag was set to true", errMsg)
+			return recipeutil.NewNoInputError(varsWithoutValues)
 		}
 
 		promptedValues, err := survey.PromptUserForValues(cmd.InOrStdin(), cmd.OutOrStdout(), varsWithoutValues, values)
 		if err != nil {
-			if errors.Is(err, survey.ErrUserAborted) {
+			if errors.Is(err, uiutil.ErrUserAborted) {
 				return nil
 			} else {
 				return fmt.Errorf("error when prompting for values: %s", err)

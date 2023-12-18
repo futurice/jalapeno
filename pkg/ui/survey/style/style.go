@@ -1,15 +1,6 @@
-package util
+package style
 
-import (
-	"errors"
-
-	"github.com/charmbracelet/lipgloss"
-)
-
-var (
-	ErrRequired    = errors.New("value can not be empty")
-	ErrRegExFailed = errors.New("validation failed")
-)
+import "github.com/charmbracelet/lipgloss"
 
 type Styles struct {
 	VariableName lipgloss.Style

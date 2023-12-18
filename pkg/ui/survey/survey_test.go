@@ -8,7 +8,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/x/exp/teatest"
 	"github.com/futurice/jalapeno/pkg/recipe"
-	"github.com/futurice/jalapeno/pkg/survey"
+	"github.com/futurice/jalapeno/pkg/ui/survey"
 )
 
 func TestPromptUserForValues(t *testing.T) {

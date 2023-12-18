@@ -6,12 +6,12 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/futurice/jalapeno/pkg/recipe"
-	"github.com/futurice/jalapeno/pkg/survey/util"
+	"github.com/futurice/jalapeno/pkg/ui/survey/style"
 )
 
 type ConfirmModel struct {
 	variable        recipe.Variable
-	styles          util.Styles
+	styles          style.Styles
 	value           bool
 	submitted       bool
 	showDescription bool
@@ -19,7 +19,7 @@ type ConfirmModel struct {
 
 var _ Model = ConfirmModel{}
 
-func NewConfirmModel(v recipe.Variable, styles util.Styles) ConfirmModel {
+func NewConfirmModel(v recipe.Variable, styles style.Styles) ConfirmModel {
 	return ConfirmModel{
 		variable: v,
 		styles:   styles,

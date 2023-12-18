@@ -9,7 +9,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/futurice/jalapeno/pkg/recipe"
-	"github.com/futurice/jalapeno/pkg/survey/util"
+	"github.com/futurice/jalapeno/pkg/ui/survey/style"
 )
 
 const listHeight = 14
@@ -22,7 +22,7 @@ var (
 type SelectModel struct {
 	variable        recipe.Variable
 	list            list.Model
-	styles          util.Styles
+	styles          style.Styles
 	value           string
 	showDescription bool
 	submitted       bool
@@ -59,7 +59,7 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 	fmt.Fprint(w, fn(string(i)))
 }
 
-func NewSelectModel(v recipe.Variable, styles util.Styles) SelectModel {
+func NewSelectModel(v recipe.Variable, styles style.Styles) SelectModel {
 	items := make([]list.Item, len(v.Options))
 	for i := range v.Options {
 		items[i] = item(v.Options[i])
