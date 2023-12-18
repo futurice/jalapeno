@@ -61,10 +61,15 @@ jalapeno execute oci://ghcr.io/futurice/jalapeno/examples/variable-types:v0.0.0
 
 :::tip
 
-You can also set the values with `--set` flag when executing the recipe. For example:
+You can also set the values with `--set` flag or with environment variables when executing the recipe. For example:
 
 ```bash
 jalapeno execute my-recipe --set MY_VAR=foo
+
+# OR
+
+export JALAPENO_VAR_MY_VAR=foo
+jalapeno execute my-recipe
 ```
 
 :::
