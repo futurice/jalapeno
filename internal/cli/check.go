@@ -52,7 +52,7 @@ jalapeno check --recipe my-recipe
 jalapeno check --recipe my-recipe --from oci://my-registry.com/my-recipe`,
 	}
 
-	cmd.Flags().StringVar(&opts.RecipeName, "recipe", "", "Name of the recipe to check for new versions")
+	cmd.Flags().StringVarP(&opts.RecipeName, "recipe", "r", "", "Name of the recipe to check for new versions")
 	cmd.Flags().StringVar(&opts.CheckFrom, "from", "", "Add or override the URL used for checking updates for the recipe. Works only with --recipe flag")
 	cmd.Flags().BoolVar(&opts.UseDetailedExitCode, "detailed-exitcode", false, fmt.Sprintf("Returns a detailed exit code when the command exits. When provided, this argument changes the exit codes and their meanings to provide more granular information about what the resulting plan contains: 0 = Succeeded with no updates available, 1 = Error, %d = Succeeded with updates available", ExitCodeUpdatesAvailable))
 

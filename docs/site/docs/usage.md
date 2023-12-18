@@ -48,13 +48,13 @@ You can also execute any of the examples from the Jalapeno repository, for examp
 
 ```bash
 git clone git@github.com:futurice/jalapeno.git
-jalapeno execute ./jalapeno/examples/variable-types -d my-project
+jalapeno execute ./jalapeno/examples/variable-types
 ```
 
 Or execute them directly from GitHub Container Registry:
 
 ```bash
-jalapeno execute oci://ghcr.io/futurice/jalapeno/examples/variable-types:v0.0.0 -d my-project
+jalapeno execute oci://ghcr.io/futurice/jalapeno/examples/variable-types:v0.0.0
 ```
 
 :::
@@ -181,13 +181,13 @@ jalapeno check
 This will check for updates for all the recipes in the project directory. You can also check for updates for a specific recipe by running:
 
 ```bash
-jalapeno check -r my-recipe
+jalapeno check --recipe my-recipe
 ```
 
 If you've executed the recipe from local directory and the registry URL is still unknown, you can set the registry URL manually by running:
 
 ```bash
-jalapeno check -r my-recipe --from oci://ghcr.io/my-user/my-recipe
+jalapeno check --recipe my-recipe --from oci://ghcr.io/my-user/my-recipe
 ```
 
 :::tip
