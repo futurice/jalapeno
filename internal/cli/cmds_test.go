@@ -106,6 +106,7 @@ func TestFeatures(t *testing.T) {
 			s.After(cleanTempDirs)
 		},
 		Options: &godog.Options{
+			Strict:      true,
 			Concurrency: 4,
 			Format:      "pretty",
 			Paths:       []string{"../../test"},
