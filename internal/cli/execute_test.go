@@ -12,6 +12,7 @@ import (
 
 func AddExecuteSteps(s *godog.ScenarioContext) {
 	s.Step(`^I execute recipe "([^"]*)"$`, iRunExecute)
+	s.Step(`^I execute recipe "([^"]*)" with variable "([^"]*)" set to "([^"]*)"$`, iRunExecuteWithArg)
 	s.Step(`^I execute the recipe from the local OCI repository "([^"]*)"$`, iExecuteRemoteRecipe)
 	s.Step(`^execution of the recipe has succeeded$`, executionOfTheRecipeHasSucceeded)
 }
@@ -43,6 +44,15 @@ func iRunExecute(ctx context.Context, recipe string) (context.Context, error) {
 	cmd.SetArgs(args)
 	_ = cmd.Execute()
 	return ctx, nil
+}
+
+func iRunExecuteWithArg(ctx context.Context, recipe, variable, value string) (context.Context, error) {
+	additionalFlags := ctx.Value(cmdAdditionalFlagsCtxKey{}).(map[string]string)
+	// TODO: this would just clobber a previous "set", we should be OK in the tests
+	// we have so far but this could bring problems in the future.
+	additionalFlags["set"] = fmt.Sprintf("%s=%s", variable, value)
+	ctx = context.WithValue(ctx, cmdAdditionalFlagsCtxKey{}, additionalFlags)
+	return iRunExecute(ctx, recipe)
 }
 
 func iExecuteRemoteRecipe(ctx context.Context, repository string) (context.Context, error) {
