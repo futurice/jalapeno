@@ -8,8 +8,17 @@ on:
       - "v*"
 
 jobs:
+  lint:
+    name: Lint
+    uses: ./.github/workflows/lint.yml
+
+  test:
+    name: Test
+    uses: ./.github/workflows/test.yml
+
   release:
     name: Release
+    needs: [lint, test]
     permissions:
       contents: write
       pull-requests: write
@@ -22,17 +31,9 @@ jobs:
         with:
           release-type: go
 
-  lint:
-    name: Lint
-    uses: ./.github/workflows/lint.yml
-
-  test:
-    name: Test
-    uses: ./.github/workflows/test.yml
-
   publish:
     name: Publish artifacts
-    needs: [release, lint, test]
+    needs: release
     if: ${{ needs.release.outputs.release_created }}
     runs-on: ubuntu-latest
     permissions:
