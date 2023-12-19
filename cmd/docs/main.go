@@ -30,34 +30,68 @@ type CommandInfo struct {
 	Flags       []Flag
 }
 
-//go:embed templates
+//go:embed all:templates
 var tmpls embed.FS
+
+const (
+	referenceDocPath = "./docs/site/docs/api.md"
+	changelogSource  = "./CHANGELOG.md"
+	changelogTarget  = "./docs/site/docs/changelog.md"
+)
+
+var templates = template.Must(template.
+	New("doc").
+	Funcs(sprig.FuncMap()).
+	ParseFS(tmpls, "templates/*"),
+)
 
 // This is the entrypoint for generating API reference documentation
 func main() {
-	args := os.Args[1:]
-	if len(args) != 1 {
-		fmt.Println("Error: no destination path provided")
-		return
+	err := GenerateReferenceDoc()
+	checkErr(err)
+	fmt.Println("Reference documentation generated")
+
+	err = GenerateChangelog()
+	checkErr(err)
+	fmt.Println("Changelog generated")
+}
+
+func GenerateChangelog() error {
+	changelog, err := os.ReadFile(changelogSource)
+	if err != nil {
+		return err
 	}
 
+	var b bytes.Buffer
+	err = templates.ExecuteTemplate(&b, "changelog.tmpl", map[string]interface{}{
+		"Changelog": string(changelog),
+	})
+	if err != nil {
+		return err
+	}
+
+	// Write the changelog to the target file
+	return os.WriteFile(changelogTarget, b.Bytes(), 0644)
+}
+
+func GenerateReferenceDoc() error {
 	rootCmd := cli.NewRootCmd()
 	subCmds := rootCmd.Commands()
 
-	tmpl := template.Must(template.
-		New("doc").
-		Funcs(sprig.FuncMap()).
-		ParseFS(tmpls, "templates/*"),
-	)
-
 	var b bytes.Buffer
-	err := tmpl.ExecuteTemplate(&b, "main.tmpl", map[string]interface{}{
+	err := templates.ExecuteTemplate(&b, "reference.tmpl", map[string]interface{}{
 		"Commands": mapCommandInfos(subCmds),
 	})
-	checkErr(err)
+	if err != nil {
+		return err
+	}
 
-	err = os.WriteFile(args[0], b.Bytes(), 0644)
-	checkErr(err)
+	err = os.WriteFile(referenceDocPath, b.Bytes(), 0644)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func checkErr(err error) {

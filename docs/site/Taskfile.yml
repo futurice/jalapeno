@@ -13,7 +13,7 @@ tasks:
     desc: Generate CLI documentation
     dir: "{{.ROOT_DIR}}"
     cmds:
-      - go run cmd/docs/main.go ./docs/pages/api.md
+      - go run cmd/docs/main.go
 
   start:
     desc: Start website
