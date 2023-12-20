@@ -183,7 +183,7 @@ func runExecute(cmd *cobra.Command, opts executeOptions) error {
 func makeRetryMessage(values recipe.VariableValues) string {
 	var commandline strings.Builder
 	skipNext := false
-	for _, arg := range os.Args {
+	for idx, arg := range os.Args {
 		if skipNext {
 			skipNext = false
 			continue
@@ -192,7 +192,13 @@ func makeRetryMessage(values recipe.VariableValues) string {
 			skipNext = true
 			continue
 		}
-		commandline.WriteString(arg)
+		// quote all non-option args to be on the safe side, except for indices 0 and 1
+		// (which are the program name and the command name)
+		if idx <= 1 || strings.HasPrefix(arg, "-") {
+			commandline.WriteString(arg)
+		} else {
+			commandline.WriteString(fmt.Sprintf("\"%s\"", arg))
+		}
 		commandline.WriteString(" ")
 	}
 
