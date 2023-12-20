@@ -1,15 +1,9 @@
 package recipe
 
 import (
-	"bytes"
-	"errors"
 	"fmt"
-	"io"
-	"os"
-	"path/filepath"
 
 	"github.com/gofrs/uuid"
-	"gopkg.in/yaml.v3"
 )
 
 // Sauce represents a rendered recipe
@@ -73,69 +67,4 @@ func (s *Sauce) Conflicts(other *Sauce) []RecipeConflict {
 		}
 	}
 	return conflicts
-}
-
-// Load all sauces from a project directory. Returns empty slice if the project directory did not contain any sayces
-func LoadSauces(projectDir string) ([]*Sauce, error) {
-	var sauces []*Sauce
-
-	sauceFile := filepath.Join(projectDir, SauceDirName, SaucesFileName+YAMLExtension)
-	if _, err := os.Stat(sauceFile); err != nil {
-		if errors.Is(err, os.ErrNotExist) {
-			// treat missing file as empty
-			return sauces, nil
-		}
-		// other errors go boom in os.ReadFile() below
-	}
-	recipedata, err := os.ReadFile(sauceFile)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read recipe file: %w", err)
-	}
-
-	decoder := yaml.NewDecoder(bytes.NewReader(recipedata))
-	for {
-		sauce := NewSauce()
-		if err := decoder.Decode(&sauce); err != nil {
-			if err != io.EOF {
-				return nil, fmt.Errorf("failed to decode recipe: %w", err)
-			}
-			// ran out of recipe file, all yaml documents read
-			break
-		}
-		// read rendered files
-		for path, file := range sauce.Files {
-			data, err := os.ReadFile(filepath.Join(projectDir, path))
-			if err != nil {
-				return nil, fmt.Errorf("failed to read rendered file: %w", err)
-			}
-			// Note that we use the file checksum from the sauce file,
-			// but read contents from the files. This means that if the checksum
-			// does not match the data, the file has been modified outside of Jalapeno
-			file.Content = data
-			sauce.Files[path] = file
-		}
-
-		if err := sauce.Validate(); err != nil {
-			return nil, fmt.Errorf("failed to validate sauce: %w", err)
-		}
-
-		sauces = append(sauces, sauce)
-	}
-
-	return sauces, nil
-}
-
-func LoadSauce(projectDir, recipeName string) (*Sauce, error) {
-	sauces, err := LoadSauces(projectDir)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, s := range sauces {
-		if s.Recipe.Name == recipeName {
-			return s, nil
-		}
-	}
-
-	return nil, ErrSauceNotFound
 }

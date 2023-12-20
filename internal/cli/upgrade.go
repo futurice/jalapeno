@@ -218,8 +218,25 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 
 		file := newSauce.Files[path]
 
-		// Check if the file has been modified manually
-		if prevFile, exists := oldSauce.Files[path]; exists && prevFile.HasBeenModified() {
+		var previousConflictingFileContent []byte
+
+		// Check if the file from previous recipe version has been modified manually
+		if prevFile, exists := oldSauce.Files[path]; exists {
+			if prevFile.HasBeenModified() {
+				previousConflictingFileContent = prevFile.Content
+			}
+
+			// Check if the file has been already created manually by the user
+		} else {
+			prevFile, err := os.ReadFile(filepath.Join(opts.Dir, path))
+			if err == nil {
+				previousConflictingFileContent = prevFile
+			} else if !errors.Is(err, os.ErrNotExist) {
+				return err
+			}
+		}
+
+		if previousConflictingFileContent != nil {
 			if opts.NoInput {
 				return recipeutil.NewNoInputError(varsWithoutValues)
 			}
@@ -233,7 +250,7 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 				cmd.InOrStdin(),
 				cmd.OutOrStdout(),
 				path,
-				oldSauce.Files[path].Content,
+				previousConflictingFileContent,
 				newSauce.Files[path].Content,
 			)
 

@@ -69,6 +69,7 @@ func TestFeatures(t *testing.T) {
 			s.Step(`^a recipes directory$`, aRecipesDirectory)
 			s.Step(`^a recipe "([^"]*)" that generates file "([^"]*)"$`, aRecipeThatGeneratesFile)
 			s.Step(`^the file "([^"]*)" exist in the recipe "([^"]*)"$`, theFileExistInTheRecipe)
+			s.Step(`^I create a file "([^"]*)" with contents "([^"]*)" to the project directory$`, iCreateAFileWithContentsToTheProjectDir)
 			s.Step(`^the project directory should contain file "([^"]*)"$`, theProjectDirectoryShouldContainFile)
 			s.Step(`^the project directory should contain file "([^"]*)" with "([^"]*)"$`, theProjectDirectoryShouldContainFileWith)
 			s.Step(`^the sauce file contains a sauce in index (\d) which should have property "([^"]*)" with value "([^"]*)"$`, theSauceFileShouldHavePropertyWithValue)
@@ -331,6 +332,11 @@ func theProjectDirectoryShouldContainFile(ctx context.Context, filename string) 
 		return fmt.Errorf("%s is not a regular file", filename)
 	}
 	return err
+}
+
+func iCreateAFileWithContentsToTheProjectDir(ctx context.Context, filename, contents string) error {
+	dir := ctx.Value(projectDirectoryPathCtxKey{}).(string)
+	return os.WriteFile(filepath.Join(dir, filename), []byte(contents), 0644)
 }
 
 func theProjectDirectoryShouldContainFileWith(ctx context.Context, filename, searchTerm string) error {
