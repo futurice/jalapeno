@@ -203,7 +203,17 @@ func makeRetryMessage(values recipe.VariableValues) string {
 	}
 
 	for key, value := range values {
-		commandline.WriteString(fmt.Sprintf(" --set \"%s=%s\"", key, value))
+		commandline.WriteString(" --set ")
+		switch value := value.(type) {
+		case []map[string]string: // serialize to CSV
+			csv, err := recipeutil.TableToCSV(value, ',')
+			if err != nil {
+				panic(err)
+			}
+			commandline.WriteString(fmt.Sprintf("\"%s=%s\"", key, strings.ReplaceAll(strings.TrimRight(csv, "\n"), "\n", "\\n")))
+		default:
+			commandline.WriteString(fmt.Sprintf("\"%s=%s\"", key, value))
+		}
 	}
 	retryMessage := fmt.Sprintf("To re-run the recipe with the same values, use the following command:\n\n%s", commandline.String())
 	return retryMessage
