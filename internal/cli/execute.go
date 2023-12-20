@@ -186,7 +186,7 @@ func makeRetryMessage(opts executeOptions, values recipe.VariableValues) string 
 	commandline.WriteString(opts.RecipeURL)
 
 	for key, value := range values {
-		commandline.WriteString(fmt.Sprintf(" --set %s=%s", key, value))
+		commandline.WriteString(fmt.Sprintf(" --set \"%s=%s\"", key, value))
 	}
 	retryMessage := fmt.Sprintf("To re-run the recipe with the same values, use the following command:\n\n%s", commandline.String())
 	return retryMessage
