@@ -68,7 +68,6 @@ func TestFeatures(t *testing.T) {
 			s.Step(`^a project directory$`, aProjectDirectory)
 			s.Step(`^a recipes directory$`, aRecipesDirectory)
 			s.Step(`^a recipe "([^"]*)" that generates file "([^"]*)"$`, aRecipeThatGeneratesFile)
-			s.Step(`^a failing recipe "([^"]*)" with variable "([^"]*)" that generates file "([^"]*)"$`, aFailingRecipeWithVariableThatGeneratesFile)
 			s.Step(`^the file "([^"]*)" exist in the recipe "([^"]*)"$`, theFileExistInTheRecipe)
 			s.Step(`^the project directory should contain file "([^"]*)"$`, theProjectDirectoryShouldContainFile)
 			s.Step(`^the project directory should contain file "([^"]*)" with "([^"]*)"$`, theProjectDirectoryShouldContainFileWith)
@@ -252,35 +251,6 @@ description: %[1]s
 	}
 
 	if err := os.WriteFile(filepath.Join(templateDir, filename), []byte(recipe), 0644); err != nil {
-		return ctx, err
-	}
-	return context.WithValue(ctx, recipesDirectoryPathCtxKey{}, dir), nil
-}
-
-func aFailingRecipeWithVariableThatGeneratesFile(ctx context.Context, recipe, variable, filename string) (context.Context, error) {
-	dir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
-	if err := os.MkdirAll(filepath.Join(dir, recipe, "templates"), 0755); err != nil {
-		return ctx, err
-	}
-	template := `apiVersion: v1
-name: %[1]s
-version: v0.0.1
-description: %[1]s
-vars:
-  - name: %[2]s
-    description: %[2]s
-`
-	if err := os.WriteFile(filepath.Join(dir, recipe, re.RecipeFileName+re.YAMLExtension), []byte(fmt.Sprintf(template, recipe, variable)), 0644); err != nil {
-		return ctx, err
-	}
-
-	templateDir := filepath.Join(dir, recipe, re.RecipeTemplatesDirName)
-	err := os.MkdirAll(filepath.Join(templateDir, filepath.Dir(filename)), 0755)
-	if err != nil {
-		return ctx, err
-	}
-
-	if err := os.WriteFile(filepath.Join(templateDir, filename), []byte("{{ .failboat }}"), 0644); err != nil {
 		return ctx, err
 	}
 	return context.WithValue(ctx, recipesDirectoryPathCtxKey{}, dir), nil

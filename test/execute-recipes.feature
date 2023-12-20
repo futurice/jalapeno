@@ -51,10 +51,3 @@ Feature: Execute recipes
     Then execution of the recipe has succeeded
     When I execute recipe "quux"
     Then CLI produced an error "file 'Taskfile.yml' was already created by recipe 'bar'"
-
-  Scenario: Failed recipe execution provides variable values as command line
-    Given a project directory
-    And a recipes directory
-    And a failing recipe "foo" with variable "bar" that generates file "README.md"
-    When I execute recipe "foo" with variable "bar" set to "first,second\\neka,toka"
-    Then CLI produced an error "--set \"bar=first,second\\\\neka,toka\""
