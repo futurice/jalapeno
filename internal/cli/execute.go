@@ -146,15 +146,15 @@ func runExecute(cmd *cobra.Command, opts executeOptions) error {
 
 	sauce, err := re.Execute(engine.Engine{}, values, uuid.Must(uuid.NewV4()))
 	if err != nil {
-		commandline := makeCommandline(opts.RecipeURL, values)
-		return fmt.Errorf("%w\n\nTo re-run the recipe with the same values, use the following command:\n\n%s", err, commandline)
+		retryMessage := makeRetryMessage(opts, values)
+		return fmt.Errorf("%w\n\n%s", err, retryMessage)
 	}
 
 	// Check for conflicts
 	for _, s := range existingSauces {
 		if conflicts := s.Conflicts(sauce); conflicts != nil {
-			commandline := makeCommandline(opts.RecipeURL, values)
-			return fmt.Errorf("conflict in recipe '%s': file '%s' was already created by recipe '%s'.\n\nTo re-run the recipe with the same values, use the following command:\n\n%s", re.Name, conflicts[0].Path, s.Recipe.Name, commandline)
+			retryMessage := makeRetryMessage(opts, values)
+			return fmt.Errorf("conflict in recipe '%s': file '%s' was already created by recipe '%s'.\n\n%s", re.Name, conflicts[0].Path, s.Recipe.Name, retryMessage)
 		}
 	}
 
@@ -180,14 +180,14 @@ func runExecute(cmd *cobra.Command, opts executeOptions) error {
 	return nil
 }
 
-func makeCommandline(recipeURL string, providedValues recipe.VariableValues) string {
+func makeRetryMessage(opts executeOptions, values recipe.VariableValues) string {
 	var commandline strings.Builder
 	commandline.WriteString("jalapeno execute ")
-	commandline.WriteString(recipeURL)
+	commandline.WriteString(opts.RecipeURL)
 
-	for key, value := range providedValues {
+	for key, value := range values {
 		commandline.WriteString(fmt.Sprintf(" --set %s=%s", key, value))
 	}
-
-	return commandline.String()
+	retryMessage := fmt.Sprintf("To re-run the recipe with the same values, use the following command:\n\n%s", commandline.String())
+	return retryMessage
 }
