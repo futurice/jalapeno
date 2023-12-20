@@ -13,37 +13,41 @@ import (
 )
 
 type Model struct {
-	Value     bool
+	answer    bool
 	filePath  string
+	fileA     []byte
+	fileB     []byte
 	err       error
 	submitted bool
 }
 
 var _ tea.Model = Model{}
 
-func Solve(in io.Reader, out io.Writer, filePath string) (bool, error) {
+func Solve(in io.Reader, out io.Writer, filePath string, fileA, fileB []byte) ([]byte, error) {
 	lipgloss.SetHasDarkBackground(termenv.HasDarkBackground())
 
-	p := tea.NewProgram(NewModel(filePath), tea.WithInput(in), tea.WithOutput(out))
+	p := tea.NewProgram(NewModel(filePath, fileA, fileB), tea.WithInput(in), tea.WithOutput(out))
 	if m, err := p.Run(); err != nil {
-		return false, err
+		return []byte{}, err
 	} else {
 		m, ok := m.(Model)
 		if !ok {
-			return false, errors.New("internal error: unexpected model type")
+			return []byte{}, errors.New("internal error: unexpected model type")
 		}
 
 		if m.err != nil {
-			return false, m.err
+			return []byte{}, m.err
 		}
 
-		return m.Value, nil
+		return m.Result(), nil
 	}
 }
 
-func NewModel(filePath string) Model {
+func NewModel(filePath string, fileA, fileB []byte) Model {
 	return Model{
 		filePath: filePath,
+		fileA:    fileA,
+		fileB:    fileB,
 	}
 }
 
@@ -62,33 +66,49 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.submitted = true
 			return m, tea.Quit
 		case tea.KeyRight:
-			m.Value = true
+			m.answer = true
 		case tea.KeyLeft:
-			m.Value = false
+			m.answer = false
 		case tea.KeyRunes:
 			switch string(msg.Runes) {
 			case "y", "Y":
-				m.Value = true
+				m.answer = true
 			case "n", "N":
-				m.Value = false
+				m.answer = false
 			}
 		}
 	}
 	return m, nil
 }
 
+// TODO: Make merge conflict solving more advanced instead of just file override confirmation
 func (m Model) View() string {
+	var s strings.Builder
 	if m.submitted || m.err != nil {
-		return ""
+		s.WriteString(fmt.Sprintf("%s: ", m.filePath))
+		if m.answer {
+			s.WriteString("override")
+		} else {
+			s.WriteString("keep")
+		}
+
+		return s.String()
 	}
 
-	var s strings.Builder
 	s.WriteString(fmt.Sprintf("Override file '%s':\n", m.filePath))
-	if m.Value {
+	if m.answer {
 		s.WriteString(fmt.Sprintf("> No/%s", lipgloss.NewStyle().Bold(true).Render("Yes")))
 	} else {
 		s.WriteString(fmt.Sprintf("> %s/Yes", lipgloss.NewStyle().Bold(true).Render("No")))
 	}
 
 	return s.String()
+}
+
+func (m Model) Result() []byte {
+	if m.answer {
+		return m.fileB
+	} else {
+		return m.fileA
+	}
 }

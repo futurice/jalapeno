@@ -216,18 +216,27 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 			continue
 		}
 
+		file := newSauce.Files[path]
+
+		// Check if the file has been modified manually
 		if prevFile, exists := oldSauce.Files[path]; exists && prevFile.HasBeenModified() {
 			if opts.NoInput {
 				return recipeutil.NewNoInputError(varsWithoutValues)
 			}
 
-			// The file contents has been modified
 			if !overrideNoticed {
 				cmd.Println("\nSome of the files has been manually modified. Do you want to override the following files:")
 				overrideNoticed = true
 			}
 
-			override, err := conflict.Solve(cmd.InOrStdin(), cmd.OutOrStdout(), path)
+			conflictResult, err := conflict.Solve(
+				cmd.InOrStdin(),
+				cmd.OutOrStdout(),
+				path,
+				oldSauce.Files[path].Content,
+				newSauce.Files[path].Content,
+			)
+
 			if err != nil {
 				if errors.Is(err, uiutil.ErrUserAborted) {
 					cmd.Println("User aborted")
@@ -237,17 +246,13 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 				return fmt.Errorf("error when prompting for question: %w", err)
 			}
 
-			if !override {
-				// User decided not to override the file with manual changes, remove from
-				// list of changes to write
-				cmd.Printf("%s: keep\n", path)
-				continue
-			}
+			// NOTE: We need to save the checksum of the original file from the new sauce
+			// so we would detect again if the file has been modified manually
+			// when upgrading again
+			file.Content = conflictResult
 		}
 
-		// Add new file or replace existing one
-		output[path] = newSauce.Files[path]
-		cmd.Printf("%s: replace\n", path)
+		output[path] = file
 	}
 
 	newSauce.Files = output

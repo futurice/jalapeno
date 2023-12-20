@@ -1,43 +1,39 @@
-package survey_test
+package conflict_test
 
 import (
-	"reflect"
+	"bytes"
 	"testing"
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/x/exp/teatest"
-	"github.com/futurice/jalapeno/pkg/recipe"
-	"github.com/futurice/jalapeno/pkg/ui/survey"
+	"github.com/futurice/jalapeno/pkg/ui/conflict"
 )
 
-func TestPromptUserForValues(t *testing.T) {
+func TestSolveFileConflict(t *testing.T) {
 	testCases := []struct {
-		name           string
-		variables      []recipe.Variable
-		existingValues recipe.VariableValues
-		expected       recipe.VariableValues
-		input          string
+		name     string
+		filePath string
+		fileA    []byte
+		fileB    []byte
+		input    string
+		expected []byte
 	}{
 		{
-			name: "string_variable",
-			variables: []recipe.Variable{
-				{Name: "VAR_1"},
-			},
-			expected: recipe.VariableValues{
-				"VAR_1": "foo",
-			},
-			input: "foo\n",
+			name:     "no_answer",
+			filePath: "README.md",
+			fileA:    []byte("foo"),
+			fileB:    []byte("bar"),
+			input:    "n\n",
+			expected: []byte("foo"),
 		},
 		{
-			name: "select_variable",
-			variables: []recipe.Variable{
-				{Name: "VAR_1", Options: []string{"a", "b", "c"}},
-			},
-			expected: recipe.VariableValues{
-				"VAR_1": "c",
-			},
-			input: "↓↓\n",
+			name:     "yes_answer",
+			filePath: "README.md",
+			fileA:    []byte("foo"),
+			fileB:    []byte("bar"),
+			input:    "y\n",
+			expected: []byte("bar"),
 		},
 	}
 
@@ -45,7 +41,7 @@ func TestPromptUserForValues(t *testing.T) {
 		t.Run(tc.name, func(tt *testing.T) {
 			tm := teatest.NewTestModel(
 				tt,
-				survey.NewModel(tc.variables, tc.existingValues),
+				conflict.NewModel(tc.filePath, tc.fileA, tc.fileB),
 				teatest.WithInitialTermSize(300, 100),
 			)
 
@@ -53,11 +49,11 @@ func TestPromptUserForValues(t *testing.T) {
 				tm.Send(RuneToKey(r))
 			}
 
-			m := tm.FinalModel(tt, teatest.WithFinalTimeout(time.Second)).(survey.SurveyModel)
+			m := tm.FinalModel(tt, teatest.WithFinalTimeout(time.Second)).(conflict.Model)
 
 			// Assert that the result is correct
-			result := m.Values()
-			if !reflect.DeepEqual(result, tc.expected) {
+			result := m.Result()
+			if !bytes.Equal(result, tc.expected) {
 				t.Errorf("Unexpected result. Got %v, expected %v", result, tc.expected)
 			}
 		})
