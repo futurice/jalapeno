@@ -57,4 +57,4 @@ Feature: Execute recipes
     And a recipes directory
     And a failing recipe "foo" with variable "bar" that generates file "README.md"
     When I execute recipe "foo" with variable "bar" set to "first,second\\neka,toka"
-    Then CLI produced an error "--set bar=first,second\\\\neka,toka"
+    Then CLI produced an error "--set \"bar=first,second\\\\neka,toka\""
