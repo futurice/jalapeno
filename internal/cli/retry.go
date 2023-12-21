@@ -45,6 +45,5 @@ func makeRetryMessage(values recipe.VariableValues) string {
 			commandline.WriteString(fmt.Sprintf("\"%s=%s\"", key, value))
 		}
 	}
-	retryMessage := fmt.Sprintf("To re-run the recipe with the same values, use the following command:\n\n%s", commandline.String())
-	return retryMessage
+	return fmt.Sprintf("To re-run the recipe with the same values, use the following command:\n\n%s", commandline.String())
 }
