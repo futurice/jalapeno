@@ -230,7 +230,7 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 			override, err := conflict.Solve(cmd.InOrStdin(), cmd.OutOrStdout(), path)
 			if err != nil {
 				if errors.Is(err, uiutil.ErrUserAborted) {
-					cmd.Println(fmt.Sprintf("User aborted\n\n%s", makeRetryMessage(values)))
+					cmd.Printf("User aborted\n\n%s\n", makeRetryMessage(values))
 					return nil
 				}
 
