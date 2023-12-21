@@ -127,6 +127,24 @@ func CSVToTable(columns []string, str string, delimiter rune) ([]map[string]stri
 	return table, nil
 }
 
+func TableToCSV(table []map[string]string, delimiter rune) (string, error) {
+	// declare an io writer that writes to a string
+	var stringWriter strings.Builder
+	csvWriter := csv.NewWriter(&stringWriter)
+	csvWriter.Comma = delimiter
+	for _, row := range table {
+		var csvRow []string
+		for _, column := range row {
+			csvRow = append(csvRow, column)
+		}
+		if err := csvWriter.Write(csvRow); err != nil {
+			return "", err
+		}
+	}
+	csvWriter.Flush()
+	return stringWriter.String(), nil
+}
+
 func RowsToTable(columns []string, rows [][]string) ([]map[string]string, error) {
 	table := make([]map[string]string, len(rows))
 	for i, row := range rows {

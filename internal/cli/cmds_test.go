@@ -75,7 +75,7 @@ func TestFeatures(t *testing.T) {
 			s.Step(`^the sauce file contains a sauce in index (\d) which should have property "([^"]*)" with value "([^"]*)"$`, theSauceFileShouldHavePropertyWithValue)
 			s.Step(`^the sauce file contains a sauce in index (\d) which should have property "([^"]*)" that is a valid UUID$`, theSauceFileShouldHavePropertyThatIsAValidUUID)
 			s.Step(`^CLI produced an output "([^"]*)"$`, expectGivenOutput)
-			s.Step(`^CLI produced an error "([^"]*)"$`, expectGivenError)
+			s.Step(`^CLI produced an error "(.*)"$`, expectGivenError)
 			s.Step(`^recipe "([^"]*)" ignores pattern "([^"]*)"$`, recipeIgnoresPattern)
 			s.Step(`^no errors were printed$`, noErrorsWerePrinted)
 			s.Step(`^a local OCI registry$`, aLocalOCIRegistry)

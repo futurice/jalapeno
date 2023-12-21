@@ -193,7 +193,7 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 		ignorePatterns = append(ignorePatterns, strings.Split(string(data), "\n")...)
 	} else if !errors.Is(err, fs.ErrNotExist) {
 		// something else happened than trying to read an ignore file that does not exist
-		return fmt.Errorf("failed to read ignore file: %w", err)
+		return fmt.Errorf("failed to read ignore file: %w\n\n%s", err, makeRetryMessage(values))
 	}
 	ignorePatterns = append(ignorePatterns, re.IgnorePatterns...)
 
@@ -205,7 +205,7 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 		skip := false
 		for _, pattern := range ignorePatterns {
 			if matched, err := filepath.Match(pattern, path); err != nil {
-				return fmt.Errorf("bad ignore pattern '%s': %w", pattern, err)
+				return fmt.Errorf("bad ignore pattern '%s': %w\n\n%s", pattern, err, makeRetryMessage(values))
 			} else if matched {
 				// file was marked as ignored for upgrades
 				skip = true
@@ -256,11 +256,11 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 
 			if err != nil {
 				if errors.Is(err, uiutil.ErrUserAborted) {
-					cmd.Println("User aborted")
+					cmd.Printf("User aborted\n\n%s\n", makeRetryMessage(values))
 					return nil
 				}
 
-				return fmt.Errorf("error when prompting for question: %w", err)
+				return fmt.Errorf("error when prompting for question: %w\n\n%s", err, makeRetryMessage(values))
 			}
 
 			// NOTE: We need to save the checksum of the original file from the new sauce
