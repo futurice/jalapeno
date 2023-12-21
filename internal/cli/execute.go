@@ -56,8 +56,12 @@ jalapeno execute oci://ghcr.io/user/my-recipe:latest
 # Execute recipe to different directory
 jalapeno execute path/to/recipe --dir other/dir
 
-# Predefine variable values
-jalapeno execute path/to/recipe --set MY_VAR=foo --set MY_OTHER_VAR=bar`,
+# Set variable values with flags
+jalapeno execute path/to/recipe --set MY_VAR=foo --set MY_OTHER_VAR=bar
+
+# Set variable values with environment variables
+export JALAPENO_VAR_MY_VAR=foo
+jalapeno execute path/to/recipe`,
 	}
 
 	if err := option.ApplyFlags(&opts, cmd.Flags()); err != nil {

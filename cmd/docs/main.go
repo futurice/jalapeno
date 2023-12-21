@@ -5,6 +5,8 @@ import (
 	"embed"
 	"fmt"
 	"os"
+	"regexp"
+	"strings"
 	"text/template"
 
 	"github.com/Masterminds/sprig"
@@ -103,11 +105,14 @@ func checkErr(err error) {
 
 func mapCommandInfos(cmds []*cobra.Command) []CommandInfo {
 	infos := make([]CommandInfo, len(cmds))
+
 	for i, c := range cmds {
+		description := replaceAdmonition(c.Long)
+
 		info := CommandInfo{
 			Name:        c.Name(),
 			Aliases:     c.Aliases,
-			Description: c.Long,
+			Description: description,
 			Usage:       c.Use,
 			Example:     c.Example,
 			Flags:       make([]Flag, 0),
@@ -136,4 +141,27 @@ func valueTypeToString(v pflag.Value) string {
 	default:
 		return t
 	}
+}
+
+var admonitionRegExp *regexp.Regexp = regexp.MustCompile("\n((Note|Tip|Info|Warning|Danger): (.+))")
+
+func replaceAdmonition(s string) string {
+	description := s
+	admonitions := admonitionRegExp.FindAllStringSubmatch(description, -1)
+	if len(admonitions) > 0 {
+		for _, a := range admonitions {
+			description = strings.Replace(
+				description,
+				a[0],
+				fmt.Sprintf(
+					"\n:::%s\n\n%s\n\n:::",
+					strings.ToLower(a[2]),
+					a[3],
+				),
+				1,
+			)
+		}
+	}
+
+	return description
 }

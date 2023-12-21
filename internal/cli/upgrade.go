@@ -58,7 +58,7 @@ jalapeno upgrade oci://ghcr.io/user/my-recipe:v2.0.0
 # Upgrade recipe to different directory
 jalapeno upgrade path/to/recipe --dir other/dir
 
-# Predefine values for new variables introduced in the upgrade
+# Set values for new variables introduced in the upgrade
 jalapeno upgrade path/to/recipe --set NEW_VAR=foo`,
 	}
 

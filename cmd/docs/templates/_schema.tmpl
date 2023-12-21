@@ -11,7 +11,7 @@
 | `templateExtension` | `string` | | File extension of files in "templates" directory which should be templated. Files not matched by this extension will be copied as-is. If left empty (the default), all files will be templated. |
 | `initHelp` | `string` | | A message which will be showed to an user after a succesful recipe execution. Can be used to guide the user what should be done next in the project directory. |
 | `ignorePatterns` | `[]string` | | Glob patterns for ignoring generated files from future recipe upgrades. Ignored files will not be regenerated even if their templates change in future versions of the recipe. |
-| `vars` | [`[]Variable`](#variable) | | An array of variables which can be used in templates. The user will be prompted to provide the value for the variable if not predefined with `--set` flag. |
+| `vars` | [`[]Variable`](#variable) | | An array of variables which can be used in templates. The user will be prompted to provide the value for the variable if not set with `--set` flag. |
 
 ### Variable
 
