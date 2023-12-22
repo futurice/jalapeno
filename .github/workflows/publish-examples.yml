@@ -41,3 +41,6 @@ jobs:
       - uses: futurice/jalapeno@main
         with:
           cmd: push ./examples/with-tests oci://ghcr.io/futurice/jalapeno/examples/with-tests
+      - uses: futurice/jalapeno@main
+        with:
+          cmd: push ./examples/terraform-bootstrap oci://ghcr.io/futurice/jalapeno/examples/terraform-bootstrap
