@@ -42,4 +42,15 @@
 | `values` | `map[string]any` | | Values to use to render the recipe templates. Map key is the name of the variable and value is the variable value. |
 | `ignoreExtraFiles` | `bool` | | If true, test will pass even though templates generated more files than the test specifies. This is useful when creating specific test cases for large recipes. |
 
+## Sauce schema (`sauces.yml`)
+
+| Attribute | Type | Default | Description |
+| --- | --- | --- | --- |
+| `apiVersion` | `string` | `v1` | Version of the sauce API schema. Currently should have value "v1". |
+| `recipe` | [`Recipe`](#recipe-schema-recipeyml) | | The recipe which was used to render the sauce. |
+| `values` | `map[string]any` | | Values which was used to execute the recipe. |
+| `files` | `map[string]File` | | Files genereated from the recipe |
+| `id` | `string` | | Random unique ID whose value is determined on first render and stays the same on subsequent re-renders (upgrades) of the sauce. Can be used for example as a seed for template random functions to provide same result on each template. |
+| `from` | `string` | | Defines the repository where updates should be checked for the recipe. |
+
 {{- end }}

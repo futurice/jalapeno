@@ -44,17 +44,21 @@ func TestLoadMultipleRenderedRecipes(t *testing.T) {
 
 	sauces := `
 apiVersion: v1
-name: foo
-version: v1.0.0
-description: foo recipe
+recipe:
+  apiVersion: v1
+  name: foo
+  version: v1.0.0
+  description: foo recipe
 files:
   first.md:
     checksum: sha256:a04042ce4a5e66443c5a26ef2d4432aa535421286c062ea7bf55cba5bae15ef4
 ---
 apiVersion: v1
-name: bar
-version: v2.0.0
-description: bar recipe
+recipe:
+  apiVersion: v1
+  name: bar
+  version: v2.0.0
+  description: bar recipe
 files:
   second.md:
     checksum: sha256:1b42293a96dbdcf36ee77dcbee6e2e2804ab085d32e6a2de7736198a0d111044

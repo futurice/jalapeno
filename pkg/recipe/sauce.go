@@ -8,9 +8,17 @@ import (
 
 // Sauce represents a rendered recipe
 type Sauce struct {
-	Recipe Recipe          `yaml:",inline"`
-	Values VariableValues  `yaml:"values,omitempty"`
-	Files  map[string]File `yaml:"files"`
+	// Version of the sauce API schema. Currently should have value "v1"
+	APIVersion string `yaml:"apiVersion"`
+
+	// The recipe which was used to render the sauce
+	Recipe Recipe `yaml:"recipe"`
+
+	// Values which was used to execute the recipe
+	Values VariableValues `yaml:"values,omitempty"`
+
+	// Files genereated from the recipe
+	Files map[string]File `yaml:"files"`
 
 	// Random unique ID whose value is determined on first render and stays the same
 	// on subsequent re-renders (upgrades) of the sauce. Can be used for example as a seed
@@ -36,10 +44,16 @@ const (
 )
 
 func NewSauce() *Sauce {
-	return &Sauce{}
+	return &Sauce{
+		APIVersion: "v1",
+	}
 }
 
 func (s *Sauce) Validate() error {
+	if s.APIVersion != "v1" {
+		return fmt.Errorf("unreconized sauce API version \"%s\"", s.APIVersion)
+	}
+
 	if err := s.Recipe.Validate(); err != nil {
 		return fmt.Errorf("sauce recipe was invalid: %w", err)
 	}

@@ -73,7 +73,7 @@ func TestFeatures(t *testing.T) {
 			s.Step(`^the project directory should contain file "([^"]*)"$`, theProjectDirectoryShouldContainFile)
 			s.Step(`^the project directory should contain file "([^"]*)" with "([^"]*)"$`, theProjectDirectoryShouldContainFileWith)
 			s.Step(`^the sauce file contains a sauce in index (\d) which should have property "([^"]*)" with value "([^"]*)"$`, theSauceFileShouldHavePropertyWithValue)
-			s.Step(`^the sauce file contains a sauce in index (\d) which should have property "([^"]*)" that is a valid UUID$`, theSauceFileShouldHavePropertyThatIsAValidUUID)
+			s.Step(`^the sauce file contains a sauce in index (\d) which has a valid ID$`, theSauceFileShouldHasAValidID)
 			s.Step(`^CLI produced an output "([^"]*)"$`, expectGivenOutput)
 			s.Step(`^CLI produced an error "(.*)"$`, expectGivenError)
 			s.Step(`^recipe "([^"]*)" ignores pattern "([^"]*)"$`, recipeIgnoresPattern)
@@ -172,15 +172,15 @@ func readProjectDirectoryFile(ctx context.Context, filename string) (string, err
 	return string(bytes), nil
 }
 
-func readSauceFile(ctx context.Context) ([]map[interface{}]interface{}, error) {
+func readSauceFile(ctx context.Context) ([]map[string]interface{}, error) {
 	content, err := readProjectDirectoryFile(ctx, filepath.Join(re.SauceDirName, re.SaucesFileName+re.YAMLExtension))
 	if err != nil {
 		return nil, err
 	}
-	var recipes []map[interface{}]interface{}
+	var recipes []map[string]interface{}
 	decoder := yaml.NewDecoder(bytes.NewReader([]byte(content)))
 	for {
-		recipe := make(map[interface{}]interface{})
+		recipe := make(map[string]interface{})
 		if err := decoder.Decode(&recipe); err != nil {
 			if err != io.EOF {
 				return nil, fmt.Errorf("failed to decode recipe file: %w", err)
@@ -350,19 +350,19 @@ func theProjectDirectoryShouldContainFileWith(ctx context.Context, filename, sea
 	return nil
 }
 
-func theSauceFileShouldHavePropertyThatIsAValidUUID(ctx context.Context, index int, propertyName string) error {
+func theSauceFileShouldHasAValidID(ctx context.Context, index int) error {
 	recipes, err := readSauceFile(ctx)
 	if err != nil {
 		return err
 	}
 
-	value, exists := (recipes[index])[propertyName].(string)
+	value, exists := (recipes[index])["id"].(string)
 	if exists {
 		if _, err := uuid.FromString(value); err != nil {
 			return fmt.Errorf("found UUID but it does not parse: %w", err)
 		}
 	} else {
-		return fmt.Errorf("recipe file does not have property %s", propertyName)
+		return errors.New("recipe file does not have 'id' property")
 	}
 
 	if err != nil {
@@ -377,12 +377,13 @@ func theSauceFileShouldHavePropertyWithValue(ctx context.Context, index int, pro
 	if err != nil {
 		return err
 	}
-	value, exists := (recipes[index])[propertyName].(string)
-	if !exists {
-		return fmt.Errorf("recipe file does not have property %s", propertyName)
+
+	value, err := nestedMapLookup(recipes[index], strings.Split(propertyName, ".")...)
+	if err != nil {
+		return fmt.Errorf("sauce file does not have property %s: %w", propertyName, err)
 	}
 
-	if !regexp.MustCompile(expectedValue).MatchString(value) {
+	if !regexp.MustCompile(expectedValue).MatchString(value.(string)) {
 		return fmt.Errorf("expected property %s to match regex '%s', got '%s'", propertyName, expectedValue, value)
 	}
 	return nil
@@ -593,4 +594,21 @@ func theFileExistInTheRecipe(ctx context.Context, file, recipe string) (context.
 	}
 
 	return ctx, nil
+}
+
+func nestedMapLookup(m map[string]interface{}, ks ...string) (rval interface{}, err error) {
+	var ok bool
+
+	if len(ks) == 0 { // degenerate input
+		return nil, fmt.Errorf("NestedMapLookup needs at least one key")
+	}
+	if rval, ok = m[ks[0]]; !ok {
+		return nil, fmt.Errorf("key not found; remaining keys: %v", ks)
+	} else if len(ks) == 1 { // we've reached the final key
+		return rval, nil
+	} else if m, ok = rval.(map[string]interface{}); !ok {
+		return nil, fmt.Errorf("malformed structure at %#v", rval)
+	} else { // 1+ more keys
+		return nestedMapLookup(m, ks[1:]...)
+	}
 }
