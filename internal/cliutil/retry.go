@@ -1,8 +1,8 @@
-package cli
+package cliutil
 
 import (
 	"fmt"
-	"os"
+	"slices"
 	"strings"
 
 	"github.com/futurice/jalapeno/pkg/recipe"
@@ -10,10 +10,10 @@ import (
 )
 
 // Utility function for creating a retry message for the user such that they can re-run the cli command with the same values
-func makeRetryMessage(values recipe.VariableValues) string {
+func MakeRetryMessage(args []string, values recipe.VariableValues) string {
 	var commandline strings.Builder
 	skipNext := false
-	for idx, arg := range os.Args {
+	for idx, arg := range args {
 		if skipNext {
 			skipNext = false
 			continue
@@ -32,18 +32,26 @@ func makeRetryMessage(values recipe.VariableValues) string {
 		commandline.WriteString(" ")
 	}
 
-	for key, value := range values {
-		commandline.WriteString(" --set ")
-		switch value := value.(type) {
+	valueKeys := make([]string, 0, len(values))
+	for key := range values {
+		valueKeys = append(valueKeys, key)
+	}
+
+	// Sort the keys to make the output is deterministic
+	slices.Sort(valueKeys)
+
+	for _, key := range valueKeys {
+		commandline.WriteString("--set ")
+		switch value := values[key].(type) {
 		case []map[string]string: // serialize to CSV
 			csv, err := recipeutil.TableToCSV(value, ',')
 			if err != nil {
 				panic(err)
 			}
-			commandline.WriteString(fmt.Sprintf("\"%s=%s\"", key, strings.ReplaceAll(strings.TrimRight(csv, "\n"), "\n", "\\n")))
+			commandline.WriteString(fmt.Sprintf("\"%s=%s\" ", key, strings.ReplaceAll(strings.TrimRight(csv, "\n"), "\n", "\\n")))
 		default:
-			commandline.WriteString(fmt.Sprintf("\"%s=%s\"", key, value))
+			commandline.WriteString(fmt.Sprintf("\"%s=%s\" ", key, value))
 		}
 	}
-	return fmt.Sprintf("To re-run the recipe with the same values, use the following command:\n\n%s", commandline.String())
+	return fmt.Sprintf("To re-run the recipe with the same values, use the following command:\n\n%s", strings.TrimSpace(commandline.String()))
 }

@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/futurice/jalapeno/internal/cli/option"
+	"github.com/futurice/jalapeno/internal/cliutil"
 	"github.com/futurice/jalapeno/pkg/engine"
 	"github.com/futurice/jalapeno/pkg/recipe"
 	"github.com/futurice/jalapeno/pkg/recipeutil"
@@ -150,14 +151,14 @@ func runExecute(cmd *cobra.Command, opts executeOptions) error {
 
 	sauce, err := re.Execute(engine.Engine{}, values, uuid.Must(uuid.NewV4()))
 	if err != nil {
-		retryMessage := makeRetryMessage(values)
+		retryMessage := cliutil.MakeRetryMessage(os.Args, values)
 		return fmt.Errorf("%w\n\n%s", err, retryMessage)
 	}
 
 	// Check for conflicts
 	for _, s := range existingSauces {
 		if conflicts := s.Conflicts(sauce); conflicts != nil {
-			retryMessage := makeRetryMessage(values)
+			retryMessage := cliutil.MakeRetryMessage(os.Args, values)
 			return fmt.Errorf("conflict in recipe '%s': file '%s' was already created by recipe '%s'.\n\n%s", re.Name, conflicts[0].Path, s.Recipe.Name, retryMessage)
 		}
 	}
