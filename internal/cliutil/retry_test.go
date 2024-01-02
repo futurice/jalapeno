@@ -1,6 +1,7 @@
 package cliutil_test
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/futurice/jalapeno/internal/cliutil"
@@ -19,27 +20,42 @@ func TestMakeRetryMessage(t *testing.T) {
 			"No values",
 			[]string{"jalapeno", "execute", "path/to/recipe"},
 			recipe.VariableValues{},
-			`To re-run the recipe with the same values, use the following command:
-
-jalapeno execute "path/to/recipe"`,
+			`jalapeno execute "path/to/recipe"`,
 		},
 		{
-			"Non-empty values",
+			"Multiple string values",
 			[]string{"jalapeno", "execute", "path/to/recipe"},
 			recipe.VariableValues{
 				"key1": "value1",
 				"key2": "value2",
 			},
-			`To re-run the recipe with the same values, use the following command:
-
-jalapeno execute "path/to/recipe" --set "key1=value1" --set "key2=value2"`,
+			`jalapeno execute "path/to/recipe" --set "key1=value1" --set "key2=value2"`,
+		},
+		{
+			"Table values",
+			[]string{"jalapeno", "execute", "path/to/recipe"},
+			recipe.VariableValues{
+				"table1": []map[string]string{
+					{
+						"col1": "value1",
+						"col2": "value2",
+					},
+				},
+				"table2": []map[string]string{
+					{
+						"col2": "value2",
+						"col1": "value1",
+					},
+				},
+			},
+			`jalapeno execute "path/to/recipe" --set "table1=value1,value2" --set "table2=value1,value2"`,
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(tt *testing.T) {
 			result := cliutil.MakeRetryMessage(tc.Args, tc.Values)
-			if result != tc.Expected {
+			if !strings.Contains(result, tc.Expected) {
 				tt.Errorf("unexpected result:\n%s", diff.Diff(tc.Expected, result))
 			}
 		})

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"slices"
 	"strings"
 
 	"github.com/futurice/jalapeno/pkg/recipe"
@@ -132,11 +133,21 @@ func TableToCSV(table []map[string]string, delimiter rune) (string, error) {
 	var stringWriter strings.Builder
 	csvWriter := csv.NewWriter(&stringWriter)
 	csvWriter.Comma = delimiter
+
 	for _, row := range table {
-		var csvRow []string
-		for _, column := range row {
-			csvRow = append(csvRow, column)
+		columns := make([]string, 0, len(row))
+		for column := range row {
+			columns = append(columns, column)
 		}
+
+		// Sort the keys to make the output deterministic
+		slices.Sort(columns)
+
+		csvRow := make([]string, len(columns))
+		for i := range columns {
+			csvRow[i] = row[columns[i]]
+		}
+
 		if err := csvWriter.Write(csvRow); err != nil {
 			return "", err
 		}

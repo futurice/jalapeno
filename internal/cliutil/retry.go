@@ -37,7 +37,7 @@ func MakeRetryMessage(args []string, values recipe.VariableValues) string {
 		valueKeys = append(valueKeys, key)
 	}
 
-	// Sort the keys to make the output is deterministic
+	// Sort the keys to make the output deterministic
 	slices.Sort(valueKeys)
 
 	for _, key := range valueKeys {
