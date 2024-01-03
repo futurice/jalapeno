@@ -37,6 +37,7 @@ type (
 	certDirectoryPathCtxKey         struct{}
 	htpasswdDirectoryPathCtxKey     struct{}
 	dockerConfigDirectoryPathCtxKey struct{}
+	manifestDirectoryPathCtxKey     struct{}
 	ociRegistryCtxKey               struct{}
 	cmdStdOutCtxKey                 struct{}
 	cmdStdErrCtxKey                 struct{}
@@ -89,6 +90,7 @@ func TestFeatures(t *testing.T) {
 			AddCreateSteps(s)
 			AddEjectSteps(s)
 			AddExecuteSteps(s)
+			AddManifestSteps(s)
 			AddPullSteps(s)
 			AddPushSteps(s)
 			AddTestSteps(s)
@@ -145,6 +147,7 @@ func cleanTempDirs(ctx context.Context, sc *godog.Scenario, err error) (context.
 		certDirectoryPathCtxKey{},
 		htpasswdDirectoryPathCtxKey{},
 		dockerConfigDirectoryPathCtxKey{},
+		manifestDirectoryPathCtxKey{},
 	}
 
 	for _, key := range directoryCtxKeys {
