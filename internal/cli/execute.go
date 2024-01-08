@@ -20,10 +20,11 @@ import (
 
 type executeOptions struct {
 	RecipeURL string
-	option.Values
-	option.OCIRepository
-	option.WorkingDirectory
+
 	option.Common
+	option.OCIRepository
+	option.Values
+	option.WorkingDirectory
 }
 
 func NewExecuteCmd() *cobra.Command {

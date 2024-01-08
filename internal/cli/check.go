@@ -12,12 +12,13 @@ import (
 )
 
 type checkOptions struct {
-	RecipeName          string
 	CheckFrom           string
+	RecipeName          string
 	UseDetailedExitCode bool
+
 	option.Common
-	option.WorkingDirectory
 	option.OCIRepository
+	option.WorkingDirectory
 }
 
 const (

@@ -13,9 +13,9 @@ import (
 type pullOptions struct {
 	TargetRef string
 
-	option.WorkingDirectory
-	option.OCIRepository
 	option.Common
+	option.OCIRepository
+	option.WorkingDirectory
 }
 
 func NewPullCmd() *cobra.Command {

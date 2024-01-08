@@ -14,8 +14,9 @@ import (
 
 type whyOptions struct {
 	Filepath string
-	option.WorkingDirectory
+
 	option.Common
+	option.WorkingDirectory
 }
 
 func NewWhyCmd() *cobra.Command {

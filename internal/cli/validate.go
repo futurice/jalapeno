@@ -12,8 +12,8 @@ import (
 type validateOptions struct {
 	RecipePath string
 
-	option.WorkingDirectory
 	option.Common
+	option.WorkingDirectory
 }
 
 func NewValidateCmd() *cobra.Command {

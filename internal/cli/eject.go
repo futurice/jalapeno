@@ -12,6 +12,7 @@ import (
 )
 
 type ejectOptions struct {
+	option.Common
 	option.WorkingDirectory
 }
 

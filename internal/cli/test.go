@@ -13,9 +13,10 @@ import (
 )
 
 type testOptions struct {
+	Create          bool
 	RecipePath      string
 	UpdateSnapshots bool
-	Create          bool
+
 	option.Common
 }
 

@@ -23,10 +23,11 @@ import (
 
 type upgradeOptions struct {
 	RecipeURL string
-	option.OCIRepository
-	option.WorkingDirectory
-	option.Values
+
 	option.Common
+	option.OCIRepository
+	option.Values
+	option.WorkingDirectory
 }
 
 func NewUpgradeCmd() *cobra.Command {

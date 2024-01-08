@@ -12,8 +12,9 @@ import (
 type pushOptions struct {
 	RecipePath string
 	TargetURL  string
-	option.OCIRepository
+
 	option.Common
+	option.OCIRepository
 }
 
 func NewPushCmd() *cobra.Command {
