@@ -49,12 +49,12 @@ func runEject(cmd *cobra.Command, opts ejectOptions) error {
 		return fmt.Errorf("'%s' is not a Jalapeno project", opts.Dir)
 	}
 
-	cmd.Printf("Deleting %s...", jalapenoPath)
+	cmd.Printf("Deleting %s...\n", jalapenoPath)
 	err := os.RemoveAll(jalapenoPath)
 	if err != nil {
 		return err
 	}
 
-	cmd.Println("\nEjected successfully")
+	cmd.Printf("Ejected %s\n", opts.Colors.Green.Render("successfully!"))
 	return nil
 }

@@ -147,10 +147,8 @@ func runTest(cmd *cobra.Command, opts testOptions) error {
 	cmd.Printf("Running tests for recipe \"%s\"...\n", re.Name)
 	errs := re.RunTests()
 	for i, err := range errs {
-		var symbol rune
-		if err == nil {
-			symbol = '✅'
-		} else {
+		symbol := '✅'
+		if err != nil {
 			symbol = '❌'
 		}
 

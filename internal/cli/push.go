@@ -59,6 +59,6 @@ func runPush(cmd *cobra.Command, opts pushOptions) error {
 		return fmt.Errorf("failed to push recipe: %w", err)
 	}
 
-	cmd.Println("Recipe pushed successfully")
+	cmd.Printf("Recipe pushed %s\n", opts.Colors.Green.Render("successfully!"))
 	return nil
 }

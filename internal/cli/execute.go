@@ -174,7 +174,7 @@ func runExecute(cmd *cobra.Command, opts executeOptions) error {
 		return err
 	}
 
-	cmd.Println("Recipe executed successfully!")
+	cmd.Printf("Recipe executed %s\n", opts.Colors.Green.Render("successfully!"))
 
 	tree := recipeutil.CreateFileTree(opts.Dir, sauce.Files)
 	cmd.Printf("The following files were created:\n\n%s", tree)

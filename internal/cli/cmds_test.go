@@ -21,8 +21,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/charmbracelet/lipgloss"
 	"github.com/cucumber/godog"
 	"github.com/gofrs/uuid"
+	"github.com/muesli/termenv"
 	"github.com/ory/dockertest/v3"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
@@ -95,6 +97,12 @@ func TestFeatures(t *testing.T) {
 			AddUpgradeSteps(s)
 			AddValidateSteps(s)
 			AddWhySteps(s)
+
+			// Disable colors when testing
+			s.Before(func(ctx context.Context, sc *godog.Scenario) (context.Context, error) {
+				lipgloss.SetColorProfile(termenv.Ascii)
+				return ctx, nil
+			})
 
 			s.Before(func(ctx context.Context, sc *godog.Scenario) (context.Context, error) {
 				// Initialize additional flags to empty map before each step
