@@ -88,7 +88,7 @@ func runTest(cmd *cobra.Command, opts testOptions) error {
 		for i := range re.Tests {
 			test := &re.Tests[i]
 			fileUpdatesFound := make(map[string]recipe.File)
-			sauce, err := re.Execute(engine.Engine{}, test.Values, recipe.TestID)
+			sauce, err := re.Execute(engine.New(), test.Values, recipe.TestID)
 			if err != nil {
 				return fmt.Errorf("failed to render templates: %w", err)
 			}

@@ -44,7 +44,7 @@ func (t *Test) Validate() error {
 func (re *Recipe) RunTests() []error {
 	errors := make([]error, len(re.Tests))
 	for i, t := range re.Tests {
-		sauce, err := re.Execute(engine.Engine{}, t.Values, TestID)
+		sauce, err := re.Execute(engine.New(), t.Values, TestID)
 		if err != nil {
 			errors[i] = fmt.Errorf("%w", err)
 			continue

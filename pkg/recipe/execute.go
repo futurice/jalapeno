@@ -9,6 +9,10 @@ import (
 	"github.com/gofrs/uuid"
 )
 
+type RenderEngine interface {
+	Render(templates map[string][]byte, values map[string]interface{}) (map[string][]byte, error)
+}
+
 // Execute executes the recipe and returns a sauce
 func (re *Recipe) Execute(engine RenderEngine, values VariableValues, id uuid.UUID) (*Sauce, error) {
 	if id.IsNil() {

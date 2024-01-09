@@ -25,11 +25,23 @@ func TestRender(t *testing.T) {
 				"templates/test1": []byte("First Second"),
 			},
 		},
+		{
+			"macros",
+			map[string][]byte{
+				"templates/helper1": []byte("{{ define \"helper1\" }}ONE{{ end }}"),
+				"templates/main":    []byte("{{ template \"helper1\" }} {{ template \"helper2\" }}"),
+				"templates/helper2": []byte("{{ define \"helper2\" }}TWO{{ end }}"),
+			},
+			map[string]interface{}{},
+			map[string][]byte{
+				"templates/main": []byte("ONE TWO"),
+			},
+		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
-			out, err := new(Engine).Render(tc.Templates, tc.Values)
+			out, err := New().Render(tc.Templates, tc.Values)
 			if err != nil {
 				t.Fatalf("Failed to render templates: %s", err)
 			}

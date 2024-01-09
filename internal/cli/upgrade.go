@@ -184,7 +184,7 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 		values = recipeutil.MergeValues(values, promptedValues)
 	}
 
-	newSauce, err := re.Execute(engine.Engine{}, values, oldSauce.ID)
+	newSauce, err := re.Execute(engine.New(), values, oldSauce.ID)
 	if err != nil {
 		return err
 	}

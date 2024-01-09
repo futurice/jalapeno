@@ -150,7 +150,7 @@ func runExecute(cmd *cobra.Command, opts executeOptions) error {
 		values = recipeutil.MergeValues(values, promptedValues)
 	}
 
-	sauce, err := re.Execute(engine.Engine{}, values, uuid.Must(uuid.NewV4()))
+	sauce, err := re.Execute(engine.New(), values, uuid.Must(uuid.NewV4()))
 	if err != nil {
 		retryMessage := cliutil.MakeRetryMessage(os.Args, values)
 		return fmt.Errorf("%w\n\n%s", err, retryMessage)

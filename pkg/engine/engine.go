@@ -10,6 +10,10 @@ import (
 type Engine struct {
 }
 
+func New() Engine {
+	return Engine{}
+}
+
 func (e Engine) Render(templates map[string][]byte, values map[string]interface{}) (map[string][]byte, error) {
 	t := template.New("gotpl")
 	t.Funcs(funcMap())
@@ -20,7 +24,7 @@ func (e Engine) Render(templates map[string][]byte, values map[string]interface{
 	for name, data := range templates {
 		_, err := t.New(name).Parse(string(data))
 		if err != nil {
-			// TODO: Inner error message includes prefix "template: ", which does not good when printing this error
+			// TODO: Inner error message includes prefix "template: ", which does not look good when printing the error
 			return nil, fmt.Errorf("failed to parse template: %w", err)
 		}
 	}
@@ -29,7 +33,7 @@ func (e Engine) Render(templates map[string][]byte, values map[string]interface{
 	for name := range templates {
 		var buf strings.Builder
 		if err := t.ExecuteTemplate(&buf, name, values); err != nil {
-			// TODO: Inner error message includes prefix "template: ", which does not good when printing this error
+			// TODO: Inner error message includes prefix "template: ", which does not look good when printing the error
 			return nil, fmt.Errorf("failed to execute template: %w", err)
 		}
 

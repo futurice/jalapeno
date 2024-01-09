@@ -11,10 +11,6 @@ type Recipe struct {
 	Tests     []Test          `yaml:"-"`
 }
 
-type RenderEngine interface {
-	Render(templates map[string][]byte, values map[string]interface{}) (map[string][]byte, error)
-}
-
 func NewRecipe() *Recipe {
 	return &Recipe{
 		Metadata: Metadata{

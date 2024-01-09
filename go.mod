@@ -5,6 +5,7 @@ go 1.21
 require (
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/antonmedv/expr v1.15.3
+	github.com/buildkite/shellwords v0.0.0-20180315110454-59467a9b8e10
 	github.com/carlmjohnson/versioninfo v0.22.5
 	github.com/charmbracelet/bubbles v0.16.1
 	github.com/charmbracelet/bubbletea v0.24.2
@@ -12,6 +13,7 @@ require (
 	github.com/charmbracelet/x/exp/teatest v0.0.0-20231010190216-1cb11efc897d
 	github.com/cucumber/godog v0.13.0
 	github.com/docker/cli v24.0.6+incompatible
+	github.com/kylelemons/godebug v1.1.0
 	github.com/muesli/termenv v0.15.2
 	github.com/opencontainers/image-spec v1.1.0-rc5
 	github.com/spf13/cobra v1.7.0
@@ -25,7 +27,6 @@ require (
 	github.com/atotto/clipboard v0.1.4 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/aymanbagabas/go-udiff v0.1.0 // indirect
-	github.com/buildkite/shellwords v0.0.0-20180315110454-59467a9b8e10 // indirect
 	github.com/cenkalti/backoff/v4 v4.2.1 // indirect
 	github.com/containerd/console v1.0.4-0.20230313162750-1ae8d489ac81 // indirect
 	github.com/cucumber/gherkin/go/v26 v26.2.0 // indirect
@@ -34,7 +35,6 @@ require (
 	github.com/docker/docker-credential-helpers v0.8.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
-	github.com/kylelemons/godebug v1.1.0 // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
 	github.com/mattn/go-localereader v0.0.1 // indirect
 	github.com/mattn/go-runewidth v0.0.15 // indirect
