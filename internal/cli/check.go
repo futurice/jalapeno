@@ -3,6 +3,7 @@ package cli
 import (
 	"context"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/futurice/jalapeno/internal/cli/option"
@@ -105,7 +106,8 @@ func runCheck(cmd *cobra.Command, opts checkOptions) error {
 
 	cmd.Println("Checking for new versions...")
 
-	updatesAvailable, errorsFound := false, false
+	errorsFound := false
+	upgradeCommands := make([]string, 0, len(sauces))
 	for _, sauce := range sauces {
 		versions, err := recipeutil.CheckForUpdates(sauce, opts.OCIRepository)
 		if err != nil {
@@ -113,11 +115,20 @@ func runCheck(cmd *cobra.Command, opts checkOptions) error {
 			cmd.Printf("%s: can not check for updates: %s\n", sauce.Recipe.Name, err)
 
 		} else if len(versions) > 0 {
-			updatesAvailable = true
 			cmd.Printf("%s: new versions found: %s\n", sauce.Recipe.Name, strings.Join(versions, ", "))
+			upgradeCommands = append(upgradeCommands,
+				fmt.Sprintf("%s upgrade %s:%s", os.Args[0], sauce.CheckFrom, versions[len(versions)-1]),
+			)
 
 		} else {
 			cmd.Printf("%s: no new versions found\n", sauce.Recipe.Name)
+		}
+	}
+
+	if len(upgradeCommands) > 0 {
+		cmd.Println("To upgrade recipes to the latest version run:")
+		for _, cmdMsg := range upgradeCommands {
+			cmd.Printf("  %s\n", cmdMsg)
 		}
 	}
 
@@ -125,7 +136,7 @@ func runCheck(cmd *cobra.Command, opts checkOptions) error {
 	switch {
 	case errorsFound:
 		exitCode = ExitCodeError
-	case updatesAvailable && opts.UseDetailedExitCode:
+	case len(upgradeCommands) > 0 && opts.UseDetailedExitCode:
 		exitCode = ExitCodeUpdatesAvailable
 	default:
 		exitCode = ExitCodeOK

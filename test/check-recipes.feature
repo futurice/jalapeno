@@ -13,6 +13,7 @@ Feature: Check for new recipe versions
     And I push the recipe "foo" to the local OCI repository
     And I check new versions for recipe "foo"
     Then CLI produced an output "new versions found: v0.0.2"
+    Then CLI produced an output "To upgrade recipes to the latest version run:\n  (.*) upgrade oci://localhost:\d+/foo:v0.0.2\n"
 
   Scenario: Find multiple newer version for a recipe
     Given a project directory
@@ -30,6 +31,7 @@ Feature: Check for new recipe versions
     And I push the recipe "foo" to the local OCI repository
     Then I check new versions for recipe "foo"
     Then CLI produced an output "new versions found: v0.0.2, v0.0.3"
+    Then CLI produced an output "To upgrade recipes to the latest version run:\n  (.*) upgrade oci://localhost:\d+/foo:v0.0.3\n"
 
   Scenario: Find newer version for multiple recipes
     Given a project directory
