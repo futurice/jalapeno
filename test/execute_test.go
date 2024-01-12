@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/cucumber/godog"
+	re "github.com/futurice/jalapeno/pkg/recipe"
 )
 
 func AddExecuteSteps(s *godog.ScenarioContext) {
@@ -15,6 +16,8 @@ func AddExecuteSteps(s *godog.ScenarioContext) {
 	s.Step(`^I execute the recipe from the local OCI repository "([^"]*)"$`, iExecuteRemoteRecipe)
 	s.Step(`^recipes will be executed to the subpath "([^"]*)"$`, recipesWillBeExecutedToTheSubPath)
 	s.Step(`^execution of the recipe has succeeded$`, executionOfTheRecipeHasSucceeded)
+	s.Step(`^a manifest file that includes recipes "([^"]*)" and "([^"]*)"$`, aManifestFileThatIncludesRecipesAnd)
+	s.Step(`^I execute the manifest file$`, iExecuteTheManifestFile)
 }
 
 func iRunExecute(ctx context.Context, recipe string) (context.Context, error) {
@@ -77,4 +80,30 @@ func recipesWillBeExecutedToTheSubPath(ctx context.Context, path string) (contex
 
 func executionOfTheRecipeHasSucceeded(ctx context.Context) (context.Context, error) {
 	return ctx, expectGivenOutput(ctx, "Recipe executed successfully")
+}
+
+func aManifestFileThatIncludesRecipesAnd(ctx context.Context, recipe1, recipe2 string) (context.Context, error) {
+	recipeDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
+	dir, err := os.MkdirTemp("", "jalapeno-test-manifest")
+	if err != nil {
+		return ctx, err
+	}
+	ctx = context.WithValue(ctx, manifestDirectoryPathCtxKey{}, dir)
+	manifest := fmt.Sprintf(`apiVersion: v1
+recipes:
+  - name: %[2]s
+    version: 0.0.0
+    repository: file://%[1]s/%[2]s
+  - name: %[3]s
+    version: 0.0.0
+    repository: file://%[1]s/%[3]s
+`, recipeDir, recipe1, recipe2)
+	if err := os.WriteFile(filepath.Join(dir, re.ManifestFileName+re.YAMLExtension), []byte(manifest), 0644); err != nil {
+		return ctx, err
+	}
+	return ctx, godog.ErrPending
+}
+
+func iExecuteTheManifestFile() error {
+	return godog.ErrPending
 }
