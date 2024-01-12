@@ -20,6 +20,7 @@ const (
 	RecipeTestMetaFileName = "test"
 	RecipeTestFilesDirName = "files"
 	IgnoreFileName         = ".jalapenoignore"
+	ManifestFileName       = "manifest"
 )
 
 var (
@@ -225,4 +226,24 @@ func LoadSauce(projectDir, recipeName string) (*Sauce, error) {
 	}
 
 	return nil, ErrSauceNotFound
+}
+
+func LoadManifest(path string) (*Manifest, error) {
+	dat, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+
+	manifest := &Manifest{}
+	err = yaml.Unmarshal(dat, manifest)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := manifest.Validate(); err != nil {
+		return nil, err
+	}
+
+	return manifest, nil
+
 }

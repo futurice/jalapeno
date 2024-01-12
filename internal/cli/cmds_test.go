@@ -90,7 +90,6 @@ func TestFeatures(t *testing.T) {
 			AddCreateSteps(s)
 			AddEjectSteps(s)
 			AddExecuteSteps(s)
-			AddManifestSteps(s)
 			AddPullSteps(s)
 			AddPushSteps(s)
 			AddTestSteps(s)

@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/futurice/jalapeno/internal/cli/option"
 	"github.com/futurice/jalapeno/internal/cliutil"
@@ -77,25 +76,38 @@ func runExecute(cmd *cobra.Command, opts executeOptions) error {
 		return errors.New("output path does not exist")
 	}
 
-	var (
-		re              *recipe.Recipe
-		err             error
-		wasRemoteRecipe bool
-	)
+	var re *recipe.Recipe
+	var err error
 
-	if strings.HasPrefix(opts.RecipeURL, "oci://") {
-		wasRemoteRecipe = true
+	switch recipe.DetermineRecipeURLType(opts.RecipeURL) {
+	case recipe.OCIType:
 		ctx := context.Background()
 		re, err = recipe.PullRecipe(ctx, opts.Repository(opts.RecipeURL))
+		if err != nil {
+			return fmt.Errorf("can not load the recipe: %s", err)
+		}
+		return executeRecipe(cmd, opts, re)
 
-	} else {
+	case recipe.LocalType:
 		re, err = recipe.LoadRecipe(opts.RecipeURL)
-	}
+		if err != nil {
+			return fmt.Errorf("can not load the recipe: %s", err)
+		}
+		return executeRecipe(cmd, opts, re)
 
-	if err != nil {
-		return fmt.Errorf("can not load the recipe: %s", err)
-	}
+	case recipe.ManifestType:
+		manifest, err := recipe.LoadManifest(opts.RecipeURL)
+		if err != nil {
+			return fmt.Errorf("can not load the manifest: %s", err)
+		}
+		return executeManifest(cmd, opts, manifest)
 
+	default:
+		return fmt.Errorf("unsupported recipe URL: %s", opts.RecipeURL)
+	}
+}
+
+func executeRecipe(cmd *cobra.Command, opts executeOptions, re *recipe.Recipe) error {
 	cmd.Printf("%s: %s\n", opts.Colors.Red.Render("Recipe name"), re.Metadata.Name)
 
 	if re.Metadata.Description != "" {
@@ -164,7 +176,7 @@ func runExecute(cmd *cobra.Command, opts executeOptions) error {
 	}
 
 	// Automatically add recipe origin if the recipe was remote
-	if wasRemoteRecipe {
+	if recipe.DetermineRecipeURLType(opts.RecipeURL) == recipe.OCIType {
 		sauce.CheckFrom = opts.RecipeURL
 	}
 
@@ -180,6 +192,24 @@ func runExecute(cmd *cobra.Command, opts executeOptions) error {
 
 	if re.InitHelp != "" {
 		cmd.Printf("\nNext up: %s\n", re.InitHelp)
+	}
+
+	return nil
+}
+
+func executeManifest(cmd *cobra.Command, opts executeOptions, manifest *recipe.Manifest) error {
+	cmd.Printf("Executing manifest with %d recipes...\n", len(manifest.Recipes))
+
+	recipes, err := manifest.GetRecipes()
+	if err != nil {
+		return err
+	}
+
+	for _, re := range recipes {
+		err = executeRecipe(cmd, opts, re)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
