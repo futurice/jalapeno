@@ -144,7 +144,7 @@ func runTest(cmd *cobra.Command, opts testOptions) error {
 		return nil
 	}
 
-	cmd.Printf("Running tests for recipe \"%s\"...\n", re.Name)
+	cmd.Printf("Running tests for recipe \"%s\"...\n\n", re.Name)
 	errs := re.RunTests()
 	for i, err := range errs {
 		symbol := '✅'
@@ -163,6 +163,7 @@ func runTest(cmd *cobra.Command, opts testOptions) error {
 	}
 
 	if len(formattedErrs) > 0 {
+		cmd.Println()
 		return fmt.Errorf("recipe tests failed: %w", errors.Join(formattedErrs...))
 	}
 
