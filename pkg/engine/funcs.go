@@ -6,7 +6,7 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/Masterminds/sprig"
+	"github.com/Masterminds/sprig/v3"
 )
 
 var prngs = make(map[string]*rand.Rand)
