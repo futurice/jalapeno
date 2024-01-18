@@ -43,6 +43,8 @@ func MakeRetryMessage(args []string, values recipe.VariableValues) string {
 	for _, key := range valueKeys {
 		commandline.WriteString("--set ")
 		switch value := values[key].(type) {
+		case bool:
+			commandline.WriteString(fmt.Sprintf("\"%s=%t\" ", key, value))
 		case []map[string]string: // serialize to CSV
 			csv, err := recipeutil.TableToCSV(value, ',')
 			if err != nil {

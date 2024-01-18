@@ -32,6 +32,15 @@ func TestMakeRetryMessage(t *testing.T) {
 			`jalapeno execute "path/to/recipe" --set "key1=value1" --set "key2=value2"`,
 		},
 		{
+			"Boolean values",
+			[]string{"jalapeno", "execute", "path/to/recipe"},
+			recipe.VariableValues{
+				"key1": true,
+				"key2": false,
+			},
+			`jalapeno execute "path/to/recipe" --set "key1=true" --set "key2=false"`,
+		},
+		{
 			"Table values",
 			[]string{"jalapeno", "execute", "path/to/recipe"},
 			recipe.VariableValues{
