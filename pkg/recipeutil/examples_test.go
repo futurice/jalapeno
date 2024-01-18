@@ -14,7 +14,7 @@ func TestExampleRecipeIsValid(t *testing.T) {
 }
 
 func TestExampleTestIsValid(t *testing.T) {
-	test := recipeutil.CreateExampleTest()
+	test := recipeutil.CreateExampleTest("example")
 	if err := test.Validate(); err != nil {
 		t.Error(err)
 	}

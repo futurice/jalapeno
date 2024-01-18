@@ -3,7 +3,7 @@ Feature: Running tests for a recipe
     Given a recipes directory
     And a recipe "foo" that generates file "README.md"
     When I create a test for recipe "foo"
-    Then CLI produced an output "Test created"
+    Then CLI produced an output "Test 'example' created successfully!"
     And no errors were printed
     And the file "tests/example/test.yml" exist in the recipe "foo"
 

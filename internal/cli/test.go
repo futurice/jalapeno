@@ -60,7 +60,8 @@ func runTest(cmd *cobra.Command, opts testOptions) error {
 	}
 
 	if opts.Create {
-		test := *recipeutil.CreateExampleTest()
+		// TODO: What if there already exists a test called "example"?
+		test := recipeutil.CreateExampleTest("example")
 
 		if len(re.Tests) > 0 {
 			re.Tests = append(re.Tests, test)
@@ -73,7 +74,11 @@ func runTest(cmd *cobra.Command, opts testOptions) error {
 			return fmt.Errorf("failed to save recipe: %w", err)
 		}
 
-		cmd.Println("Test created")
+		cmd.Printf(
+			"Test '%s' created %s\n",
+			test.Name,
+			opts.Colors.Green.Render("successfully!"),
+		)
 		return nil
 	}
 

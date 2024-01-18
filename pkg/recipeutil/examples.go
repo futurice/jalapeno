@@ -30,10 +30,8 @@ func CreateExampleRecipe(name string) *recipe.Recipe {
 	return r
 }
 
-func CreateExampleTest() *recipe.Test {
-	test := &recipe.Test{
-		Name: "example",
+func CreateExampleTest(name string) recipe.Test {
+	return recipe.Test{
+		Name: name,
 	}
-
-	return test
 }

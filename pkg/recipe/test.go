@@ -33,7 +33,7 @@ var (
 	ErrTestContentMismatch       = errors.New("the contents of the files did not match")
 )
 
-func (t *Test) Validate() error {
+func (t Test) Validate() error {
 	if t.Name == "" {
 		return errors.New("test name can not be empty")
 	}
