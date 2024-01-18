@@ -50,13 +50,6 @@ func ParseProvidedValues(variables []recipe.Variable, flags []string, delimiter 
 			return nil, fmt.Errorf("%w: %s", ErrVarNotDefinedInRecipe, varName)
 		}
 
-		for i := range targetedVariable.Validators {
-			validatorFunc := targetedVariable.Validators[i].CreateValidatorFunc()
-			if err := validatorFunc(varValue); err != nil {
-				return nil, fmt.Errorf("validator failed for value '%s=%s': %w", varName, varValue, err)
-			}
-		}
-
 		switch {
 		case targetedVariable.Confirm:
 			if varValue == "true" {
@@ -72,9 +65,26 @@ func ParseProvidedValues(variables []recipe.Variable, flags []string, delimiter 
 			if err != nil {
 				return nil, fmt.Errorf("failed to parse table from CSV for variable '%s': %w", varName, err)
 			}
+			for i := range targetedVariable.Validators {
+				validatorFunc := targetedVariable.Validators[i].CreateValidatorFunc()
+				for i, row := range table {
+					column := targetedVariable.Validators[i].Column
+					if err := validatorFunc(row[column]); err != nil {
+						return nil, fmt.Errorf("validator failed for variable %s in column %s, row %d: %w", varName, column, i, err)
+					}
+
+				}
+			}
 			values[varName] = table
 
 		default:
+			for i := range targetedVariable.Validators {
+				validatorFunc := targetedVariable.Validators[i].CreateValidatorFunc()
+				if err := validatorFunc(varValue); err != nil {
+					return nil, fmt.Errorf("validator failed for value '%s=%s': %w", varName, varValue, err)
+				}
+			}
+
 			values[varName] = varValue
 		}
 	}
