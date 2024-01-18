@@ -7,7 +7,6 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/futurice/jalapeno/pkg/recipe"
-	"github.com/futurice/jalapeno/pkg/recipeutil"
 	"github.com/futurice/jalapeno/pkg/ui/editable"
 	"github.com/futurice/jalapeno/pkg/ui/survey/style"
 )
@@ -140,8 +139,10 @@ func (m TableModel) Name() string {
 }
 
 func (m TableModel) Value() interface{} {
-	values, _ := recipeutil.RowsToTable(m.variable.Columns, m.table.Values())
-	return values
+	return recipe.TableValue{
+		Columns: m.variable.Columns,
+		Rows:    m.table.Values(),
+	}
 }
 
 func (m TableModel) IsSubmitted() bool {

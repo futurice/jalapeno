@@ -1,7 +1,6 @@
 package recipeutil
 
 import (
-	"encoding/csv"
 	"errors"
 	"fmt"
 	"os"
@@ -61,16 +60,19 @@ func ParseProvidedValues(variables []recipe.Variable, flags []string, delimiter 
 			}
 		case len(targetedVariable.Columns) > 0:
 			varValue = strings.ReplaceAll(varValue, "\\n", "\n")
-			table, err := CSVToTable(targetedVariable.Columns, varValue, delimiter)
+			table := recipe.TableValue{}
+			err := table.FromCSV(targetedVariable.Columns, varValue, delimiter)
 			if err != nil {
 				return nil, fmt.Errorf("failed to parse table from CSV for variable '%s': %w", varName, err)
 			}
+
 			for i := range targetedVariable.Validators {
-				validatorFunc := targetedVariable.Validators[i].CreateValidatorFunc()
-				for i, row := range table {
-					column := targetedVariable.Validators[i].Column
-					if err := validatorFunc(row[column]); err != nil {
-						return nil, fmt.Errorf("validator failed for variable %s in column %s, row %d: %w", varName, column, i, err)
+				validator := targetedVariable.Validators[i]
+				validatorFunc := validator.CreateValidatorFunc()
+				for _, row := range table.Rows {
+					columnIndex := slices.Index(table.Columns, validator.Column)
+					if err := validatorFunc(row[columnIndex]); err != nil {
+						return nil, fmt.Errorf("validator failed for variable %s in column %s, row %d: %w", varName, validator.Column, i, err)
 					}
 
 				}
@@ -114,68 +116,6 @@ func FilterVariablesWithoutValues(variables []recipe.Variable, values recipe.Var
 	}
 
 	return variablesWithoutValues
-}
-
-func CSVToTable(columns []string, str string, delimiter rune) ([]map[string]string, error) {
-	reader := csv.NewReader(strings.NewReader(str))
-	reader.FieldsPerRecord = len(columns)
-	reader.Comma = delimiter
-	reader.TrimLeadingSpace = true
-
-	rows, err := reader.ReadAll()
-	if err != nil {
-		return nil, err
-	}
-
-	table := make([]map[string]string, len(rows))
-	for i, row := range rows {
-		table[i] = make(map[string]string)
-		for j, cell := range row {
-			table[i][columns[j]] = cell
-		}
-	}
-
-	return table, nil
-}
-
-func TableToCSV(table []map[string]string, delimiter rune) (string, error) {
-	// declare an io writer that writes to a string
-	var stringWriter strings.Builder
-	csvWriter := csv.NewWriter(&stringWriter)
-	csvWriter.Comma = delimiter
-
-	for _, row := range table {
-		columns := make([]string, 0, len(row))
-		for column := range row {
-			columns = append(columns, column)
-		}
-
-		// Sort the keys to make the output deterministic
-		slices.Sort(columns)
-
-		csvRow := make([]string, len(columns))
-		for i := range columns {
-			csvRow[i] = row[columns[i]]
-		}
-
-		if err := csvWriter.Write(csvRow); err != nil {
-			return "", err
-		}
-	}
-	csvWriter.Flush()
-	return stringWriter.String(), nil
-}
-
-func RowsToTable(columns []string, rows [][]string) ([]map[string]string, error) {
-	table := make([]map[string]string, len(rows))
-	for i, row := range rows {
-		table[i] = make(map[string]string)
-		for j, cell := range row {
-			table[i][columns[j]] = cell
-		}
-	}
-
-	return table, nil
 }
 
 func NewNoInputError(vars []recipe.Variable) error {

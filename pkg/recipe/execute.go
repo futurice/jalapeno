@@ -24,6 +24,17 @@ func (re *Recipe) Execute(engine RenderEngine, values VariableValues, id uuid.UU
 	sauce.Values = values
 	sauce.ID = id
 
+	mappedValues := make(VariableValues)
+	for name, value := range values {
+		switch value := value.(type) {
+		// Map table to more convenient format
+		case TableValue:
+			mappedValues[name] = value.ToMapSlice()
+		default:
+			mappedValues[name] = value
+		}
+	}
+
 	// Define the context which is available on templates
 	context := map[string]interface{}{
 		"ID": sauce.ID.String(),
@@ -32,7 +43,7 @@ func (re *Recipe) Execute(engine RenderEngine, values VariableValues, id uuid.UU
 			re.Name,
 			re.Version,
 		},
-		"Variables": values,
+		"Variables": mappedValues,
 	}
 
 	// Filter out templates we might not want to render

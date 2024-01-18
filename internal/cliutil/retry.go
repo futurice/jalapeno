@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/futurice/jalapeno/pkg/recipe"
-	"github.com/futurice/jalapeno/pkg/recipeutil"
 )
 
 // Utility function for creating a retry message for the user such that they can re-run the cli command with the same values
@@ -45,8 +44,8 @@ func MakeRetryMessage(args []string, values recipe.VariableValues) string {
 		switch value := values[key].(type) {
 		case bool:
 			commandline.WriteString(fmt.Sprintf("\"%s=%t\" ", key, value))
-		case []map[string]string: // serialize to CSV
-			csv, err := recipeutil.TableToCSV(value, ',')
+		case recipe.TableValue: // serialize to CSV
+			csv, err := value.ToCSV(',')
 			if err != nil {
 				panic(err)
 			}

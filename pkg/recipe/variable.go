@@ -1,9 +1,11 @@
 package recipe
 
 import (
+	"encoding/csv"
 	"errors"
 	"fmt"
 	"regexp"
+	"strings"
 
 	"github.com/antonmedv/expr"
 )
@@ -48,6 +50,11 @@ type VariableValidator struct {
 
 // VariableValues stores values for each variable
 type VariableValues map[string]interface{}
+
+type TableValue struct {
+	Columns []string   `yaml:"columns"`
+	Rows    [][]string `yaml:"rows,flow"`
+}
 
 func (v *Variable) Validate() error {
 	if v.Name == "" {
@@ -125,4 +132,56 @@ func (r *VariableValidator) CreateValidatorFunc() func(input string) error {
 		}
 		return nil
 	}
+}
+
+func (t *TableValue) FromCSV(columns []string, input string, delimiter rune) error {
+	reader := csv.NewReader(strings.NewReader(input))
+	reader.FieldsPerRecord = len(columns)
+	reader.Comma = delimiter
+	reader.TrimLeadingSpace = true
+
+	rows, err := reader.ReadAll()
+	if err != nil {
+		return err
+	}
+
+	t.Columns = columns
+	t.Rows = make([][]string, len(rows))
+	for i, row := range rows {
+		t.Rows[i] = make([]string, len(columns))
+		copy(t.Rows[i], row)
+	}
+
+	return nil
+}
+
+func (t TableValue) ToCSV(delimiter rune) (string, error) {
+	var stringWriter strings.Builder
+	csvWriter := csv.NewWriter(&stringWriter)
+	csvWriter.Comma = delimiter
+
+	for _, row := range t.Rows {
+		csvRow := make([]string, len(t.Columns))
+		for i := range t.Columns {
+			csvRow[i] = row[i]
+		}
+
+		if err := csvWriter.Write(csvRow); err != nil {
+			return "", err
+		}
+	}
+	csvWriter.Flush()
+	return stringWriter.String(), nil
+}
+
+func (t TableValue) ToMapSlice() []map[string]string {
+	output := make([]map[string]string, len(t.Rows))
+	for i, row := range t.Rows {
+		output[i] = make(map[string]string, len(t.Columns))
+		for j, column := range t.Columns {
+			output[i][column] = row[j]
+		}
+	}
+
+	return output
 }

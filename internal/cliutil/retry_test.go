@@ -44,20 +44,20 @@ func TestMakeRetryMessage(t *testing.T) {
 			"Table values",
 			[]string{"jalapeno", "execute", "path/to/recipe"},
 			recipe.VariableValues{
-				"table1": []map[string]string{
-					{
-						"col1": "value1",
-						"col2": "value2",
+				"table1": recipe.TableValue{
+					Columns: []string{"col1", "col2"},
+					Rows: [][]string{
+						{"value1", "value2"},
 					},
 				},
-				"table2": []map[string]string{
-					{
-						"col2": "value2",
-						"col1": "value1",
+				"table2": recipe.TableValue{
+					Columns: []string{"col3", "col4"},
+					Rows: [][]string{
+						{"value3", "value4"},
 					},
 				},
 			},
-			`jalapeno execute "path/to/recipe" --set "table1=value1,value2" --set "table2=value1,value2"`,
+			`jalapeno execute "path/to/recipe" --set "table1=value1,value2" --set "table2=value3,value4"`,
 		},
 	}
 
