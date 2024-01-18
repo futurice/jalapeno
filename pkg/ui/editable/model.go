@@ -363,6 +363,22 @@ func (m *Model) Move(y, x int) tea.Cmd {
 }
 
 func (m Model) Values() [][]string {
+	// Check if the table has any values
+	containsOnlyEmptyCells := true
+	for _, row := range m.rows {
+		for _, cell := range row {
+			if cell.input.Value() != "" {
+				containsOnlyEmptyCells = false
+				break
+			}
+		}
+	}
+
+	// If the table has only empty cells, return an empty slice
+	if containsOnlyEmptyCells {
+		return [][]string{}
+	}
+
 	values := make([][]string, len(m.rows))
 	for i, row := range m.rows {
 		values[i] = make([]string, len(row))

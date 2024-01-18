@@ -1,6 +1,7 @@
 package prompt
 
 import (
+	"errors"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -21,6 +22,7 @@ type TableModel struct {
 	// Save the table as CSV for the final output. This speeds up the
 	// rendering after the user has submitted the form.
 	tableAsCSV string
+	err        error
 }
 
 var _ Model = TableModel{}
@@ -71,6 +73,11 @@ func (m TableModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, nil
 			}
 
+			if !m.variable.Optional && len(m.table.Values()) == 0 {
+				m.err = errors.New("table can not be empty since the variable is not optional")
+				return m, nil
+			}
+
 			m.submitted = true
 			m.tableAsCSV = m.ValueAsCSV()
 			m.table.Blur()
@@ -118,6 +125,13 @@ func (m TableModel) View() string {
 	}
 
 	s.WriteString(m.table.View())
+
+	if m.err != nil {
+		errMsg := m.err.Error()
+		errMsg = strings.ToUpper(errMsg[:1]) + errMsg[1:]
+		s.WriteString(m.styles.ErrorText.Render(errMsg))
+	}
+
 	return s.String()
 }
 
