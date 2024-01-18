@@ -113,15 +113,16 @@ func iChangeRecipeTemplateToRender(ctx context.Context, recipeName, filename, co
 
 func iChangeRecipeToVersion(ctx context.Context, recipeName, version string) (context.Context, error) {
 	recipesDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
+	recipeDir := filepath.Join(recipesDir, recipeName)
 
-	re, err := recipe.LoadRecipe(filepath.Join(recipesDir, recipeName))
+	re, err := recipe.LoadRecipe(recipeDir)
 	if err != nil {
 		return ctx, err
 	}
 
 	re.Version = version
 
-	if err = re.Save(recipesDir); err != nil {
+	if err = re.Save(recipeDir); err != nil {
 		return ctx, err
 	}
 

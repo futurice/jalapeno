@@ -16,11 +16,6 @@ const (
 
 // Save saves recipe to given destination
 func (re *Recipe) Save(dest string) error {
-	// TODO: Make sure recipe name is path friendly
-	if filepath.Base(dest) != re.Name {
-		dest = filepath.Join(dest, re.Name)
-	}
-
 	err := os.MkdirAll(dest, defaultFileMode)
 	if err != nil {
 		return fmt.Errorf("can not create directory %s: %v", dest, err)

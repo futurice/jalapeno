@@ -46,14 +46,14 @@ func TestSaveRecipe(t *testing.T) {
 	}
 
 	expectedFiles := []string{
-		filepath.Join(dir, re.Name, RecipeFileName+YAMLExtension),
-		filepath.Join(dir, re.Name, "templates", "foo.md"),
-		filepath.Join(dir, re.Name, "templates", "foo", "bar.md"),
-		filepath.Join(dir, re.Name, "templates", "foo", "bar", "baz.md"),
-		filepath.Join(dir, re.Name, "tests", re.Tests[0].Name, RecipeTestMetaFileName+YAMLExtension),
-		filepath.Join(dir, re.Name, "tests", re.Tests[0].Name, RecipeTestFilesDirName, "foo.md"),
-		filepath.Join(dir, re.Name, "tests", re.Tests[0].Name, RecipeTestFilesDirName, "foo", "bar.md"),
-		filepath.Join(dir, re.Name, "tests", re.Tests[0].Name, RecipeTestFilesDirName, "foo", "bar", "baz.md"),
+		filepath.Join(dir, RecipeFileName+YAMLExtension),
+		filepath.Join(dir, "templates", "foo.md"),
+		filepath.Join(dir, "templates", "foo", "bar.md"),
+		filepath.Join(dir, "templates", "foo", "bar", "baz.md"),
+		filepath.Join(dir, "tests", re.Tests[0].Name, RecipeTestMetaFileName+YAMLExtension),
+		filepath.Join(dir, "tests", re.Tests[0].Name, RecipeTestFilesDirName, "foo.md"),
+		filepath.Join(dir, "tests", re.Tests[0].Name, RecipeTestFilesDirName, "foo", "bar.md"),
+		filepath.Join(dir, "tests", re.Tests[0].Name, RecipeTestFilesDirName, "foo", "bar", "baz.md"),
 	}
 
 	// TODO: check that these are _only_ files existing

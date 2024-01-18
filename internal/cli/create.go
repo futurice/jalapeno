@@ -3,6 +3,7 @@ package cli
 import (
 	"errors"
 	"fmt"
+	"path/filepath"
 
 	"github.com/futurice/jalapeno/internal/cli/option"
 	"github.com/futurice/jalapeno/pkg/recipe"
@@ -69,7 +70,7 @@ func runCreate(cmd *cobra.Command, opts createOptions) error {
 		return errors.New("placeholder recipe is not valid")
 	}
 
-	err = re.Save(opts.Dir)
+	err = re.Save(filepath.Join(opts.Dir, opts.RecipeName))
 	if err != nil {
 		return fmt.Errorf("can not save recipe to the directory: %w", err)
 	}

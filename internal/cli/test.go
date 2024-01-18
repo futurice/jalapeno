@@ -3,7 +3,6 @@ package cli
 import (
 	"errors"
 	"fmt"
-	"path/filepath"
 
 	"github.com/futurice/jalapeno/internal/cli/option"
 	"github.com/futurice/jalapeno/pkg/engine"
@@ -69,7 +68,7 @@ func runTest(cmd *cobra.Command, opts testOptions) error {
 			re.Tests = []recipe.Test{test}
 		}
 
-		err := re.Save(filepath.Dir(opts.RecipePath))
+		err := re.Save(opts.RecipePath)
 		if err != nil {
 			return fmt.Errorf("failed to save recipe: %w", err)
 		}
@@ -135,7 +134,7 @@ func runTest(cmd *cobra.Command, opts testOptions) error {
 			return nil
 		}
 
-		err := re.Save(filepath.Dir(opts.RecipePath))
+		err := re.Save(opts.RecipePath)
 		if err != nil {
 			return fmt.Errorf("failed to save recipe: %w", err)
 		}
