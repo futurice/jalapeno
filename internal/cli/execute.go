@@ -103,8 +103,6 @@ func runExecute(cmd *cobra.Command, opts executeOptions) error {
 		cmd.Printf("%s: %s\n", opts.Colors.Red.Render("Description"), re.Metadata.Description)
 	}
 
-	cmd.Println()
-
 	// Load all existing sauces
 	existingSauces, err := recipe.LoadSauces(opts.Dir)
 	if err != nil {
@@ -150,6 +148,8 @@ func runExecute(cmd *cobra.Command, opts executeOptions) error {
 			}
 		}
 		values = recipeutil.MergeValues(values, promptedValues)
+	} else {
+		cmd.Println()
 	}
 
 	sauce, err := re.Execute(engine.New(), values, uuid.Must(uuid.NewV4()))
