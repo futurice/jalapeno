@@ -34,6 +34,7 @@ func iRunExecute(ctx context.Context, recipe string) (context.Context, error) {
 		"execute",
 		url,
 		fmt.Sprintf("--dir=%s", projectDir),
+		"--no-input", // Don't allow interactivity during these tests
 	}
 
 	for name, value := range additionalFlags {

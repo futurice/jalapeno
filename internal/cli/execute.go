@@ -116,7 +116,7 @@ func runExecute(cmd *cobra.Command, opts executeOptions) error {
 	}
 
 	reusedValues := make(recipe.VariableValues)
-	if opts.ReuseSauceValues && len(existingSauces) > 0 {
+	if opts.ReuseOtherSauceValues && len(existingSauces) > 0 {
 		for _, sauce := range existingSauces {
 			overlappingSauceValues := make(recipe.VariableValues)
 			for _, v := range re.Variables {

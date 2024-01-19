@@ -22,7 +22,8 @@ import (
 )
 
 type upgradeOptions struct {
-	RecipeURL string
+	RecipeURL      string
+	ReuseOldValues bool
 
 	option.Common
 	option.OCIRepository
@@ -64,6 +65,8 @@ jalapeno upgrade path/to/recipe --dir other/dir
 jalapeno upgrade path/to/recipe --set NEW_VAR=foo`,
 	}
 
+	cmd.Flags().BoolVar(&opts.ReuseOldValues, "reuse-old-values", true, "Automatically set values for variables which already have a value in the existing sauce")
+
 	if err := option.ApplyFlags(&opts, cmd.Flags()); err != nil {
 		return nil
 	}
@@ -98,8 +101,8 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 		return err
 	}
 
-	if semver.Compare(re.Metadata.Version, oldSauce.Recipe.Metadata.Version) <= 0 {
-		return errors.New("new recipe version is lower or same than the existing one")
+	if semver.Compare(re.Metadata.Version, oldSauce.Recipe.Metadata.Version) < 0 {
+		return errors.New("new recipe version is less than the existing one")
 	}
 
 	cmd.Printf(
@@ -125,7 +128,7 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 	}
 
 	reusedValues := make(recipe.VariableValues)
-	if opts.ReuseSauceValues {
+	if opts.ReuseOtherSauceValues {
 		sauces, err := recipe.LoadSauces(opts.Dir)
 		if err != nil {
 			return err
@@ -155,18 +158,20 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 	}
 
 	predefinedValues := recipeutil.MergeValues(reusedValues, providedValues)
-	values := recipeutil.MergeValues(oldSauce.Values, predefinedValues)
+
+	if opts.ReuseOldValues {
+		predefinedValues = recipeutil.MergeValues(oldSauce.Values, predefinedValues)
+	}
 
 	// Don't prompt variables which already has a value in existing sauce or is predefined
 	varsWithoutValues := make([]recipe.Variable, 0, len(re.Variables))
 	for _, v := range re.Variables {
-		_, oldValueExists := oldSauce.Values[v.Name]
-		_, predefinedValueExists := predefinedValues[v.Name]
-		if !oldValueExists && !predefinedValueExists {
+		if _, predefinedValueExists := predefinedValues[v.Name]; !predefinedValueExists {
 			varsWithoutValues = append(varsWithoutValues, v)
 		}
 	}
 
+	values := predefinedValues
 	if len(varsWithoutValues) > 0 {
 		if opts.NoInput {
 			return recipeutil.NewNoInputError(varsWithoutValues)
@@ -181,7 +186,7 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 			return fmt.Errorf("error when prompting for values: %w", err)
 		}
 
-		values = recipeutil.MergeValues(values, promptedValues)
+		values = recipeutil.MergeValues(predefinedValues, promptedValues)
 	}
 
 	newSauce, err := re.Execute(engine.New(), values, oldSauce.ID)

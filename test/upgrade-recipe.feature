@@ -14,6 +14,16 @@ Feature: Upgrade sauce
     And the project directory should contain file "README.md" with "New version"
     And no conflicts were reported
 
+  Scenario: Upgrade sauce with same version
+    Given a project directory
+    And a recipes directory
+    And a recipe "foo" that generates file "README.md"
+    And I execute recipe "foo"
+    When I upgrade recipe "foo"
+    Then no errors were printed
+    And the project directory should contain file ".jalapeno/sauces.yml" with "version: v0.0.1"
+    And no conflicts were reported
+
   Scenario: Upgrade sauce from remote recipe
     Given a project directory
     And a recipes directory
