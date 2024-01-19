@@ -109,6 +109,12 @@ func runExecute(cmd *cobra.Command, opts executeOptions) error {
 		return err
 	}
 
+	for _, sauce := range existingSauces {
+		if sauce.Recipe.Name == re.Name && sauce.Recipe.Metadata.Version == re.Metadata.Version {
+			return fmt.Errorf("recipe '%s' with version '%s' has been already executed", re.Name, re.Metadata.Version)
+		}
+	}
+
 	reusedValues := make(recipe.VariableValues)
 	if opts.ReuseSauceValues && len(existingSauces) > 0 {
 		for _, sauce := range existingSauces {

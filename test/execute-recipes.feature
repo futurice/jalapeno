@@ -51,3 +51,13 @@ Feature: Execute recipes
     Then execution of the recipe has succeeded
     When I execute recipe "quux"
     Then CLI produced an error "file 'Taskfile.yml' was already created by recipe 'bar'"
+
+  Scenario: Same recipe is executed twice
+    Given a project directory
+    And a recipes directory
+    And a recipe "foo" that generates file "README.md"
+    When I execute recipe "foo"
+    And no errors were printed
+    Then execution of the recipe has succeeded
+    When I execute recipe "foo"
+    Then CLI produced an error "recipe 'foo' with version 'v0.0.1' has been already executed"

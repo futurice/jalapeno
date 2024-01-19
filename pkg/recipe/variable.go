@@ -70,26 +70,26 @@ func (v *Variable) Validate() error {
 	}
 
 	for i, validator := range v.Validators {
-		baseErr := fmt.Errorf("validator %d", i+1)
+		validatorIndex := fmt.Sprintf("validator %d", i+1)
 		if v.Confirm {
-			return fmt.Errorf("%s: validators for boolean variables are not supported", baseErr)
+			return fmt.Errorf("%s: validators for boolean variables are not supported", validatorIndex)
 		}
 
 		if len(v.Options) > 0 {
-			return fmt.Errorf("%s: validators for select variables are not supported", baseErr)
+			return fmt.Errorf("%s: validators for select variables are not supported", validatorIndex)
 		}
 
 		if len(v.Columns) > 0 && validator.Column == "" {
-			return fmt.Errorf("%s: validator need to have `column` property defined since the variable is table type", baseErr)
+			return fmt.Errorf("%s: validator need to have `column` property defined since the variable is table type", validatorIndex)
 		}
 
 		if validator.Pattern == "" {
-			return fmt.Errorf("%s: regexp pattern is empty", baseErr)
+			return fmt.Errorf("%s: regexp pattern is empty", validatorIndex)
 		}
 
 		if validator.Column != "" {
 			if len(v.Columns) == 0 {
-				return fmt.Errorf("%s: validator is defined for column while the variable has not defined any", baseErr)
+				return fmt.Errorf("%s: validator is defined for column while the variable has not defined any", validatorIndex)
 			}
 
 			found := false
@@ -101,12 +101,12 @@ func (v *Variable) Validate() error {
 			}
 
 			if !found {
-				return fmt.Errorf("%s: column %s does not exist in the variable", baseErr, validator.Column)
+				return fmt.Errorf("%s: column %s does not exist in the variable", validatorIndex, validator.Column)
 			}
 		}
 
 		if _, err := regexp.Compile(validator.Pattern); err != nil {
-			return fmt.Errorf("%s: invalid variable regexp pattern: %w", baseErr, err)
+			return fmt.Errorf("%s: invalid variable regexp pattern: %w", validatorIndex, err)
 		}
 	}
 
