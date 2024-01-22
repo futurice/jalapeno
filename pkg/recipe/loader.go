@@ -174,12 +174,12 @@ func LoadSauces(projectDir string) ([]*Sauce, error) {
 		}
 		// other errors go boom in os.ReadFile() below
 	}
-	recipedata, err := os.ReadFile(sauceFile)
+	sauceData, err := os.ReadFile(sauceFile)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read recipe file: %w", err)
 	}
 
-	decoder := yaml.NewDecoder(bytes.NewReader(recipedata))
+	decoder := yaml.NewDecoder(bytes.NewReader(sauceData))
 	for {
 		sauce := NewSauce()
 		if err := decoder.Decode(&sauce); err != nil {
@@ -189,6 +189,7 @@ func LoadSauces(projectDir string) ([]*Sauce, error) {
 			// ran out of recipe file, all yaml documents read
 			break
 		}
+
 		// read rendered files
 		for path, file := range sauce.Files {
 			data, err := os.ReadFile(filepath.Join(projectDir, path))

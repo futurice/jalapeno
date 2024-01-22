@@ -191,3 +191,69 @@ func (t TableValue) ToMapSlice() []map[string]string {
 
 	return output
 }
+
+// UnmarshalYAML implements yaml.Unmarshaler interface
+func (vv *VariableValues) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	rawYaml := make(map[string]interface{})
+	err := unmarshal(rawYaml)
+	if err != nil {
+		return err
+	}
+
+	*vv = make(VariableValues, len(rawYaml))
+	for name, value := range rawYaml {
+		switch v := value.(type) {
+
+		// Check if the value is a TableValue
+		case map[string]interface{}:
+			_, columnsExist := v["columns"]
+			_, rowsExist := v["rows"]
+
+			// If the value is a TableValue, parse it
+			if columnsExist && rowsExist {
+				rawColumns, ok := v["columns"].([]interface{})
+				if !ok {
+					return fmt.Errorf("failed to parse table columns for variable '%s'", name)
+				}
+
+				columns := make([]string, len(rawColumns))
+				for i, c := range rawColumns {
+					columns[i], ok = c.(string)
+					if !ok {
+						return fmt.Errorf("failed to parse table column for variable '%s'", name)
+					}
+				}
+
+				rawRows, ok := v["rows"].([]interface{})
+				if !ok {
+					return fmt.Errorf("failed to parse table rows for variable '%s'", name)
+				}
+
+				rows := make([][]string, len(rawRows))
+				for i := range rawRows {
+					rawRow, ok := rawRows[i].([]interface{})
+					if !ok {
+						return fmt.Errorf("failed to parse table row for variable '%s'", name)
+					}
+
+					rows[i] = make([]string, len(rawRow))
+					for j, c := range rawRow {
+						rows[i][j], ok = c.(string)
+						if !ok {
+							return fmt.Errorf("failed to parse table cell for variable '%s'", name)
+						}
+					}
+				}
+
+				(*vv)[name] = TableValue{
+					Columns: columns,
+					Rows:    rows,
+				}
+			}
+		default:
+			(*vv)[name] = v
+		}
+	}
+
+	return nil
+}
