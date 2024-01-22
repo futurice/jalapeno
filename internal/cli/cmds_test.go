@@ -104,19 +104,27 @@ func TestFeatures(t *testing.T) {
 				return ctx, nil
 			})
 
+			// Initialize context values
 			s.Before(func(ctx context.Context, sc *godog.Scenario) (context.Context, error) {
-				// Initialize additional flags to empty map before each step
-				return context.WithValue(
+				ctx = context.WithValue(
 					ctx,
 					cmdAdditionalFlagsCtxKey{},
-					make(map[string]string)), nil
+					make(map[string]string))
+
+				ctx = context.WithValue(
+					ctx,
+					dockerResourcesCtxKey{},
+					[]*dockertest.Resource{})
+
+				return ctx, nil
 			})
+
 			s.After(cleanDockerResources)
 			s.After(cleanTempDirs)
 		},
 		Options: &godog.Options{
 			Strict:      true,
-			Concurrency: 4,
+			Concurrency: 8,
 			Format:      "pretty",
 			Paths:       []string{"../../test"},
 			TestingT:    t, // Testing instance that will run subtests.
@@ -205,12 +213,7 @@ func readSauceFile(ctx context.Context) ([]map[string]interface{}, error) {
  */
 
 func cleanDockerResources(ctx context.Context, sc *godog.Scenario, err error) (context.Context, error) {
-	resources, ok := ctx.Value(dockerResourcesCtxKey{}).([]*dockertest.Resource)
-
-	// Resource list was probably empty, skip
-	if !ok {
-		return ctx, err
-	}
+	resources := ctx.Value(dockerResourcesCtxKey{}).([]*dockertest.Resource)
 
 	for _, resource := range resources {
 		err := resource.Close()
@@ -491,11 +494,7 @@ func createLocalRegistry(opts *dockertest.RunOptions) (*dockertest.Resource, err
 }
 
 func addDockerResourceToContext(ctx context.Context, resource *dockertest.Resource) context.Context {
-	resources, ok := ctx.Value(dockerResourcesCtxKey{}).([]*dockertest.Resource)
-	if !ok {
-		resources = make([]*dockertest.Resource, 0)
-	}
-
+	resources := ctx.Value(dockerResourcesCtxKey{}).([]*dockertest.Resource)
 	return context.WithValue(ctx, dockerResourcesCtxKey{}, append(resources, resource))
 }
 

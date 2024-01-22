@@ -56,9 +56,15 @@ type TableValue struct {
 	Rows    [][]string `yaml:"rows,flow"`
 }
 
+var startsWithNumber = regexp.MustCompile(`^\d.*`)
+
 func (v *Variable) Validate() error {
 	if v.Name == "" {
 		return errors.New("variable name is required")
+	}
+
+	if startsWithNumber.MatchString(v.Name) {
+		return errors.New("variable name can not start with a number")
 	}
 
 	if v.Confirm {
