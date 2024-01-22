@@ -11,6 +11,6 @@ outputs:
     description: "Exit code of the operation"
 runs:
   using: "docker"
-  image: "docker://ghcr.io/futurice/jalapeno:v0-githubaction"
+  image: "docker://ghcr.io/futurice/jalapeno:v1-githubaction"
   args:
     - ${{ inputs.cmd }}
