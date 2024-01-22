@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.2.0](https://github.com/futurice/jalapeno/compare/v1.1.1...v1.2.0) (2024-01-22)
+
+
+### Features
+
+* allow upgrades to same version to redefine variable values ([f84b14d](https://github.com/futurice/jalapeno/commit/f84b14db98d355f6f72c7cd74fe8391ddadbb0fd))
+
+
+### Bug Fixes
+
+* unmarshal TableValue correctly ([a05f7e5](https://github.com/futurice/jalapeno/commit/a05f7e52607a87b737710b832d3264b57f395894))
+
 ## [1.1.1](https://github.com/futurice/jalapeno/compare/v1.1.0...v1.1.1) (2024-01-18)
 
 
