@@ -101,16 +101,27 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 		return err
 	}
 
-	if semver.Compare(re.Metadata.Version, oldSauce.Recipe.Metadata.Version) < 0 {
+	versionComparison := semver.Compare(re.Metadata.Version, oldSauce.Recipe.Metadata.Version)
+	if versionComparison < 0 {
 		return errors.New("new recipe version is less than the existing one")
 	}
 
-	cmd.Printf(
-		"Upgrading recipe '%s' from version %s to %s\n",
-		oldSauce.Recipe.Name,
-		oldSauce.Recipe.Metadata.Version,
-		re.Metadata.Version,
-	)
+	if versionComparison > 0 {
+		cmd.Printf(
+			"Upgrading recipe '%s' from version %s to %s\n",
+			oldSauce.Recipe.Name,
+			oldSauce.Recipe.Metadata.Version,
+			re.Metadata.Version,
+		)
+	} else {
+		cmd.Printf(
+			"Modifying values for sauce with recipe '%s' version %s\n",
+			oldSauce.Recipe.Name,
+			re.Metadata.Version,
+		)
+	}
+
+	cmd.Println()
 
 	// Check if the new version of the recipe has removed some variables
 	// which existed on previous version
@@ -286,7 +297,7 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 		return err
 	}
 
-	cmd.Printf("\nRecipe upgraded %s\n", opts.Colors.Green.Render("successfully!"))
+	cmd.Printf("Recipe upgraded %s\n", opts.Colors.Green.Render("successfully!"))
 
 	return nil
 }

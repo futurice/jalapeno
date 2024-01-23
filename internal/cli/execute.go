@@ -16,6 +16,7 @@ import (
 	uiutil "github.com/futurice/jalapeno/pkg/ui/util"
 	"github.com/gofrs/uuid"
 	"github.com/spf13/cobra"
+	"golang.org/x/mod/semver"
 )
 
 type executeOptions struct {
@@ -103,6 +104,8 @@ func runExecute(cmd *cobra.Command, opts executeOptions) error {
 		cmd.Printf("%s: %s\n", opts.Colors.Red.Render("Description"), re.Metadata.Description)
 	}
 
+	cmd.Println()
+
 	// Load all existing sauces
 	existingSauces, err := recipe.LoadSauces(opts.Dir)
 	if err != nil {
@@ -110,8 +113,8 @@ func runExecute(cmd *cobra.Command, opts executeOptions) error {
 	}
 
 	for _, sauce := range existingSauces {
-		if sauce.Recipe.Name == re.Name && sauce.Recipe.Metadata.Version == re.Metadata.Version {
-			return fmt.Errorf("recipe '%s' with version '%s' has been already executed", re.Name, re.Metadata.Version)
+		if sauce.Recipe.Name == re.Name && semver.Compare(sauce.Recipe.Metadata.Version, re.Metadata.Version) == 0 {
+			return fmt.Errorf("recipe '%s' with version '%s' has been already executed. If you want to re-execute the recipe with different values, use `upgrade` command with `--reuse-old-values=false` flag", re.Name, re.Metadata.Version)
 		}
 	}
 

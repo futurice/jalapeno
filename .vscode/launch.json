@@ -11,7 +11,7 @@
       "args": "${input:args}"
     },
     {
-      "name": "Connect to external session",
+      "name": "Attach to external session",
       "type": "go",
       "debugAdapter": "dlv-dap",
       "request": "attach",

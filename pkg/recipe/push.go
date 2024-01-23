@@ -33,7 +33,8 @@ func PushRecipe(ctx context.Context, path string, opts oci.Repository) error {
 
 	defer store.Close()
 
-	// TODO: Add each file separately so media types can be set correctly
+	// TODO: Add each file separately so media types can be set correctly. Also, the recipe directory
+	//       could contain additional files which are not related directly to the recipe.
 	mediaType := "inode/directory"
 	desc, err := store.Add(ctx, re.Name, mediaType, path)
 	if err != nil {
