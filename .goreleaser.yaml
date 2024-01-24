@@ -6,6 +6,7 @@ builds:
     ldflags: &ldflags
       - -s -w
       - -X github.com/futurice/jalapeno/internal/cli.version={{.Version}}
+      - -X github.com/futurice/jalapeno/internal/cli/option.version={{.Version}}
     goos:
       - linux
       - windows

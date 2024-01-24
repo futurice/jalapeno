@@ -20,6 +20,11 @@ type OCIRepository struct {
 	Password          string
 }
 
+var (
+	// https://goreleaser.com/cookbooks/using-main.version/
+	version string
+)
+
 func (opts *OCIRepository) ApplyFlags(fs *pflag.FlagSet) {
 	fs.StringVarP(&opts.Username, "username", "u", "", "Username used to log against the Docker registry")
 	fs.StringVarP(&opts.Password, "password", "p", "", "Password or personal access token used to log against the Docker registry")
@@ -51,6 +56,10 @@ func (opts *OCIRepository) readPassword() (err error) {
 }
 
 func (opts *OCIRepository) Repository(url string) oci.Repository {
+	if version == "" {
+		version = "0.0.0-dev"
+	}
+
 	return oci.Repository{
 		Reference: strings.TrimPrefix(url, "oci://"),
 		PlainHTTP: opts.UsePlainHTTP,
@@ -63,6 +72,6 @@ func (opts *OCIRepository) Repository(url string) oci.Repository {
 			CACertFilePath: opts.CACertFilePath,
 			Insecure:       opts.UseInsecure,
 		},
-		UserAgent: "jalapeno/1.0.0", // TODO: Get real version
+		UserAgent: fmt.Sprintf("jalapeno/%s", version),
 	}
 }
