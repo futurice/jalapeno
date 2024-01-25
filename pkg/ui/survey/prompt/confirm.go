@@ -7,6 +7,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/futurice/jalapeno/pkg/recipe"
 	"github.com/futurice/jalapeno/pkg/ui/survey/style"
+	"github.com/muesli/reflow/wordwrap"
 )
 
 type ConfirmModel struct {
@@ -15,6 +16,7 @@ type ConfirmModel struct {
 	value           bool
 	submitted       bool
 	showDescription bool
+	width           int
 }
 
 var _ Model = ConfirmModel{}
@@ -54,6 +56,8 @@ func (m ConfirmModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.value = false
 			}
 		}
+	case tea.WindowSizeMsg:
+		m.width = msg.Width
 	}
 
 	return m, nil
@@ -78,7 +82,7 @@ func (m ConfirmModel) View() string {
 
 	s.WriteRune('\n')
 	if m.showDescription {
-		s.WriteString(m.variable.Description)
+		s.WriteString(wordwrap.String(m.variable.Description, m.width))
 		s.WriteRune('\n')
 	}
 

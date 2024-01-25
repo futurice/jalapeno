@@ -9,6 +9,7 @@ import (
 	"github.com/futurice/jalapeno/pkg/recipe"
 	"github.com/futurice/jalapeno/pkg/ui/editable"
 	"github.com/futurice/jalapeno/pkg/ui/survey/style"
+	"github.com/muesli/reflow/wordwrap"
 )
 
 type TableModel struct {
@@ -17,6 +18,7 @@ type TableModel struct {
 	styles          style.Styles
 	submitted       bool
 	showDescription bool
+	width           int
 
 	// Save the table as CSV for the final output. This speeds up the
 	// rendering after the user has submitted the form.
@@ -90,7 +92,11 @@ func (m TableModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 		}
+
+	case tea.WindowSizeMsg:
+		m.width = msg.Width
 	}
+
 	tm, cmd := m.table.Update(msg)
 	m.table = tm.(editable.Model)
 	return m, cmd
@@ -113,14 +119,14 @@ func (m TableModel) View() string {
 	s.WriteRune('\n')
 	if m.showDescription {
 		if m.variable.Description != "" {
-			s.WriteString(m.variable.Description)
+			s.WriteString(wordwrap.String(m.variable.Description, m.width))
 			s.WriteRune('\n')
 		}
-		s.WriteString(m.styles.HelpText.Render(`Table controls:
+		s.WriteString(wordwrap.String(m.styles.HelpText.Render(`Table controls:
 - arrow keys: to move between cells
 - tab: to move to the next cells
 - ctrl+n or move past last row: create a new row 
-`))
+`), m.width))
 		s.WriteRune('\n')
 	}
 

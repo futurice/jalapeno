@@ -10,6 +10,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/futurice/jalapeno/pkg/recipe"
 	"github.com/futurice/jalapeno/pkg/ui/survey/style"
+	"github.com/muesli/reflow/wordwrap"
 )
 
 const listHeight = 14
@@ -26,6 +27,7 @@ type SelectModel struct {
 	value           string
 	showDescription bool
 	submitted       bool
+	width           int
 }
 
 var _ Model = SelectModel{}
@@ -86,10 +88,6 @@ func (m SelectModel) Init() tea.Cmd {
 
 func (m SelectModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
-	case tea.WindowSizeMsg:
-		m.list.SetWidth(msg.Width)
-		return m, nil
-
 	case tea.KeyMsg:
 		switch msg.Type {
 		case tea.KeyEnter:
@@ -104,6 +102,10 @@ func (m SelectModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 		}
+
+	case tea.WindowSizeMsg:
+		m.width = msg.Width
+		m.list.SetWidth(msg.Width)
 	}
 
 	var cmd tea.Cmd
@@ -125,7 +127,7 @@ func (m SelectModel) View() string {
 
 	s.WriteRune('\n')
 	if m.showDescription {
-		s.WriteString(m.variable.Description)
+		s.WriteString(wordwrap.String(m.variable.Description, m.width))
 		s.WriteRune('\n')
 	}
 

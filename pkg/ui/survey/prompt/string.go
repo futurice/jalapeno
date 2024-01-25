@@ -9,6 +9,7 @@ import (
 	"github.com/futurice/jalapeno/pkg/recipe"
 	"github.com/futurice/jalapeno/pkg/ui/survey/style"
 	"github.com/futurice/jalapeno/pkg/ui/util"
+	"github.com/muesli/reflow/wordwrap"
 )
 
 type StringModel struct {
@@ -17,6 +18,7 @@ type StringModel struct {
 	styles          style.Styles
 	submitted       bool
 	showDescription bool
+	width           int
 	err             error
 }
 
@@ -65,6 +67,9 @@ func (m StringModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 		}
+
+	case tea.WindowSizeMsg:
+		m.width = msg.Width
 	}
 
 	m.textInput, cmd = m.textInput.Update(msg)
@@ -87,7 +92,7 @@ func (m StringModel) View() string {
 
 	s.WriteRune('\n')
 	if m.showDescription {
-		s.WriteString(m.variable.Description)
+		s.WriteString(wordwrap.String(m.variable.Description, m.width))
 		s.WriteRune('\n')
 	}
 
@@ -97,7 +102,7 @@ func (m StringModel) View() string {
 		s.WriteRune('\n')
 		errMsg := m.err.Error()
 		errMsg = strings.ToUpper(errMsg[:1]) + errMsg[1:]
-		s.WriteString(m.styles.ErrorText.Render(errMsg))
+		s.WriteString(wordwrap.String(m.styles.ErrorText.Render(errMsg), m.width))
 	}
 
 	return s.String()
