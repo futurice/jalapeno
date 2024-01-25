@@ -5,11 +5,15 @@ description: Set up Terraform basics like state file bootstrapping
 initHelp: Install Task from https://taskfile.dev and run `task init` in the 'terraform' subdirectory of the project directory to set up terraform.
 vars:
   - name: ENVIRONMENTS
-    description: Comma-separated list of environments to create, e.g. "dev, qa, prod"
+    description: |
+      Table of environments where the Terraform should be bootstrapped.
+
+      NAME: The name of the environment. For example 'dev', 'staging', 'prod'.
+      RESOURCE_GROUP_NAME: The name of the resource group where the Terraform state will be stored.
     columns: [NAME, RESOURCE_GROUP_NAME]
 
   - name: SERVICE_NAME
-    description: Service name
+    description: The name of the service. Will be used as part of the resource names.
 
   - name: CREATE_RESOURCE_GROUPS
     confirm: true
