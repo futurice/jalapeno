@@ -177,7 +177,7 @@ func runExecute(cmd *cobra.Command, opts executeOptions) error {
 
 	// Automatically add recipe origin if the recipe was remote
 	if wasRemoteRecipe {
-		sauce.CheckFrom = opts.RecipeURL
+		sauce.CheckFrom = strings.TrimSuffix(opts.RecipeURL, fmt.Sprintf(":%s", re.Metadata.Version))
 	}
 
 	err = sauce.Save(opts.Dir)
