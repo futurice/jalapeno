@@ -47,7 +47,8 @@ func NewTableModel(v recipe.Variable, styles style.Styles) TableModel {
 			Validators: validators[c],
 		}
 	}
-	table := editable.NewModel(editable.WithColumns(cols))
+
+	table := editable.NewModel(editable.WithColumns(cols), editable.IsOptional(v.Optional))
 	table.Focus()
 
 	return TableModel{

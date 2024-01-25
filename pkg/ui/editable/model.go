@@ -15,11 +15,12 @@ import (
 type Model struct {
 	KeyMap KeyMap
 
-	cols    []Column
-	rows    []Row
-	cursorX int
-	cursorY int
-	focus   bool
+	cols     []Column
+	rows     []Row
+	cursorX  int
+	cursorY  int
+	focus    bool
+	optional bool
 
 	styles Styles
 	table  *table.Table
@@ -182,6 +183,12 @@ func WithStyles(s Styles) Option {
 func WithKeyMap(km KeyMap) Option {
 	return func(m *Model) {
 		m.KeyMap = km
+	}
+}
+
+func IsOptional(optional bool) Option {
+	return func(m *Model) {
+		m.optional = optional
 	}
 }
 
@@ -363,19 +370,9 @@ func (m *Model) Move(y, x int) tea.Cmd {
 }
 
 func (m Model) Values() [][]string {
-	// Check if the table has any values
-	containsOnlyEmptyCells := true
-	for _, row := range m.rows {
-		for _, cell := range row {
-			if cell.input.Value() != "" {
-				containsOnlyEmptyCells = false
-				break
-			}
-		}
-	}
-
 	// If the table has only empty cells, return an empty slice
-	if containsOnlyEmptyCells {
+	if m.isEmpty() {
+		// TODO: Handle the error here if the table is not optional. Currently it is handled in survey.table component.
 		return [][]string{}
 	}
 
@@ -416,6 +413,13 @@ func (m *Model) validateCell(y, x int) {
 		return
 	}
 
+	// If the table is optional and the whole table is empty, don't validate the cell.
+	// NOTE: Performance-wise it is not smart to check whole table for emptiness on every cell,
+	// but it is not a problem since the table is often small.
+	if m.optional && m.isEmpty() {
+		return
+	}
+
 	errs := make([]error, 0, len(m.cols[x].Validators))
 	for i := range m.cols[x].Validators {
 		err := m.cols[x].Validators[i](cell.input.Value())
@@ -449,6 +453,18 @@ func (m Model) newTextInput(c Column) textinput.Model {
 	ti.Blur()
 
 	return ti
+}
+
+func (m Model) isEmpty() bool {
+	for y := range m.rows {
+		for x := range m.rows[y] {
+			if m.rows[y][x].input.Value() != "" {
+				return false
+			}
+		}
+	}
+
+	return true
 }
 
 func max(a, b int) int {
