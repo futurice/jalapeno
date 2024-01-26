@@ -56,6 +56,9 @@ type VariableValidator struct {
 
 	// Apply the validator to a column if the variable type is table
 	Column string `yaml:"column,omitempty"`
+
+	// When targeting table columns, set this to true to make sure that the values in the column are unique
+	Unique bool `yaml:"unique,omitempty"`
 }
 
 // VariableValues stores values for each variable
@@ -113,8 +116,21 @@ func (v *Variable) Validate() error {
 			return fmt.Errorf("%s: validator need to have `column` property defined since the variable is table type", validatorIndex)
 		}
 
-		if validator.Pattern == "" {
-			return fmt.Errorf("%s: regexp pattern is empty", validatorIndex)
+		if validator.Unique {
+			if validator.Column == "" {
+				return fmt.Errorf("%s: validator need to have `column` property defined since unique validation works only on table variables", validatorIndex)
+			}
+			if validator.Pattern != "" {
+				return fmt.Errorf("%s: validator can not have `pattern` property defined when `unique` is set to true", validatorIndex)
+			}
+			return nil
+		} else {
+			if validator.Pattern == "" {
+				return fmt.Errorf("%s: regexp pattern is empty", validatorIndex)
+			}
+			if _, err := regexp.Compile(validator.Pattern); err != nil {
+				return fmt.Errorf("%s: invalid validator regexp pattern: %w", validatorIndex, err)
+			}
 		}
 
 		if validator.Column != "" {
@@ -133,10 +149,6 @@ func (v *Variable) Validate() error {
 			if !found {
 				return fmt.Errorf("%s: column %s does not exist in the variable", validatorIndex, validator.Column)
 			}
-		}
-
-		if _, err := regexp.Compile(validator.Pattern); err != nil {
-			return fmt.Errorf("%s: invalid variable regexp pattern: %w", validatorIndex, err)
 		}
 	}
 
