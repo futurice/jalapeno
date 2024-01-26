@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.2.1](https://github.com/futurice/jalapeno/compare/v1.2.0...v1.2.1) (2024-01-26)
+
+
+### Bug Fixes
+
+* remove tag from check URL ([d009a89](https://github.com/futurice/jalapeno/commit/d009a89cfdfcb3023e89c6cf79a743c5efeaf3b8))
+* **survey:** do not validate cell if the table variable is optional and the table is empty ([40ff5e6](https://github.com/futurice/jalapeno/commit/40ff5e69574375817e218e0a73ef8644fca42768))
+* **survey:** handle window resizing ([6fd6ed5](https://github.com/futurice/jalapeno/commit/6fd6ed5acb6f0f04bbcfd9e81950adb1ae33d120))
+
 ## [1.2.0](https://github.com/futurice/jalapeno/compare/v1.1.1...v1.2.0) (2024-01-22)
 
 
