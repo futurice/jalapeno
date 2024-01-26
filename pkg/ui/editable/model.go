@@ -22,6 +22,8 @@ type Model struct {
 	focus    bool
 	optional bool
 
+	width int
+
 	styles Styles
 	table  *table.Table
 }
@@ -228,6 +230,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if cmd != nil {
 			return m, cmd
 		}
+	case tea.WindowSizeMsg:
+		m.width = msg.Width
 	}
 
 	m.rows[m.cursorY][m.cursorX].input, cmd = m.rows[m.cursorY][m.cursorX].input.Update(msg)
@@ -258,6 +262,8 @@ func (m Model) View() string {
 		}).
 		Data(m).
 		Render())
+
+	// TODO: Use m.width to manage the max width of the table
 
 	s.WriteRune('\n')
 	if errs := m.Errors(); len(errs) != 0 {
