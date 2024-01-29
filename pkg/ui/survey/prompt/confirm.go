@@ -69,9 +69,9 @@ func (m ConfirmModel) View() string {
 	if m.submitted {
 		s.WriteString(": ")
 		if m.value {
-			s.WriteString("Yes")
+			s.WriteString("true")
 		} else {
-			s.WriteString("No")
+			s.WriteString("false")
 		}
 		return s.String()
 	}
