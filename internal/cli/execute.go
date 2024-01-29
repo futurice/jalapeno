@@ -144,8 +144,25 @@ func runExecute(cmd *cobra.Command, opts executeOptions) error {
 	// Filter out variables which don't have value yet
 	varsWithoutValues := recipeutil.FilterVariablesWithoutValues(re.Variables, values)
 	if len(varsWithoutValues) > 0 {
+		// If --no-input flag is set, try to use default values
 		if opts.NoInput {
-			return recipeutil.NewNoInputError(varsWithoutValues)
+			varsWithoutDefaultValues := make([]recipe.Variable, 0, len(varsWithoutValues))
+			for _, v := range varsWithoutValues {
+				if v.Default != "" {
+					defaultValue, err := v.ParseDefaultValue()
+					if err != nil {
+						return fmt.Errorf("failed to parse default value for variable '%s': %w", v.Name, err)
+					}
+					values[v.Name] = defaultValue
+				} else {
+					varsWithoutDefaultValues = append(varsWithoutDefaultValues, v)
+				}
+			}
+
+			// If there are still variables without values, return error
+			if len(varsWithoutDefaultValues) > 0 {
+				return recipeutil.NewNoInputError(varsWithoutDefaultValues)
+			}
 		}
 
 		promptedValues, err := survey.PromptUserForValues(cmd.InOrStdin(), cmd.OutOrStdout(), varsWithoutValues, values)

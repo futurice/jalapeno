@@ -41,6 +41,15 @@ func TestVariableValidation(t *testing.T) {
 			},
 			"`confirm` and `columns` properties can not be defined",
 		},
+		{
+			"both `options` and `columns` defined",
+			Variable{
+				Name:    "foo",
+				Options: []string{"foo", "bar"},
+				Columns: []string{"foo", "bar"},
+			},
+			"`options` and `columns` properties can not be defined",
+		},
 	}
 
 	for _, scenario := range scenarios {

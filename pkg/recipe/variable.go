@@ -37,6 +37,16 @@ type Variable struct {
 	Columns []string `yaml:"columns,omitempty"`
 }
 
+type VariableType uint8
+
+const (
+	VariableTypeUndefined VariableType = iota
+	VariableTypeString
+	VariableTypeTable
+	VariableTypeSelect
+	VariableTypeBoolean
+)
+
 type VariableValidator struct {
 	// Regular expression pattern to match the input against
 	Pattern string `yaml:"pattern,omitempty"`
@@ -67,12 +77,20 @@ func (v *Variable) Validate() error {
 		return errors.New("variable name can not start with a number")
 	}
 
+	if v.DetermineType() == VariableTypeUndefined {
+		return errors.New("internal error: variable type could not be determined")
+	}
+
 	if v.Confirm {
 		if len(v.Options) > 0 {
 			return errors.New("`confirm` and `options` properties can not be defined at the same time")
 		} else if len(v.Columns) > 0 {
 			return errors.New("`confirm` and `columns` properties can not be defined at the same time")
 		}
+	}
+
+	if len(v.Options) > 0 && len(v.Columns) > 0 {
+		return errors.New("`options` and `columns` properties can not be defined at the same time")
 	}
 
 	for i, validator := range v.Validators {
@@ -256,4 +274,37 @@ func (vv *VariableValues) UnmarshalYAML(unmarshal func(interface{}) error) error
 	}
 
 	return nil
+}
+
+func (v Variable) DetermineType() VariableType {
+	switch {
+	case v.Confirm:
+		return VariableTypeBoolean
+	case len(v.Options) > 0:
+		return VariableTypeSelect
+	case len(v.Columns) > 0:
+		return VariableTypeTable
+	default:
+		return VariableTypeString
+	}
+}
+
+func (v Variable) ParseDefaultValue() (interface{}, error) {
+	switch v.DetermineType() {
+	case VariableTypeBoolean:
+		return v.Default == "true", nil
+	case VariableTypeSelect:
+		return v.Default, nil
+	case VariableTypeTable:
+		t := TableValue{}
+		err := t.FromCSV(v.Columns, v.Default, ',')
+		if err != nil {
+			return nil, err
+		}
+		return t, nil
+	case VariableTypeString:
+		return v.Default, nil
+	default:
+		return nil, errors.New("unknown variable type")
+	}
 }
