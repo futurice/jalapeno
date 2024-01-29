@@ -135,7 +135,7 @@ func runTest(cmd *cobra.Command, opts testOptions) error {
 		}
 
 		if !anyUpdatesFound {
-			cmd.Println("No snapshot updates for any test")
+			cmd.Println("No snapshot updates required for any test.")
 			return nil
 		}
 

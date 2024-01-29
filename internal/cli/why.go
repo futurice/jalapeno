@@ -79,13 +79,13 @@ func runWhy(cmd *cobra.Command, opts whyOptions) error {
 		for file := range sauce.Files {
 			if fileinfo.IsDir() {
 				if strings.HasPrefix(file, opts.Filepath) {
-					cmd.Printf("Directory '%s' is created by the recipe '%s'\n", opts.Filepath, sauce.Recipe.Name)
+					cmd.Printf("Directory '%s' is created by the recipe '%s' (sauce ID %s).\n", opts.Filepath, sauce.Recipe.Name, sauce.ID)
 					return nil
 				}
 			}
 			if opts.Filepath == file {
 				// TODO: Check if the file is modified by the user by comparing hashes
-				cmd.Printf("File '%s' is created by the recipe '%s'\n", opts.Filepath, sauce.Recipe.Name)
+				cmd.Printf("File '%s' is created by the recipe '%s' (sauce ID %s).\n", opts.Filepath, sauce.Recipe.Name, sauce.ID)
 				return nil
 			}
 		}
