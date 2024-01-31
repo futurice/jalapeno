@@ -112,21 +112,21 @@ func runCheck(cmd *cobra.Command, opts checkOptions) error {
 		versions, err := recipeutil.CheckForUpdates(sauce, opts.OCIRepository)
 		if err != nil {
 			errorsFound = true
-			cmd.Printf("%s: can not check for updates: %s\n", sauce.Recipe.Name, err)
+			cmd.Printf("❌ %s: can not check for updates: %s\n", sauce.Recipe.Name, err)
 
 		} else if len(versions) > 0 {
-			cmd.Printf("%s: new versions found: %s\n", sauce.Recipe.Name, strings.Join(versions, ", "))
+			cmd.Printf("🔄 %s: new versions found: %s\n", sauce.Recipe.Name, strings.Join(versions, ", "))
 			upgradeCommands = append(upgradeCommands,
 				fmt.Sprintf("%s upgrade %s:%s", os.Args[0], sauce.CheckFrom, versions[len(versions)-1]),
 			)
 
 		} else {
-			cmd.Printf("%s: no new versions found\n", sauce.Recipe.Name)
+			cmd.Printf("👍 %s: no new versions found\n", sauce.Recipe.Name)
 		}
 	}
 
 	if len(upgradeCommands) > 0 {
-		cmd.Println("To upgrade recipes to the latest version run:")
+		cmd.Println("\nTo upgrade recipes to the latest version run:")
 		for _, cmdMsg := range upgradeCommands {
 			cmd.Printf("  %s\n", cmdMsg)
 		}
