@@ -20,7 +20,7 @@ Feature: Running tests for a recipe
     And I change recipe "foo" template "README.md" to render "New version"
     And I run tests for recipe "foo"
     Then CLI produced an output "❌: defaults"
-    And CLI produced an error "did not match: file 'README.md'"
+    And CLI produced an error "did not match for file 'README.md'"
 
   Scenario: Update test file snapshots
     Given a recipes directory

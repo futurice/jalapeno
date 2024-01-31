@@ -7,6 +7,7 @@ import (
 
 	"github.com/futurice/jalapeno/pkg/engine"
 	"github.com/gofrs/uuid"
+	"github.com/kylelemons/godebug/diff"
 )
 
 type Test struct {
@@ -46,7 +47,7 @@ func (re *Recipe) RunTests() []error {
 	for i, t := range re.Tests {
 		sauce, err := re.Execute(engine.New(), t.Values, TestID)
 		if err != nil {
-			errors[i] = fmt.Errorf("%w", err)
+			errors[i] = err
 			continue
 		}
 
@@ -62,7 +63,7 @@ func (re *Recipe) RunTests() []error {
 				continue
 			} else {
 				if !bytes.Equal(tFile.Content, file.Content) {
-					errors[i] = fmt.Errorf("%w: file '%s'.\nExpected:\n%s\n\nActual:\n%s", ErrTestContentMismatch, key, tFile.Content, file.Content)
+					errors[i] = fmt.Errorf("%w for file '%s':\n%s", ErrTestContentMismatch, key, diff.Diff(string(tFile.Content), string(file.Content)))
 					continue
 				}
 			}
