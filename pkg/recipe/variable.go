@@ -7,7 +7,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/antonmedv/expr"
+	"github.com/expr-lang/expr"
 )
 
 type Variable struct {
@@ -30,7 +30,7 @@ type Variable struct {
 	// Validators for the variable
 	Validators []VariableValidator `yaml:"validators,omitempty"`
 
-	// Makes the variable conditional based on the result of the expression. The result of the evaluation needs to be a boolean value. Uses https://github.com/antonmedv/expr
+	// Makes the variable conditional based on the result of the expression. The result of the evaluation needs to be a boolean value. Uses https://github.com/expr-lang/expr
 	If string `yaml:"if,omitempty"`
 
 	// Set the variable as a table type with columns defined by this property

@@ -4,7 +4,6 @@ go 1.21
 
 require (
 	github.com/Masterminds/sprig/v3 v3.2.3
-	github.com/antonmedv/expr v1.15.3
 	github.com/buildkite/shellwords v0.0.0-20180315110454-59467a9b8e10
 	github.com/carlmjohnson/versioninfo v0.22.5
 	github.com/charmbracelet/bubbles v0.16.1
@@ -13,6 +12,7 @@ require (
 	github.com/charmbracelet/x/exp/teatest v0.0.0-20231010190216-1cb11efc897d
 	github.com/cucumber/godog v0.13.0
 	github.com/docker/cli v24.0.6+incompatible
+	github.com/expr-lang/expr v1.16.0
 	github.com/kylelemons/godebug v1.1.0
 	github.com/muesli/reflow v0.3.0
 	github.com/muesli/termenv v0.15.2

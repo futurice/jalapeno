@@ -6,9 +6,9 @@ import (
 	"io"
 	"strings"
 
-	"github.com/antonmedv/expr"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/expr-lang/expr"
 	"github.com/futurice/jalapeno/pkg/recipe"
 	"github.com/futurice/jalapeno/pkg/recipeutil"
 	"github.com/futurice/jalapeno/pkg/ui/survey/prompt"
