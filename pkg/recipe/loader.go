@@ -194,7 +194,13 @@ func LoadSauces(projectDir string) ([]*Sauce, error) {
 		for path, file := range sauce.Files {
 			data, err := os.ReadFile(filepath.Join(projectDir, path))
 			if err != nil {
-				return nil, fmt.Errorf("failed to read rendered file: %w", err)
+				// The file have been removed by the user after the sauce was created
+				if errors.Is(err, os.ErrNotExist) {
+					delete(sauce.Files, path)
+					continue
+				} else {
+					return nil, fmt.Errorf("failed to read rendered file: %w", err)
+				}
 			}
 			// Note that we use the file checksum from the sauce file,
 			// but read contents from the files. This means that if the checksum
