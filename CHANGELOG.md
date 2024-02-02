@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.3.0](https://github.com/futurice/jalapeno/compare/v1.2.1...v1.3.0) (2024-02-02)
+
+
+### Features
+
+* show proper diff for failing snapshot tests ([e61eb0c](https://github.com/futurice/jalapeno/commit/e61eb0c09a78860ff34f160ef1f59c3340b5b229))
+* try variable default values when using no-input mode ([7030c7c](https://github.com/futurice/jalapeno/commit/7030c7c97c75278d40d987cd47267434ce3525a7))
+
+
+### Bug Fixes
+
+* handle files manually deleted by the user ([c4ecb80](https://github.com/futurice/jalapeno/commit/c4ecb80017a55a7cd006245674e49b9fce8046f8))
+* **survey:** reflect actual confirm value ([ecf631f](https://github.com/futurice/jalapeno/commit/ecf631fac2ea7891d9decdf28ea3d97597ee7609))
+
 ## [1.2.1](https://github.com/futurice/jalapeno/compare/v1.2.0...v1.2.1) (2024-01-26)
 
 
