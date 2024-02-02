@@ -10,6 +10,7 @@ on:
       - "CHANGELOG.md"
       - "docs/**"
       - "internal/cli/**"
+      - "cmd/docs/**"
 
 jobs:
   deploy:
