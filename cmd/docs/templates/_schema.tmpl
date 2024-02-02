@@ -1,6 +1,8 @@
 {{- define "schema" }}
 ## Recipe schema (`recipe.yml`)
 
+[Source code](https://github.com/futurice/jalapeno/blob/main/pkg/recipe/recipe.go#L7)
+
 | Attribute | Type | Default | Description |
 | --- | --- | --- | --- |
 | `apiVersion` | `string` | `v1` | Version of the recipe metadata API schema. Currently should have value "v1". |
@@ -14,6 +16,8 @@
 | `vars` | [`[]Variable`](#variable) | | An array of variables which can be used in templates. The user will be prompted to provide the value for the variable if not set with `--set` flag. |
 
 ### Variable
+
+[Source code](https://github.com/futurice/jalapeno/blob/main/pkg/recipe/variable.go#L13)
 
 | Attribute | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -29,6 +33,8 @@
 
 ### Validator
 
+[Source code](https://github.com/futurice/jalapeno/blob/main/pkg/recipe/variable.go#L50)
+
 | Attribute | Type | Default | Description |
 | --- | --- | --- | --- |
 | `pattern` | `string` | | Regular expression pattern to match the input against. |
@@ -37,12 +43,16 @@
 
 ## Test schema (`test.yml`)
 
+[Source code](https://github.com/futurice/jalapeno/blob/main/pkg/recipe/test.go#L13)
+
 | Attribute | Type | Default | Description |
 | --- | --- | --- | --- |
 | `values` | `map[string]any` | | Values to use to render the recipe templates. Map key is the name of the variable and value is the variable value. |
 | `ignoreExtraFiles` | `bool` | | If true, test will pass even though templates generated more files than the test specifies. This is useful when creating specific test cases for large recipes. |
 
 ## Sauce schema (`sauces.yml`)
+
+[Source code](https://github.com/futurice/jalapeno/blob/main/pkg/recipe/sauce.go#L10)
 
 | Attribute | Type | Default | Description |
 | --- | --- | --- | --- |
