@@ -24,7 +24,7 @@ jobs:
       pull-requests: write
     outputs:
       release_created: ${{ steps.release.outputs.release_created }}
-      issue_number: ${{ steps.release.outputs.pr.number }}
+      pr: ${{ steps.release.outputs.pr }}
     runs-on: ubuntu-latest
     steps:
       - uses: google-github-actions/release-please-action@v4
@@ -47,36 +47,6 @@ jobs:
 
       - run: git fetch --force --tags
 
-      - uses: docker/login-action@v2
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - uses: actions/setup-go@v4
-        with:
-          go-version: "1.21"
-
-      - uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cache/go-build
-            ~/go/pkg/mod
-          key: ${{ runner.os }}-golang-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-golang-
-
-      - uses: goreleaser/goreleaser-action@v4
-        with:
-          distribution: goreleaser
-          version: latest
-          args: release --clean
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          HOMEBREW_TAP_PRIVATE_KEY: ${{ secrets.HOMEBREW_TAP_PRIVATE_KEY }}
-          WINGET_PKGS_PRIVATE_KEY: ${{ secrets.WINGET_PKGS_PRIVATE_KEY }}
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-
       # Add the "autorelease: published" and remove tagged, this allows
       # monitoring to be enabled that detects failed releases:
       - uses: actions/github-script@v4
@@ -88,13 +58,43 @@ jobs:
             await github.issues.addLabels({
               owner,
               repo,
-              issue_number: ${{ needs.release.outputs.issue_number }},
+              issue_number: JSON.parse('${{ needs.release.outputs.pr }}'}}).number,
               labels: ['autorelease: published']
             });
             github.issues.removeLabel({
               owner,
               repo,
-              issue_number: ${{ needs.release.outputs.issue_number }},
+              issue_number: JSON.parse('${{ needs.release.outputs.pr }}'}}).number,
               name: 'autorelease: tagged',
             });
-            console.log(`Tagged ${{ needs.release.outputs.issue_number }}`)
+            console.log(`Tagged JSON.parse('${{ needs.release.outputs.pr }}'}}).number`)
+
+      # - uses: docker/login-action@v2
+      #   with:
+      #     registry: ghcr.io
+      #     username: ${{ github.actor }}
+      #     password: ${{ secrets.GITHUB_TOKEN }}
+
+      # - uses: actions/setup-go@v4
+      #   with:
+      #     go-version: "1.21"
+
+      # - uses: actions/cache@v3
+      #   with:
+      #     path: |
+      #       ~/.cache/go-build
+      #       ~/go/pkg/mod
+      #     key: ${{ runner.os }}-golang-${{ hashFiles('**/go.sum') }}
+      #     restore-keys: |
+      #       ${{ runner.os }}-golang-
+
+      # - uses: goreleaser/goreleaser-action@v4
+      #   with:
+      #     distribution: goreleaser
+      #     version: latest
+      #     args: release --clean
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #     HOMEBREW_TAP_PRIVATE_KEY: ${{ secrets.HOMEBREW_TAP_PRIVATE_KEY }}
+      #     WINGET_PKGS_PRIVATE_KEY: ${{ secrets.WINGET_PKGS_PRIVATE_KEY }}
+      #     SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
