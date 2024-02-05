@@ -26,10 +26,11 @@ jobs:
       release_created: ${{ steps.release.outputs.release_created }}
     runs-on: ubuntu-latest
     steps:
-      - uses: google-github-actions/release-please-action@v3
+      - uses: google-github-actions/release-please-action@v4
         id: release
         with:
           release-type: go
+          skip-github-release: true
 
   publish:
     name: Publish artifacts
@@ -75,3 +76,8 @@ jobs:
           HOMEBREW_TAP_PRIVATE_KEY: ${{ secrets.HOMEBREW_TAP_PRIVATE_KEY }}
           WINGET_PKGS_PRIVATE_KEY: ${{ secrets.WINGET_PKGS_PRIVATE_KEY }}
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+
+      - uses: google-github-actions/release-please-action@v4
+        with:
+          release-type: go
+          skip-github-pull-request: true
