@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.4](https://github.com/futurice/jalapeno/compare/v1.3.3...v1.3.4) (2024-02-05)
+
+
+### Continuous Integration
+
+* debug release pipeline ([1cb040b](https://github.com/futurice/jalapeno/commit/1cb040bacad7f112bc7cda596829064a64677b99))
+
 ## [1.3.3](https://github.com/futurice/jalapeno/compare/v1.3.2...v1.3.3) (2024-02-05)
 
 
