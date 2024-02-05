@@ -24,7 +24,7 @@ jobs:
       pull-requests: write
     outputs:
       release_created: ${{ steps.release.outputs.release_created }}
-      issue_number: ${{ steps.release.outputs.pr.number }}
+      prs: ${{ steps.release.outputs.prs }}
     runs-on: ubuntu-latest
     steps:
       - uses: google-github-actions/release-please-action@v4
@@ -40,6 +40,7 @@ jobs:
     permissions:
       contents: write
       packages: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@v3
         with:
@@ -77,24 +78,16 @@ jobs:
           WINGET_PKGS_PRIVATE_KEY: ${{ secrets.WINGET_PKGS_PRIVATE_KEY }}
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
 
-      # Add the "autorelease: published" and remove tagged, this allows
-      # monitoring to be enabled that detects failed releases:
-      - uses: actions/github-script@v4
-        id: untag-release
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const [owner, repo] = process.env.GITHUB_REPOSITORY.split('/');
-            await github.issues.addLabels({
-              owner,
-              repo,
-              issue_number: ${{ needs.release.outputs.issue_number }},
-              labels: ['autorelease: published']
-            });
-            github.issues.removeLabel({
-              owner,
-              repo,
-              issue_number: ${{ needs.release.outputs.issue_number }},
-              name: 'autorelease: tagged',
-            });
-            console.log(`Tagged ${{ needs.release.outputs.issue_number }}`)
+      # Pending for https://github.com/google-github-actions/release-please-action/issues/776
+      # - uses: actions/github-script@v6
+      #   with:
+      #     script: |
+      #       const prs = JSON.parse(${{ needs.release.outputs.prs }})
+      #       for (const pr of prs) {
+      #         github.rest.issues.addLabels({
+      #           issue_number: pr.number,
+      #           owner: context.repo.owner,
+      #           repo: context.repo.repo,
+      #           labels: ["autorelease: published"]
+      #         })
+      #       }
