@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.3](https://github.com/futurice/jalapeno/compare/v1.3.2...v1.3.3) (2024-02-05)
+
+
+### Bug Fixes
+
+* retain CheckFrom URL from old sauce ([b1eef93](https://github.com/futurice/jalapeno/commit/b1eef93dfaece6f7f3dfb38711b5f2bb9608b4cf))
+
 ## [1.3.2](https://github.com/futurice/jalapeno/compare/v1.3.1...v1.3.2) (2024-02-05)
 
 
