@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.2](https://github.com/futurice/jalapeno/compare/v1.3.1...v1.3.2) (2024-02-05)
+
+
+### Continuous Integration
+
+* add published tag after publishing ([5bfd1e8](https://github.com/futurice/jalapeno/commit/5bfd1e85fd3205ec3fd82db1f55ee3a63adf0102))
+
 ## [1.3.1](https://github.com/futurice/jalapeno/compare/v1.3.0...v1.3.1) (2024-02-05)
 
 
