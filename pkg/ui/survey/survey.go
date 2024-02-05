@@ -144,21 +144,23 @@ func (m SurveyModel) Values() recipe.VariableValues {
 }
 
 func (m *SurveyModel) createNextPrompt() (prompt.Model, error) {
-	if len(m.prompts) > 0 {
-		m.cursor++
-	}
-
 	if m.cursor >= len(m.variables) {
 		return nil, nil
 	}
 
-	if p, err := m.createPrompt(m.variables[m.cursor]); err != nil {
+	p, err := m.createPrompt(m.variables[m.cursor])
+	if err != nil {
 		return nil, err
-	} else if p == nil {
-		return m.createNextPrompt()
-	} else {
-		return p, nil
 	}
+
+	m.cursor++
+
+	// Skip the prompt if it should be skipped (e.g. because of 'if' condition)
+	if p == nil {
+		return m.createNextPrompt()
+	}
+
+	return p, nil
 }
 
 // createPrompt creates a prompt for the given variable. Returns nil if the variable should be skipped.
