@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.3](https://github.com/futurice/jalapeno/compare/v1.3.2...v1.3.3) (2024-02-05)
+
+
+### Continuous Integration
+
+* process job output correctly ([34f1f70](https://github.com/futurice/jalapeno/commit/34f1f707ddea9704daaee45a4767bed938abdd39))
+
 ## [1.3.2](https://github.com/futurice/jalapeno/compare/v1.3.1...v1.3.2) (2024-02-05)
 
 
