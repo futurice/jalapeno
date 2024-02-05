@@ -355,9 +355,13 @@ func theProjectDirectoryShouldContainFileWith(ctx context.Context, filename, sea
 	if err != nil {
 		return err
 	}
-	if !strings.Contains(content, searchTerm) {
-		return fmt.Errorf("substring '%s' not found in file %s", searchTerm, filename)
+
+	if matched, err := regexp.MatchString(searchTerm, content); err != nil {
+		return fmt.Errorf("regexp pattern matching caused an error: %w", err)
+	} else if !matched {
+		return fmt.Errorf("the file '%s' did not match the following pattern '%s'", filename, searchTerm)
 	}
+
 	return nil
 }
 
@@ -394,7 +398,9 @@ func theSauceFileShouldHavePropertyWithValue(ctx context.Context, index int, pro
 		return fmt.Errorf("sauce file does not have property %s: %w", propertyName, err)
 	}
 
-	if !regexp.MustCompile(expectedValue).MatchString(value.(string)) {
+	if matched, err := regexp.MatchString(expectedValue, value.(string)); err != nil {
+		return fmt.Errorf("regexp pattern matching caused an error: %w", err)
+	} else if !matched {
 		return fmt.Errorf("expected property %s to match regex '%s', got '%s'", propertyName, expectedValue, value)
 	}
 	return nil
@@ -417,10 +423,10 @@ func recipeIgnoresPattern(ctx context.Context, recipeName, pattern string) (cont
 func expectGivenOutput(ctx context.Context, expected string) error {
 	cmdStdOut := ctx.Value(cmdStdOutCtxKey{}).(*bytes.Buffer)
 
-	if matched, err := regexp.MatchString(expected, cmdStdOut.String()); !matched {
-		return fmt.Errorf("command produced unexpected output: Expected: '%s', Actual: '%s'", expected, strings.TrimSpace(cmdStdOut.String()))
-	} else if err != nil {
+	if matched, err := regexp.MatchString(expected, cmdStdOut.String()); err != nil {
 		return fmt.Errorf("regexp pattern matching caused an error: %w", err)
+	} else if !matched {
+		return fmt.Errorf("command produced unexpected output: Expected: '%s', Actual: '%s'", expected, strings.TrimSpace(cmdStdOut.String()))
 	}
 
 	return nil
@@ -429,10 +435,10 @@ func expectGivenOutput(ctx context.Context, expected string) error {
 func expectGivenError(ctx context.Context, expectedError string) error {
 	cmdStdErr := ctx.Value(cmdStdErrCtxKey{}).(*bytes.Buffer)
 
-	if matched, err := regexp.MatchString(expectedError, cmdStdErr.String()); !matched {
-		return fmt.Errorf("command produced unexpected error: Expected: '%s', Actual: '%s'", expectedError, strings.TrimSpace(cmdStdErr.String()))
-	} else if err != nil {
+	if matched, err := regexp.MatchString(expectedError, cmdStdErr.String()); err != nil {
 		return fmt.Errorf("regexp pattern matching caused an error: %w", err)
+	} else if !matched {
+		return fmt.Errorf("command produced unexpected error: Expected: '%s', Actual: '%s'", expectedError, strings.TrimSpace(cmdStdErr.String()))
 	}
 
 	return nil

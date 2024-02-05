@@ -222,6 +222,12 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 		return err
 	}
 
+	if oldSauce.CheckFrom != "" {
+		newSauce.CheckFrom = oldSauce.CheckFrom
+	} else if strings.HasPrefix(opts.RecipeURL, "oci://") {
+		newSauce.CheckFrom = strings.TrimSuffix(opts.RecipeURL, fmt.Sprintf(":%s", re.Metadata.Version))
+	}
+
 	// read common ignore file if it exists
 	ignorePatterns := make([]string, 0)
 	if data, err := os.ReadFile(filepath.Join(opts.Dir, recipe.IgnoreFileName)); err == nil {
