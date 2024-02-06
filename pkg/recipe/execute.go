@@ -38,10 +38,11 @@ func (re *Recipe) Execute(engine RenderEngine, values VariableValues, id uuid.UU
 	// Define the context which is available on templates
 	context := map[string]interface{}{
 		"ID": sauce.ID.String(),
-		"Recipe": struct{ APIVersion, Name, Version string }{
+		"Recipe": struct{ APIVersion, Name, Version, Source string }{
 			re.APIVersion,
 			re.Name,
 			re.Version,
+			re.Source,
 		},
 		"Variables": mappedValues,
 	}

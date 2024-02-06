@@ -97,6 +97,7 @@ The following context is available on the templates:
   - `.Recipe.APIVersion`: The API version which the recipe file uses
   - `.Recipe.Name`: The name of the recipe
   - `.Recipe.Version`: The current version of the recipe
+  - `.Recipe.Source`: URL to source code for this recipe
 - `.ID`: UUID which is generated after the first execution of the recipe. It will keep its value over upgrades. Can be used to generate unique pseudo-random values which stays the same over the upgrades, for example `my-resource-{{ sha1sum .ID | trunc 5 }}`
 - `.Variables`: Object which contains the values of the variables defined for the recipe. Example: `{{ .Variables.FOO }}`
 

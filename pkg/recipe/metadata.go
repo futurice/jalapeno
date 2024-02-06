@@ -24,8 +24,8 @@ type Metadata struct {
 	// Description of what the recipe does
 	Description string `yaml:"description"`
 
-	// A list of URLs to source code for this recipe
-	Sources []string `yaml:"sources,omitempty"`
+	// URL to source code for this recipe
+	Source string `yaml:"source,omitempty"`
 
 	// A message which will be showed to an user after a succesful recipe execution.
 	// Can be used to guide the user what should be done next in the project directory.
@@ -64,8 +64,8 @@ func (m *Metadata) Validate() error {
 		return fmt.Errorf("template extension must start with a dot")
 	}
 
-	for _, sourceURL := range m.Sources {
-		if _, err := url.ParseRequestURI(sourceURL); err != nil {
+	if m.Source != "" {
+		if _, err := url.ParseRequestURI(m.Source); err != nil {
 			return fmt.Errorf("source url is invalid: %w", err)
 		}
 	}
