@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="generator" content="Docusaurus v3.0.0">
 <title data-rh="true">Usage | Jalapeno</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:url" content="https://futurice.github.io/jalapeno/usage"><meta data-rh="true" property="og:locale" content="en"><meta data-rh="true" name="docusaurus_locale" content="en"><meta data-rh="true" name="docsearch:language" content="en"><meta data-rh="true" name="docusaurus_version" content="current"><meta data-rh="true" name="docusaurus_tag" content="docs-default-current"><meta data-rh="true" name="docsearch:version" content="current"><meta data-rh="true" name="docsearch:docusaurus_tag" content="docs-default-current"><meta data-rh="true" property="og:title" content="Usage | Jalapeno"><meta data-rh="true" name="description" content="Getting started"><meta data-rh="true" property="og:description" content="Getting started"><link data-rh="true" rel="icon" href="/jalapeno/img/logo.svg"><link data-rh="true" rel="canonical" href="https://futurice.github.io/jalapeno/usage"><link data-rh="true" rel="alternate" href="https://futurice.github.io/jalapeno/usage" hreflang="en"><link data-rh="true" rel="alternate" href="https://futurice.github.io/jalapeno/usage" hreflang="x-default"><link rel="stylesheet" href="/jalapeno/assets/css/styles.3795cfa1.css">
-<script src="/jalapeno/assets/js/runtime~main.b3e09afd.js" defer="defer"></script>
+<script src="/jalapeno/assets/js/runtime~main.dd3d2a72.js" defer="defer"></script>
 <script src="/jalapeno/assets/js/main.6ac339eb.js" defer="defer"></script>
 </head>
 <body class="navigation-with-keyboard">
@@ -32,6 +32,7 @@
 <li><code>.Recipe.APIVersion</code>: The API version which the recipe file uses</li>
 <li><code>.Recipe.Name</code>: The name of the recipe</li>
 <li><code>.Recipe.Version</code>: The current version of the recipe</li>
+<li><code>.Recipe.Source</code>: URL to source code for this recipe</li>
 </ul>
 </li>
 <li><code>.ID</code>: UUID which is generated after the first execution of the recipe. It will keep its value over upgrades. Can be used to generate unique pseudo-random values which stays the same over the upgrades, for example <code>my-resource-{{ sha1sum .ID | trunc 5 }}</code></li>
