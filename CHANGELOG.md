@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.4](https://github.com/futurice/jalapeno/compare/v1.3.3...v1.3.4) (2024-02-06)
+
+
+### Bug Fixes
+
+* use single source instead of a list ([40d453b](https://github.com/futurice/jalapeno/commit/40d453bed93b0a9dfabadcb8e70ae3d982f03f49))
+
 ## [1.3.3](https://github.com/futurice/jalapeno/compare/v1.3.2...v1.3.3) (2024-02-05)
 
 
