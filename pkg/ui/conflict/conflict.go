@@ -92,6 +92,8 @@ func (m Model) View() string {
 			s.WriteString("keep")
 		}
 
+		s.WriteRune('\n')
+
 		return s.String()
 	}
 

@@ -313,6 +313,8 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 		output[path] = file
 	}
 
+	cmd.Println()
+
 	newSauce.Files = output
 
 	err = newSauce.Save(opts.Dir)
