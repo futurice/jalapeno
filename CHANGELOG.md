@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.5](https://github.com/futurice/jalapeno/compare/v1.3.4...v1.3.5) (2024-02-07)
+
+
+### Bug Fixes
+
+* make the list of conflicted files visible after upgrading ([b50bdb4](https://github.com/futurice/jalapeno/commit/b50bdb47db9efd955cf3c749a697016bbd5a765c))
+
 ## [1.3.4](https://github.com/futurice/jalapeno/compare/v1.3.3...v1.3.4) (2024-02-06)
 
 
