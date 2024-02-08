@@ -78,6 +78,20 @@ Feature: Upgrade sauce
 		Then CLI produced an output "README.md: override"
 		And the project directory should contain file "README.md" with "New version"
 
+	Scenario: Attempt upgrade when user overrides the locally modified file while using arrow keys
+		Given a project directory
+		And a recipes directory
+		And a recipe "foo" that generates file "README.md"
+		And I execute recipe "foo"
+		And I change recipe "foo" to version "v0.0.2"
+		And I change recipe "foo" template "README.md" to render "New version"
+		And I change project file "README.md" to contain "Locally modified"
+		And I buffer key presses "\x1b[C"
+		And I buffer key presses "\r"
+		When I upgrade recipe "foo"
+		Then CLI produced an output "README.md: override"
+		And the project directory should contain file "README.md" with "New version"
+
 	Scenario: Attempt upgrade when new file conflicts with existing manually created file
 		Given a project directory
 		And a recipes directory

@@ -110,7 +110,7 @@ func TestFeatures(t *testing.T) {
 			s.Before(func(ctx context.Context, sc *godog.Scenario) (context.Context, error) {
 				ctx = context.WithValue(ctx, cmdAdditionalFlagsCtxKey{}, make(map[string]string))
 				ctx = context.WithValue(ctx, dockerResourcesCtxKey{}, []*dockertest.Resource{})
-				ctx = context.WithValue(ctx, cmdStdInCtxKey{}, new(bytes.Buffer))
+				ctx = context.WithValue(ctx, cmdStdInCtxKey{}, NewBlockBuffer())
 
 				return ctx, nil
 			})
@@ -138,7 +138,7 @@ func TestFeatures(t *testing.T) {
 
 func wrapCmdOutputs(ctx context.Context) (context.Context, *cobra.Command) {
 	rootCmd := cli.NewRootCmd()
-	cmdStdIn, isInteractive := ctx.Value(cmdStdInCtxKey{}).(*bytes.Buffer)
+	cmdStdIn, isInteractive := ctx.Value(cmdStdInCtxKey{}).(*BlockBuffer)
 	if isInteractive {
 		rootCmd.SetIn(cmdStdIn)
 	}
@@ -243,10 +243,11 @@ func aRecipesDirectory(ctx context.Context) (context.Context, error) {
 }
 
 func bufferKeysToInput(ctx context.Context, keys string) (context.Context, error) {
-	stdIn := ctx.Value(cmdStdInCtxKey{}).(*bytes.Buffer)
+	stdIn := ctx.Value(cmdStdInCtxKey{}).(*BlockBuffer)
 
 	keys = strings.Replace(keys, "\\r", "\r", -1)
-	stdIn.WriteString(keys)
+	keys = strings.Replace(keys, "\\x1b", "\x1b", -1)
+	stdIn.Add([]byte(keys))
 
 	return context.WithValue(ctx, cmdStdInCtxKey{}, stdIn), nil
 }
@@ -633,4 +634,52 @@ func nestedMapLookup(m map[string]interface{}, ks ...string) (rval interface{}, 
 	} else { // 1+ more keys
 		return nestedMapLookup(m, ks[1:]...)
 	}
+}
+
+// BlockBuffer represents a buffer that stores blocks of data.
+// This is used to simulate user input for the CLI. Using the standard buffer
+// would not allow the simulation of complex key presses due to how bubbletea is implemented.
+type BlockBuffer struct {
+	data       [][]byte // The blocks of data stored in the buffer.
+	blockIndex int      // The index of the current block.
+	readIndex  int      // The index of the next byte to be read.
+}
+
+var _ io.Reader = &BlockBuffer{}
+
+func NewBlockBuffer() *BlockBuffer {
+	return &BlockBuffer{
+		data:       make([][]byte, 0),
+		blockIndex: 0,
+		readIndex:  0,
+	}
+}
+
+func (r *BlockBuffer) Add(p []byte) {
+	r.data = append(r.data, p)
+}
+
+func (r *BlockBuffer) Len() int {
+	s := 0
+	for i := range r.data {
+		s += len(r.data[i])
+	}
+
+	return s
+}
+
+func (r *BlockBuffer) Read(p []byte) (n int, err error) {
+	if r.blockIndex >= len(r.data) || r.readIndex >= len(r.data[r.blockIndex]) {
+		err = io.EOF
+		return
+	}
+
+	n = copy(p, r.data[r.blockIndex][r.readIndex:])
+	if n == len(r.data[r.blockIndex]) {
+		r.blockIndex++
+		r.readIndex = 0
+	} else {
+		r.readIndex += n
+	}
+	return
 }

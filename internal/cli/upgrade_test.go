@@ -26,7 +26,7 @@ func AddUpgradeSteps(s *godog.ScenarioContext) {
 func iRunUpgrade(ctx context.Context, recipe string) (context.Context, error) {
 	projectDir := ctx.Value(projectDirectoryPathCtxKey{}).(string)
 	additionalFlags := ctx.Value(cmdAdditionalFlagsCtxKey{}).(map[string]string)
-	stdIn := ctx.Value(cmdStdInCtxKey{}).(*bytes.Buffer)
+	stdIn := ctx.Value(cmdStdInCtxKey{}).(*BlockBuffer)
 
 	ctx, cmd := wrapCmdOutputs(ctx)
 
