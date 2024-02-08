@@ -1,6 +1,7 @@
 package cli_test
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"os"
@@ -19,6 +20,7 @@ func AddExecuteSteps(s *godog.ScenarioContext) {
 func iRunExecute(ctx context.Context, recipe string) (context.Context, error) {
 	projectDir := ctx.Value(projectDirectoryPathCtxKey{}).(string)
 	additionalFlags := ctx.Value(cmdAdditionalFlagsCtxKey{}).(map[string]string)
+	stdIn := ctx.Value(cmdStdInCtxKey{}).(*bytes.Buffer)
 
 	ctx, cmd := wrapCmdOutputs(ctx)
 
@@ -34,7 +36,10 @@ func iRunExecute(ctx context.Context, recipe string) (context.Context, error) {
 		"execute",
 		url,
 		fmt.Sprintf("--dir=%s", projectDir),
-		"--no-input", // Don't allow interactivity during these tests
+	}
+
+	if stdIn.Len() == 0 {
+		args = append(args, "--no-input")
 	}
 
 	for name, value := range additionalFlags {
@@ -43,6 +48,7 @@ func iRunExecute(ctx context.Context, recipe string) (context.Context, error) {
 
 	cmd.SetArgs(args)
 	_ = cmd.Execute()
+
 	return ctx, nil
 }
 

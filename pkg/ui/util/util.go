@@ -2,6 +2,8 @@ package util
 
 import (
 	"errors"
+
+	tea "github.com/charmbracelet/bubbletea"
 )
 
 var (
@@ -9,3 +11,33 @@ var (
 	ErrRegExFailed = errors.New("validation failed")
 	ErrUserAborted = errors.New("user aborted")
 )
+
+func MapUTFRuneToKey(r rune) tea.KeyMsg {
+	switch r {
+	case '\r':
+		return tea.KeyMsg{
+			Type: tea.KeyEnter,
+		}
+	case '↑':
+		return tea.KeyMsg{
+			Type: tea.KeyUp,
+		}
+	case '↓':
+		return tea.KeyMsg{
+			Type: tea.KeyDown,
+		}
+	case '←':
+		return tea.KeyMsg{
+			Type: tea.KeyLeft,
+		}
+	case '→':
+		return tea.KeyMsg{
+			Type: tea.KeyRight,
+		}
+	default:
+		return tea.KeyMsg{
+			Type:  tea.KeyRunes,
+			Runes: []rune{r},
+		}
+	}
+}

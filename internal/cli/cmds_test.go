@@ -41,6 +41,7 @@ type (
 	dockerConfigDirectoryPathCtxKey struct{}
 	ociRegistryCtxKey               struct{}
 	cmdStdOutCtxKey                 struct{}
+	cmdStdInCtxKey                  struct{}
 	cmdStdErrCtxKey                 struct{}
 	cmdAdditionalFlagsCtxKey        struct{}
 	dockerResourcesCtxKey           struct{}
@@ -85,6 +86,7 @@ func TestFeatures(t *testing.T) {
 			s.Step(`^registry credentials are not provided by the command$`, credentialsAreNotProvidedByTheCommand)
 			s.Step(`^registry credentials are provided by config file$`, generateDockerConfigFile)
 			s.Step(`^the recipes directory should contain recipe "([^"]*)"$`, theRecipesDirectoryShouldContainRecipe)
+			s.Step(`^I buffer key presses "([^"]*)"$`, bufferKeysToInput)
 
 			// Command specific steps
 			AddCheckSteps(s)
@@ -106,15 +108,9 @@ func TestFeatures(t *testing.T) {
 
 			// Initialize context values
 			s.Before(func(ctx context.Context, sc *godog.Scenario) (context.Context, error) {
-				ctx = context.WithValue(
-					ctx,
-					cmdAdditionalFlagsCtxKey{},
-					make(map[string]string))
-
-				ctx = context.WithValue(
-					ctx,
-					dockerResourcesCtxKey{},
-					[]*dockertest.Resource{})
+				ctx = context.WithValue(ctx, cmdAdditionalFlagsCtxKey{}, make(map[string]string))
+				ctx = context.WithValue(ctx, dockerResourcesCtxKey{}, []*dockertest.Resource{})
+				ctx = context.WithValue(ctx, cmdStdInCtxKey{}, new(bytes.Buffer))
 
 				return ctx, nil
 			})
@@ -142,14 +138,18 @@ func TestFeatures(t *testing.T) {
 
 func wrapCmdOutputs(ctx context.Context) (context.Context, *cobra.Command) {
 	rootCmd := cli.NewRootCmd()
+	cmdStdIn, isInteractive := ctx.Value(cmdStdInCtxKey{}).(*bytes.Buffer)
+	if isInteractive {
+		rootCmd.SetIn(cmdStdIn)
+	}
+
 	cmdStdOut, cmdStdErr := new(bytes.Buffer), new(bytes.Buffer)
+	ctx = context.WithValue(ctx, cmdStdOutCtxKey{}, cmdStdOut)
+	ctx = context.WithValue(ctx, cmdStdErrCtxKey{}, cmdStdErr)
 
 	rootCmd.SetOut(cmdStdOut)
 	rootCmd.SetErr(cmdStdErr)
 	rootCmd.SetContext(context.Background())
-
-	ctx = context.WithValue(ctx, cmdStdOutCtxKey{}, cmdStdOut)
-	ctx = context.WithValue(ctx, cmdStdErrCtxKey{}, cmdStdErr)
 
 	return ctx, rootCmd
 }
@@ -240,6 +240,15 @@ func aRecipesDirectory(ctx context.Context) (context.Context, error) {
 	}
 
 	return context.WithValue(ctx, recipesDirectoryPathCtxKey{}, dir), nil
+}
+
+func bufferKeysToInput(ctx context.Context, keys string) (context.Context, error) {
+	stdIn := ctx.Value(cmdStdInCtxKey{}).(*bytes.Buffer)
+
+	keys = strings.Replace(keys, "\\r", "\r", -1)
+	stdIn.WriteString(keys)
+
+	return context.WithValue(ctx, cmdStdInCtxKey{}, stdIn), nil
 }
 
 func aRecipeThatGeneratesFile(ctx context.Context, recipe, filename string) (context.Context, error) {

@@ -52,6 +52,32 @@ Feature: Upgrade sauce
     Then CLI produced an error "file conflicts"
     And the project directory should contain file "README.md" with "Locally modified"
   
+  Scenario: Attempt upgrade when user keeps the locally modified file
+    Given a project directory
+    And a recipes directory
+    And a recipe "foo" that generates file "README.md"
+    And I execute recipe "foo"
+    And I change recipe "foo" to version "v0.0.2"
+    And I change recipe "foo" template "README.md" to render "New version"
+    And I change project file "README.md" to contain "Locally modified"
+    And I buffer key presses "n\r"
+    When I upgrade recipe "foo"
+    Then CLI produced an output "README.md: keep"
+    And the project directory should contain file "README.md" with "Locally modified"
+
+  Scenario: Attempt upgrade when user overrides the locally modified file
+    Given a project directory
+    And a recipes directory
+    And a recipe "foo" that generates file "README.md"
+    And I execute recipe "foo"
+    And I change recipe "foo" to version "v0.0.2"
+    And I change recipe "foo" template "README.md" to render "New version"
+    And I change project file "README.md" to contain "Locally modified"
+    And I buffer key presses "y\r"
+    When I upgrade recipe "foo"
+    Then CLI produced an output "README.md: override"
+    And the project directory should contain file "README.md" with "New version"
+  
   Scenario: Attempt upgrade when new file conflicts with existing manually created file
     Given a project directory
     And a recipes directory

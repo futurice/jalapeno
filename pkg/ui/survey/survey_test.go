@@ -5,10 +5,10 @@ import (
 	"testing"
 	"time"
 
-	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/x/exp/teatest"
 	"github.com/futurice/jalapeno/pkg/recipe"
 	"github.com/futurice/jalapeno/pkg/ui/survey"
+	"github.com/futurice/jalapeno/pkg/ui/util"
 )
 
 func TestPromptUserForValues(t *testing.T) {
@@ -27,7 +27,7 @@ func TestPromptUserForValues(t *testing.T) {
 			expected: recipe.VariableValues{
 				"VAR_1": "foo",
 			},
-			input: "foo\n",
+			input: "foo\r",
 		},
 		{
 			name: "select_variable",
@@ -37,7 +37,7 @@ func TestPromptUserForValues(t *testing.T) {
 			expected: recipe.VariableValues{
 				"VAR_1": "c",
 			},
-			input: "↓↓\n",
+			input: "↓↓\r",
 		},
 	}
 
@@ -50,7 +50,7 @@ func TestPromptUserForValues(t *testing.T) {
 			)
 
 			for _, r := range tc.input {
-				tm.Send(RuneToKey(r))
+				tm.Send(util.MapUTFRuneToKey(r))
 			}
 
 			m := tm.FinalModel(tt, teatest.WithFinalTimeout(time.Second)).(survey.SurveyModel)
@@ -61,35 +61,5 @@ func TestPromptUserForValues(t *testing.T) {
 				t.Errorf("Unexpected result. Got %v, expected %v", result, tc.expected)
 			}
 		})
-	}
-}
-
-func RuneToKey(r rune) tea.KeyMsg {
-	switch r {
-	case '\n':
-		return tea.KeyMsg{
-			Type: tea.KeyEnter,
-		}
-	case '↑':
-		return tea.KeyMsg{
-			Type: tea.KeyUp,
-		}
-	case '↓':
-		return tea.KeyMsg{
-			Type: tea.KeyDown,
-		}
-	case '←':
-		return tea.KeyMsg{
-			Type: tea.KeyLeft,
-		}
-	case '→':
-		return tea.KeyMsg{
-			Type: tea.KeyRight,
-		}
-	default:
-		return tea.KeyMsg{
-			Type:  tea.KeyRunes,
-			Runes: []rune{r},
-		}
 	}
 }
