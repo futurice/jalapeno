@@ -245,9 +245,40 @@ func aRecipesDirectory(ctx context.Context) (context.Context, error) {
 func bufferKeysToInput(ctx context.Context, keys string) (context.Context, error) {
 	stdIn := ctx.Value(cmdStdInCtxKey{}).(*BlockBuffer)
 
-	keys = strings.Replace(keys, "\\r", "\r", -1)
-	keys = strings.Replace(keys, "\\x1b", "\x1b", -1)
-	stdIn.Add([]byte(keys))
+	commandChars := []string{
+		"\\r", "\r",
+		"\\n", "\n",
+		"\\x1b", "\x1b",
+	}
+
+	// From https://github.com/charmbracelet/bubbletea/blob/master/key.go#L354
+	customMappings := []string{
+		"↑", "\x1b[A",
+		"↓", "\x1b[B",
+		"→", "\x1b[C",
+		"←", "\x1b[D",
+	}
+
+	customKeys := make([]string, 0, len(customMappings)/2)
+	for i := 0; i < len(customMappings); i += 2 {
+		customKeys = append(customKeys, customMappings[i])
+	}
+
+	r := regexp.MustCompile(fmt.Sprintf("(%s)", strings.Join(customKeys, "|")))
+	splitters := r.FindAllString(keys, -1)
+	other := r.Split(keys, -1)
+
+	blocks := []string{other[0]}
+	for i := range splitters {
+		blocks = append(blocks, splitters[i], other[i+1])
+	}
+
+	replacer := strings.NewReplacer(append(commandChars, customMappings...)...)
+	for _, block := range blocks {
+		if block != "" {
+			stdIn.AddBlock([]byte(replacer.Replace(block)))
+		}
+	}
 
 	return context.WithValue(ctx, cmdStdInCtxKey{}, stdIn), nil
 }
@@ -275,7 +306,7 @@ description: %[1]s
 	if err := os.WriteFile(filepath.Join(templateDir, filename), []byte(recipe), 0644); err != nil {
 		return ctx, err
 	}
-	return context.WithValue(ctx, recipesDirectoryPathCtxKey{}, dir), nil
+	return ctx, nil
 }
 
 func aLocalOCIRegistry(ctx context.Context) (context.Context, error) {
@@ -655,7 +686,7 @@ func NewBlockBuffer() *BlockBuffer {
 	}
 }
 
-func (r *BlockBuffer) Add(p []byte) {
+func (r *BlockBuffer) AddBlock(p []byte) {
 	r.data = append(r.data, p)
 }
 
