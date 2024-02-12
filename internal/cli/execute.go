@@ -208,7 +208,11 @@ func runExecute(cmd *cobra.Command, opts executeOptions) error {
 	cmd.Printf("The following files were created:\n\n%s", tree)
 
 	if re.InitHelp != "" {
-		cmd.Printf("\nNext up: %s\n", re.InitHelp)
+		help, err := sauce.RenderInitHelp()
+		if err != nil {
+			return err
+		}
+		cmd.Printf("\nNext up: %s\n", help)
 	}
 
 	return nil

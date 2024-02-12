@@ -44,6 +44,7 @@ func TestLoadMultipleSauces(t *testing.T) {
 
 	sauces := `
 apiVersion: v1
+id: 12345678-1234-5678-1234-567812345678
 recipe:
   apiVersion: v1
   name: foo
@@ -54,6 +55,7 @@ files:
     checksum: sha256:a04042ce4a5e66443c5a26ef2d4432aa535421286c062ea7bf55cba5bae15ef4
 ---
 apiVersion: v1
+id: 12345678-1234-5678-1234-567812345679
 recipe:
   apiVersion: v1
   name: bar
@@ -97,6 +99,7 @@ func TestLoadSauceWithMissingFile(t *testing.T) {
 
 	sauces := `
 apiVersion: v1
+id: 12345678-1234-5678-1234-567812345678
 recipe:
   apiVersion: v1
   name: foo

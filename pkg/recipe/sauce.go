@@ -2,7 +2,10 @@ package recipe
 
 import (
 	"fmt"
+	"strings"
+	"text/template"
 
+	"github.com/fatih/structs"
 	"github.com/gofrs/uuid"
 )
 
@@ -54,6 +57,14 @@ func (s *Sauce) Validate() error {
 		return fmt.Errorf("unreconized sauce API version \"%s\"", s.APIVersion)
 	}
 
+	if s.ID.IsNil() {
+		return fmt.Errorf("sauce ID was empty")
+	}
+
+	if s.CheckFrom != "" && !strings.HasPrefix(s.CheckFrom, "oci://") {
+		return fmt.Errorf("currently recipe updates can only be checked from OCI repositories, got: %s", s.CheckFrom)
+	}
+
 	if err := s.Recipe.Validate(); err != nil {
 		return fmt.Errorf("sauce recipe was invalid: %w", err)
 	}
@@ -81,4 +92,51 @@ func (s *Sauce) Conflicts(other *Sauce) []RecipeConflict {
 		}
 	}
 	return conflicts
+}
+
+func (s *Sauce) CreateTemplateContext() (map[string]interface{}, error) {
+	if err := s.Validate(); err != nil {
+		return nil, err
+	}
+
+	mappedValues := make(VariableValues)
+	for name, value := range s.Values {
+		switch value := value.(type) {
+		// Map table to more convenient format
+		case TableValue:
+			mappedValues[name] = value.ToMapSlice()
+		default:
+			mappedValues[name] = value
+		}
+	}
+
+	return structs.Map(TemplateContext{
+		ID: s.ID.String(),
+		Recipe: struct{ APIVersion, Name, Version, Source string }{
+			s.Recipe.APIVersion,
+			s.Recipe.Name,
+			s.Recipe.Version,
+			s.Recipe.Source,
+		},
+		Variables: mappedValues,
+	}), nil
+}
+
+func (s *Sauce) RenderInitHelp() (string, error) {
+	context, err := s.CreateTemplateContext()
+	if err != nil {
+		return "", err
+	}
+
+	t, err := template.New("initHelp").Parse(s.Recipe.InitHelp)
+	if err != nil {
+		return "", fmt.Errorf("failed to parse initHelp template: %w", err)
+	}
+
+	var buf strings.Builder
+	if err := t.Execute(&buf, context); err != nil {
+		return "", fmt.Errorf("failed to render initHelp template: %w", err)
+	}
+
+	return buf.String(), nil
 }

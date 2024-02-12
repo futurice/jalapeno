@@ -9,6 +9,18 @@ import (
 	"github.com/gofrs/uuid"
 )
 
+// TemplateContext defines the context that is passed to the template engine
+type TemplateContext struct {
+	ID     string
+	Recipe struct {
+		APIVersion string
+		Name       string
+		Version    string
+		Source     string
+	}
+	Variables VariableValues
+}
+
 type RenderEngine interface {
 	Render(templates map[string][]byte, values map[string]interface{}) (map[string][]byte, error)
 }
@@ -23,28 +35,11 @@ func (re *Recipe) Execute(engine RenderEngine, values VariableValues, id uuid.UU
 	sauce.Recipe = *re
 	sauce.Values = values
 	sauce.ID = id
+	sauce.Files = make(map[string]File, len(re.Templates))
 
-	mappedValues := make(VariableValues)
-	for name, value := range values {
-		switch value := value.(type) {
-		// Map table to more convenient format
-		case TableValue:
-			mappedValues[name] = value.ToMapSlice()
-		default:
-			mappedValues[name] = value
-		}
-	}
-
-	// Define the context which is available on templates
-	context := map[string]interface{}{
-		"ID": sauce.ID.String(),
-		"Recipe": struct{ APIVersion, Name, Version, Source string }{
-			re.APIVersion,
-			re.Name,
-			re.Version,
-			re.Source,
-		},
-		"Variables": mappedValues,
+	context, err := sauce.CreateTemplateContext()
+	if err != nil {
+		return nil, err
 	}
 
 	// Filter out templates we might not want to render
@@ -65,8 +60,6 @@ func (re *Recipe) Execute(engine RenderEngine, values VariableValues, id uuid.UU
 
 	// Add the plain files
 	maps.Copy(files, plainFiles)
-
-	sauce.Files = make(map[string]File, len(re.Templates))
 
 	idx := 0
 	for filename, content := range files {
