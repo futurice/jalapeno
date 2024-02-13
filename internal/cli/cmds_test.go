@@ -123,7 +123,7 @@ func TestFeatures(t *testing.T) {
 			Concurrency: 8,
 			Format:      "pretty",
 			Paths:       []string{"../../test"},
-			TestingT:    t, // Testing instance that will run subtests.
+			TestingT:    t,
 		},
 	}
 
@@ -154,7 +154,7 @@ func wrapCmdOutputs(ctx context.Context) (context.Context, *cobra.Command) {
 	return ctx, rootCmd
 }
 
-func cleanTempDirs(ctx context.Context, sc *godog.Scenario, err error) (context.Context, error) {
+func cleanTempDirs(ctx context.Context, sc *godog.Scenario, lastStepErr error) (context.Context, error) {
 	directoryCtxKeys := []interface{}{
 		projectDirectoryPathCtxKey{},
 		recipesDirectoryPathCtxKey{},
@@ -169,7 +169,7 @@ func cleanTempDirs(ctx context.Context, sc *godog.Scenario, err error) (context.
 		}
 	}
 
-	return ctx, err
+	return ctx, nil
 }
 
 func readProjectDirectoryFile(ctx context.Context, filename string) (string, error) {
@@ -212,7 +212,7 @@ func readSauceFile(ctx context.Context) ([]map[string]interface{}, error) {
  * STEP DEFINITIONS
  */
 
-func cleanDockerResources(ctx context.Context, sc *godog.Scenario, err error) (context.Context, error) {
+func cleanDockerResources(ctx context.Context, sc *godog.Scenario, lastStepErr error) (context.Context, error) {
 	resources := ctx.Value(dockerResourcesCtxKey{}).([]*dockertest.Resource)
 
 	for _, resource := range resources {
@@ -221,7 +221,7 @@ func cleanDockerResources(ctx context.Context, sc *godog.Scenario, err error) (c
 			return ctx, err
 		}
 	}
-	return ctx, err
+	return ctx, nil
 }
 
 func aProjectDirectory(ctx context.Context) (context.Context, error) {
@@ -488,7 +488,7 @@ func expectGivenError(ctx context.Context, expectedError string) error {
 func noErrorsWerePrinted(ctx context.Context) error {
 	cmdStdErr := ctx.Value(cmdStdErrCtxKey{}).(*bytes.Buffer)
 	if cmdStdErr.String() != "" {
-		return fmt.Errorf("Expected stderr to be empty but was '%s'", cmdStdErr)
+		return fmt.Errorf("Expected stderr to be empty but was '%s'", strings.TrimSpace(cmdStdErr.String()))
 	}
 	return nil
 }

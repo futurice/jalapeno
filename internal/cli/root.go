@@ -16,6 +16,7 @@ var (
 
 type ExitCodeContextKey struct{}
 
+// Execute runs the command and returns the exit code
 func Execute(cmd *cobra.Command) int {
 	err := cmd.ExecuteContext(context.Background())
 	exitCode, isExitCodeSet := cmd.Context().Value(ExitCodeContextKey{}).(int)
@@ -31,7 +32,6 @@ func Execute(cmd *cobra.Command) int {
 }
 
 func NewRootCmd() *cobra.Command {
-	// rootCmd represents the base command when called without any subcommands
 	var cmd = &cobra.Command{
 		Use:          "jalapeno",
 		Short:        "Create, manage and share spiced up project templates",
