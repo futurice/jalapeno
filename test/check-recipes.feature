@@ -2,7 +2,7 @@ Feature: Check for new recipe versions
 	Scenario: Find newer version for a recipe
 		Given a project directory
 		And a recipes directory
-		And a recipe "foo" that generates file "README.md"
+		And a recipe "foo" that generates file "README.md" with content "initial"
 		And a local OCI registry
 		When I execute recipe "foo"
 		And the source of the sauce with recipe "foo" is in the local OCI registry
@@ -18,7 +18,7 @@ Feature: Check for new recipe versions
 	Scenario: Find multiple newer version for a recipe
 		Given a project directory
 		And a recipes directory
-		And a recipe "foo" that generates file "README.md"
+		And a recipe "foo" that generates file "README.md" with content "initial"
 		And a local OCI registry
 		When I execute recipe "foo"
 		And the source of the sauce with recipe "foo" is in the local OCI registry
@@ -36,8 +36,8 @@ Feature: Check for new recipe versions
 	Scenario: Find newer version for multiple recipes
 		Given a project directory
 		And a recipes directory
-		And a recipe "foo" that generates file "foo.md"
-		And a recipe "bar" that generates file "bar.md"
+		And a recipe "foo" that generates file "foo.md" with content "initial"
+		And a recipe "bar" that generates file "bar.md" with content "initial"
 		And a local OCI registry
 		When I execute recipe "foo"
 		And the source of the sauce with recipe "foo" is in the local OCI registry
@@ -61,7 +61,7 @@ Feature: Check for new recipe versions
 	Scenario: Unable to find newer recipe versions
 		Given a project directory
 		And a recipes directory
-		And a recipe "foo" that generates file "README.md"
+		And a recipe "foo" that generates file "README.md" with content "initial"
 		And a local OCI registry
 		When I push the recipe "foo" to the local OCI repository
 		Then no errors were printed
@@ -76,8 +76,8 @@ Feature: Check for new recipe versions
 	Scenario: Unable to find newer recipe versions for all recipes
 		Given a project directory
 		And a recipes directory
-		And a recipe "foo" that generates file "foo.md"
-		And a recipe "bar" that generates file "bar.md"
+		And a recipe "foo" that generates file "foo.md" with content "initial"
+		And a recipe "bar" that generates file "bar.md" with content "initial"
 		And a local OCI registry
 		When I execute recipe "foo"
 		And the source of the sauce with recipe "foo" is in the local OCI registry
@@ -98,7 +98,7 @@ Feature: Check for new recipe versions
 	Scenario: Executing remote recipe automatically adds the repo as source for the sauce
 		Given a project directory
 		And a recipes directory
-		And a recipe "foo" that generates file "README.md"
+		And a recipe "foo" that generates file "README.md" with content "initial"
 		And a local OCI registry
 		And the recipe "foo" is pushed to the local OCI repository "foo:v0.0.1"
 		And I change recipe "foo" to version "v0.0.2"
@@ -112,7 +112,7 @@ Feature: Check for new recipe versions
 	Scenario: Manually override the check from URL for locally executed recipe
 		Given a project directory
 		And a recipes directory
-		And a recipe "foo" that generates file "README.md"
+		And a recipe "foo" that generates file "README.md" with content "initial"
 		And a local OCI registry
 		When I execute recipe "foo"
 		Then execution of the recipe has succeeded

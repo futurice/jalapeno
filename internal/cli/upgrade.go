@@ -17,6 +17,7 @@ import (
 	"github.com/futurice/jalapeno/pkg/ui/conflict"
 	"github.com/futurice/jalapeno/pkg/ui/survey"
 	uiutil "github.com/futurice/jalapeno/pkg/ui/util"
+	"github.com/gofrs/uuid"
 	"github.com/spf13/cobra"
 	"golang.org/x/mod/semver"
 )
@@ -24,6 +25,7 @@ import (
 type upgradeOptions struct {
 	RecipeURL      string
 	ReuseOldValues bool
+	SauceID        string
 
 	option.Common
 	option.OCIRepository
@@ -65,6 +67,7 @@ jalapeno upgrade path/to/recipe --dir other/dir
 jalapeno upgrade path/to/recipe --set NEW_VAR=foo`,
 	}
 
+	cmd.Flags().StringVar(&opts.SauceID, "sauce-id", "", "If the project contains multiple sauces with the same recipe, specify the ID of the sauce to be upgraded")
 	cmd.Flags().BoolVar(&opts.ReuseOldValues, "reuse-old-values", true, "Automatically set values for variables which already have a value in the existing sauce")
 
 	if err := option.ApplyFlags(&opts, cmd.Flags()); err != nil {
@@ -76,8 +79,9 @@ jalapeno upgrade path/to/recipe --set NEW_VAR=foo`,
 
 func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 	var (
-		re  *recipe.Recipe
-		err error
+		re       *recipe.Recipe
+		oldSauce *recipe.Sauce
+		err      error
 	)
 
 	if strings.HasPrefix(opts.RecipeURL, "oci://") {
@@ -92,7 +96,20 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 		return err
 	}
 
-	oldSauce, err := recipe.LoadSauce(opts.Dir, re.Name)
+	if opts.SauceID != "" {
+		id, uuidErr := uuid.FromString(opts.SauceID)
+		if uuidErr != nil {
+			return fmt.Errorf("invalid sauce ID: %w", err)
+		}
+
+		oldSauce, err = recipe.LoadSauceByID(opts.Dir, id)
+	} else {
+		oldSauce, err = recipe.LoadSauceByRecipe(opts.Dir, re.Name)
+		if err != nil && errors.Is(err, recipe.ErrAmbiguousSauce) {
+			return fmt.Errorf(`project '%s' contains multiple sauces with recipe '%s'. Use --sauce-id to specify the ID of the sauce to be upgraded. You can check the IDs from %s/%s.%s`, opts.Dir, re.Name, recipe.SauceDirName, recipe.SaucesFileName, recipe.YAMLExtension)
+		}
+	}
+
 	if err != nil {
 		if errors.Is(err, recipe.ErrSauceNotFound) {
 			return fmt.Errorf("project '%s' does not contain sauce with recipe '%s'. Recipe name used in the project should match the recipe which is used for upgrading", opts.Dir, re.Name)
@@ -227,6 +244,8 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 	} else if strings.HasPrefix(opts.RecipeURL, "oci://") {
 		newSauce.CheckFrom = strings.TrimSuffix(opts.RecipeURL, fmt.Sprintf(":%s", re.Metadata.Version))
 	}
+
+	newSauce.SubPath = oldSauce.SubPath
 
 	// read common ignore file if it exists
 	ignorePatterns := make([]string, 0)

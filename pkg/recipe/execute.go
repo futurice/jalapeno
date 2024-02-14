@@ -2,7 +2,6 @@ package recipe
 
 import (
 	"errors"
-	"fmt"
 	"maps"
 	"strings"
 
@@ -80,10 +79,6 @@ func (re *Recipe) Execute(engine RenderEngine, values VariableValues, id uuid.UU
 		if idx > len(files) {
 			return nil, errors.New("files array grew during execution")
 		}
-	}
-
-	if err = sauce.Validate(); err != nil {
-		return nil, fmt.Errorf("sauce was not valid: %w", err)
 	}
 
 	return sauce, nil

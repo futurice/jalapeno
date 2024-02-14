@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/gofrs/uuid"
 	"gopkg.in/yaml.v3"
 )
 
@@ -23,7 +24,8 @@ const (
 )
 
 var (
-	ErrSauceNotFound = errors.New("sauce not found")
+	ErrSauceNotFound  = errors.New("sauce not found")
+	ErrAmbiguousSauce = errors.New("multiple sauces found with same recipe")
 )
 
 // LoadRecipe reads a recipe from a given path
@@ -192,7 +194,7 @@ func LoadSauces(projectDir string) ([]*Sauce, error) {
 
 		// read rendered files
 		for path, file := range sauce.Files {
-			data, err := os.ReadFile(filepath.Join(projectDir, path))
+			data, err := os.ReadFile(filepath.Join(projectDir, filepath.Clean(sauce.SubPath), path))
 			if err != nil {
 				// The file have been removed by the user after the sauce was created
 				if errors.Is(err, os.ErrNotExist) {
@@ -219,14 +221,37 @@ func LoadSauces(projectDir string) ([]*Sauce, error) {
 	return sauces, nil
 }
 
-func LoadSauce(projectDir, recipeName string) (*Sauce, error) {
+func LoadSauceByRecipe(projectDir, recipeName string) (*Sauce, error) {
+	sauces, err := LoadSauces(projectDir)
+	if err != nil {
+		return nil, err
+	}
+
+	var found *Sauce
+	for _, s := range sauces {
+		if s.Recipe.Name == recipeName {
+			if found != nil {
+				return nil, fmt.Errorf("%w '%s'", ErrAmbiguousSauce, recipeName)
+			}
+			found = s
+		}
+	}
+
+	if found != nil {
+		return found, nil
+	}
+
+	return nil, ErrSauceNotFound
+}
+
+func LoadSauceByID(projectDir string, id uuid.UUID) (*Sauce, error) {
 	sauces, err := LoadSauces(projectDir)
 	if err != nil {
 		return nil, err
 	}
 
 	for _, s := range sauces {
-		if s.Recipe.Name == recipeName {
+		if s.ID == id {
 			return s, nil
 		}
 	}

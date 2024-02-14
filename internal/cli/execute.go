@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/futurice/jalapeno/internal/cli/option"
@@ -21,6 +22,7 @@ import (
 
 type executeOptions struct {
 	RecipeURL string
+	Subpath   string
 
 	option.Common
 	option.OCIRepository
@@ -59,6 +61,9 @@ jalapeno execute oci://ghcr.io/user/my-recipe:latest
 # Execute recipe to different directory
 jalapeno execute path/to/recipe --dir other/dir
 
+# Execute recipe in a monorepo
+jalapeno execute path/to/recipe --dir monorepo-root --subpath path/in/monorepo
+
 # Set variable values with flags
 jalapeno execute path/to/recipe --set MY_VAR=foo --set MY_OTHER_VAR=bar
 
@@ -66,6 +71,8 @@ jalapeno execute path/to/recipe --set MY_VAR=foo --set MY_OTHER_VAR=bar
 export JALAPENO_VAR_MY_VAR=foo
 jalapeno execute path/to/recipe`,
 	}
+
+	cmd.Flags().StringVar(&opts.Subpath, "subpath", "", "Subpath which is used as a path prefix when saving and loading the sauce files. Useful for monorepos.")
 
 	if err := option.ApplyFlags(&opts, cmd.Flags()); err != nil {
 		return nil
@@ -77,6 +84,10 @@ jalapeno execute path/to/recipe`,
 func runExecute(cmd *cobra.Command, opts executeOptions) error {
 	if _, err := os.Stat(opts.Dir); os.IsNotExist(err) {
 		return errors.New("output path does not exist")
+	}
+
+	if err := recipe.ValidateSubpath(opts.Subpath); err != nil {
+		return err
 	}
 
 	var (
@@ -113,7 +124,9 @@ func runExecute(cmd *cobra.Command, opts executeOptions) error {
 	}
 
 	for _, sauce := range existingSauces {
-		if sauce.Recipe.Name == re.Name && semver.Compare(sauce.Recipe.Metadata.Version, re.Metadata.Version) == 0 {
+		if sauce.Recipe.Name == re.Name &&
+			semver.Compare(sauce.Recipe.Metadata.Version, re.Metadata.Version) == 0 &&
+			sauce.SubPath == opts.Subpath {
 			return fmt.Errorf("recipe '%s' with version '%s' has been already executed. If you want to re-execute the recipe with different values, use `upgrade` command with `--reuse-old-values=false` flag", re.Name, re.Metadata.Version)
 		}
 	}
@@ -184,17 +197,19 @@ func runExecute(cmd *cobra.Command, opts executeOptions) error {
 		return fmt.Errorf("%w\n\n%s", err, retryMessage)
 	}
 
+	sauce.SubPath = opts.Subpath
+
+	// Automatically add recipe origin if the recipe was remote
+	if wasRemoteRecipe {
+		sauce.CheckFrom = strings.TrimSuffix(opts.RecipeURL, fmt.Sprintf(":%s", re.Metadata.Version))
+	}
+
 	// Check for conflicts
 	for _, s := range existingSauces {
 		if conflicts := s.Conflicts(sauce); conflicts != nil {
 			retryMessage := cliutil.MakeRetryMessage(os.Args, values)
 			return fmt.Errorf("conflict in recipe '%s': file '%s' was already created by recipe '%s'.\n\n%s", re.Name, conflicts[0].Path, s.Recipe.Name, retryMessage)
 		}
-	}
-
-	// Automatically add recipe origin if the recipe was remote
-	if wasRemoteRecipe {
-		sauce.CheckFrom = strings.TrimSuffix(opts.RecipeURL, fmt.Sprintf(":%s", re.Metadata.Version))
 	}
 
 	err = sauce.Save(opts.Dir)
@@ -204,7 +219,15 @@ func runExecute(cmd *cobra.Command, opts executeOptions) error {
 
 	cmd.Printf("Recipe executed %s\n", opts.Colors.Green.Render("successfully!"))
 
-	tree := recipeutil.CreateFileTree(opts.Dir, sauce.Files)
+	files := sauce.Files
+	if opts.Subpath != "" {
+		files = make(map[string]recipe.File, len(sauce.Files))
+		for path, file := range sauce.Files {
+			files[filepath.Join(opts.Subpath, path)] = file
+		}
+	}
+
+	tree := recipeutil.CreateFileTree(opts.Dir, files)
 	cmd.Printf("The following files were created:\n\n%s", tree)
 
 	if re.InitHelp != "" {

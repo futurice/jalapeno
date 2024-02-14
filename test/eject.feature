@@ -4,7 +4,7 @@ Feature: Eject
 	Scenario: Eject project
 		Given a project directory
 		And a recipes directory
-		And a recipe "foo" that generates file "README.md"
+		And a recipe "foo" that generates file "README.md" with content "initial"
 		When I execute recipe "foo"
 		And I eject Jalapeno from the project
 		Then no errors were printed

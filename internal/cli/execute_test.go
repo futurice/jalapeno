@@ -13,6 +13,7 @@ import (
 func AddExecuteSteps(s *godog.ScenarioContext) {
 	s.Step(`^I execute recipe "([^"]*)"$`, iRunExecute)
 	s.Step(`^I execute the recipe from the local OCI repository "([^"]*)"$`, iExecuteRemoteRecipe)
+	s.Step(`^recipes will be executed to the subpath "([^"]*)"$`, recipesWillBeExecutedToTheSubPath)
 	s.Step(`^execution of the recipe has succeeded$`, executionOfTheRecipeHasSucceeded)
 }
 
@@ -48,6 +49,7 @@ func iRunExecute(ctx context.Context, recipe string) (context.Context, error) {
 	cmd.SetArgs(args)
 	_ = cmd.Execute()
 
+	ctx = clearAdditionalFlags(ctx)
 	return ctx, nil
 }
 
@@ -77,6 +79,13 @@ func iExecuteRemoteRecipe(ctx context.Context, repository string) (context.Conte
 	ctx = context.WithValue(ctx, cmdAdditionalFlagsCtxKey{}, flags)
 
 	return iRunExecute(ctx, url)
+}
+
+func recipesWillBeExecutedToTheSubPath(ctx context.Context, path string) (context.Context, error) {
+	flags := ctx.Value(cmdAdditionalFlagsCtxKey{}).(map[string]string)
+	flags["subpath"] = path
+
+	return context.WithValue(ctx, cmdAdditionalFlagsCtxKey{}, flags), nil
 }
 
 func executionOfTheRecipeHasSucceeded(ctx context.Context) (context.Context, error) {

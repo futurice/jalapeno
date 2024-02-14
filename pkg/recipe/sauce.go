@@ -2,6 +2,7 @@ package recipe
 
 import (
 	"fmt"
+	"path/filepath"
 	"strings"
 	"text/template"
 
@@ -27,6 +28,10 @@ type Sauce struct {
 	// on subsequent re-renders (upgrades) of the sauce. Can be used for example as a seed
 	// for template random functions to provide same result on each template
 	ID uuid.UUID `yaml:"id"`
+
+	// SubPath is used as a prefix when saving and loading the files rendered by the sauce.
+	// This is useful for example in monorepos where the sauce is rendered to a subdirectory of the project directory.
+	SubPath string `yaml:"subPath,omitempty"`
 
 	// CheckFrom defines the repository where updates should be checked for the recipe
 	CheckFrom string `yaml:"from,omitempty"`
@@ -65,6 +70,10 @@ func (s *Sauce) Validate() error {
 		return fmt.Errorf("currently recipe updates can only be checked from OCI repositories, got: %s", s.CheckFrom)
 	}
 
+	if err := ValidateSubpath(s.SubPath); err != nil {
+		return err
+	}
+
 	if err := s.Recipe.Validate(); err != nil {
 		return fmt.Errorf("sauce recipe was invalid: %w", err)
 	}
@@ -77,8 +86,26 @@ func (s *Sauce) Validate() error {
 	return nil
 }
 
+func ValidateSubpath(path string) error {
+	p := filepath.Clean(path)
+	switch {
+	case p == ".":
+		return nil
+	case filepath.IsAbs(p):
+		return fmt.Errorf("subPath must be a relative path, got: %s", path)
+	case strings.Contains(p, ".."):
+		return fmt.Errorf("subPath must point to a directory inside the project root, got: %s", path)
+	default:
+		return nil
+	}
+}
+
 // Check if the recipe conflicts with another recipe. Recipes conflict if they touch the same files.
 func (s *Sauce) Conflicts(other *Sauce) []RecipeConflict {
+	if s.SubPath != other.SubPath {
+		return nil
+	}
+
 	var conflicts []RecipeConflict
 	for path, file := range s.Files {
 		if otherFile, exists := other.Files[path]; exists {

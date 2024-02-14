@@ -70,11 +70,12 @@ func TestFeatures(t *testing.T) {
 			// Common steps
 			s.Step(`^a project directory$`, aProjectDirectory)
 			s.Step(`^a recipes directory$`, aRecipesDirectory)
-			s.Step(`^a recipe "([^"]*)" that generates file "([^"]*)"$`, aRecipeThatGeneratesFile)
+			s.Step(`^a recipe "([^"]*)" that generates file "([^"]*)" with content "([^"]*)"$`, aRecipeThatGeneratesFileWithContent)
 			s.Step(`^the file "([^"]*)" exist in the recipe "([^"]*)"$`, theFileExistInTheRecipe)
 			s.Step(`^I create a file "([^"]*)" with contents "([^"]*)" to the project directory$`, iCreateAFileWithContentsToTheProjectDir)
 			s.Step(`^the project directory should contain file "([^"]*)"$`, theProjectDirectoryShouldContainFile)
 			s.Step(`^the project directory should contain file "([^"]*)" with "([^"]*)"$`, theProjectDirectoryShouldContainFileWith)
+			s.Step(`^the sauce file contains a sauce in index (\d) which should have property "([^"]*)"$`, theSauceFileShouldHaveProperty)
 			s.Step(`^the sauce file contains a sauce in index (\d) which should have property "([^"]*)" with value "([^"]*)"$`, theSauceFileShouldHavePropertyWithValue)
 			s.Step(`^the sauce file contains a sauce in index (\d) which has a valid ID$`, theSauceFileShouldHasAValidID)
 			s.Step(`^CLI produced an output "([^"]*)"$`, expectGivenOutput)
@@ -283,7 +284,7 @@ func bufferKeysToInput(ctx context.Context, keys string) (context.Context, error
 	return context.WithValue(ctx, cmdStdInCtxKey{}, stdIn), nil
 }
 
-func aRecipeThatGeneratesFile(ctx context.Context, recipe, filename string) (context.Context, error) {
+func aRecipeThatGeneratesFileWithContent(ctx context.Context, recipe, filename, content string) (context.Context, error) {
 	dir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
 	if err := os.MkdirAll(filepath.Join(dir, recipe, "templates"), 0755); err != nil {
 		return ctx, err
@@ -303,7 +304,7 @@ description: %[1]s
 		return ctx, err
 	}
 
-	if err := os.WriteFile(filepath.Join(templateDir, filename), []byte(recipe), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(templateDir, filename), []byte(content), 0644); err != nil {
 		return ctx, err
 	}
 	return ctx, nil
@@ -429,12 +430,12 @@ func theSauceFileShouldHasAValidID(ctx context.Context, index int) error {
 }
 
 func theSauceFileShouldHavePropertyWithValue(ctx context.Context, index int, propertyName, expectedValue string) error {
-	recipes, err := readSauceFile(ctx)
+	sauces, err := readSauceFile(ctx)
 	if err != nil {
 		return err
 	}
 
-	value, err := nestedMapLookup(recipes[index], strings.Split(propertyName, ".")...)
+	value, err := nestedMapLookup(sauces[index], strings.Split(propertyName, ".")...)
 	if err != nil {
 		return fmt.Errorf("sauce file does not have property %s: %w", propertyName, err)
 	}
@@ -444,6 +445,20 @@ func theSauceFileShouldHavePropertyWithValue(ctx context.Context, index int, pro
 	} else if !matched {
 		return fmt.Errorf("expected property %s to match regex '%s', got '%s'", propertyName, expectedValue, value)
 	}
+	return nil
+}
+
+func theSauceFileShouldHaveProperty(ctx context.Context, index int, propertyName string) error {
+	sauces, err := readSauceFile(ctx)
+	if err != nil {
+		return err
+	}
+
+	_, err = nestedMapLookup(sauces[index], strings.Split(propertyName, ".")...)
+	if err != nil {
+		return fmt.Errorf("sauce file does not have property %s: %w", propertyName, err)
+	}
+
 	return nil
 }
 
@@ -665,6 +680,10 @@ func nestedMapLookup(m map[string]interface{}, ks ...string) (rval interface{}, 
 	} else { // 1+ more keys
 		return nestedMapLookup(m, ks[1:]...)
 	}
+}
+
+func clearAdditionalFlags(ctx context.Context) context.Context {
+	return context.WithValue(ctx, cmdAdditionalFlagsCtxKey{}, make(map[string]string))
 }
 
 // BlockBuffer represents a buffer that stores blocks of data.

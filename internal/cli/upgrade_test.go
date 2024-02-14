@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/cucumber/godog"
@@ -21,6 +22,7 @@ func AddUpgradeSteps(s *godog.ScenarioContext) {
 	s.Step(`^I change project file "([^"]*)" to contain "([^"]*)"$`, iChangeProjectFileToContain)
 	s.Step(`^I change recipe "([^"]*)" template "([^"]*)" to render "([^"]*)"$`, iChangeRecipeTemplateToRender)
 	s.Step(`^I change recipe "([^"]*)" to version "([^"]*)"$`, iChangeRecipeToVersion)
+	s.Step(`^I select sauce in index (\d+) for the upgrade$`, iSelectSauceForUpgrade)
 }
 
 func iRunUpgrade(ctx context.Context, recipe string) (context.Context, error) {
@@ -55,6 +57,7 @@ func iRunUpgrade(ctx context.Context, recipe string) (context.Context, error) {
 	cmd.SetArgs(args)
 	_ = cmd.Execute()
 
+	ctx = clearAdditionalFlags(ctx)
 	return ctx, nil
 }
 
@@ -130,6 +133,25 @@ func iChangeRecipeToVersion(ctx context.Context, recipeName, version string) (co
 	if err = re.Save(recipeDir); err != nil {
 		return ctx, err
 	}
+
+	return ctx, nil
+}
+
+func iSelectSauceForUpgrade(ctx context.Context, sauceIndex string) (context.Context, error) {
+	projectDir := ctx.Value(projectDirectoryPathCtxKey{}).(string)
+	flags := ctx.Value(cmdAdditionalFlagsCtxKey{}).(map[string]string)
+
+	sauces, err := recipe.LoadSauces(projectDir)
+	if err != nil {
+		return ctx, err
+	}
+
+	i, err := strconv.Atoi(sauceIndex)
+	if err != nil {
+		return ctx, err
+	}
+
+	flags["sauce-id"] = sauces[i].ID.String()
 
 	return ctx, nil
 }

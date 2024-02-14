@@ -62,5 +62,6 @@
 | `files` | `map[string]File` | | Files genereated from the recipe |
 | `id` | `string` | | Random unique ID whose value is determined on first render and stays the same on subsequent re-renders (upgrades) of the sauce. Can be used for example as a seed for template random functions to provide same result on each template. |
 | `from` | `string` | | Defines the repository where updates should be checked for the recipe. |
+| `subpath` | `string` | | Subpath which is used as a path prefix when saving and loading the sauce files. This is commonly used in monorepos. |
 
 {{- end }}

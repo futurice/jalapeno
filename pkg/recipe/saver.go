@@ -1,7 +1,6 @@
 package recipe
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -120,6 +119,10 @@ func (re *Recipe) saveTemplates(dest string) error {
 
 // Save saves sauce to given destination
 func (s *Sauce) Save(dest string) error {
+	if err := s.Validate(); err != nil {
+		return fmt.Errorf("can not save the sauce since it is not valid: %w", err)
+	}
+
 	// load all sauces from target dir, because we will either replace
 	// a previous sauce, or create a new file
 	sauces, err := LoadSauces(dest)
@@ -128,8 +131,8 @@ func (s *Sauce) Save(dest string) error {
 	}
 	added := false
 	for i, prev := range sauces {
-		if s.Recipe.Name == prev.Recipe.Name {
-			// found by name
+		if s.ID == prev.ID {
+			// found by ID
 			sauces[i] = s
 			added = true
 			break
@@ -164,6 +167,10 @@ func (s *Sauce) Save(dest string) error {
 		fileMap[filename] = file.Content
 	}
 
+	if s.SubPath != "" {
+		dest = filepath.Join(dest, s.SubPath)
+	}
+
 	err = saveFileMap(s.Files, dest)
 	if err != nil {
 		return fmt.Errorf("failed to save sauce files: %w", err)
@@ -177,8 +184,9 @@ func saveFileMap(files map[string]File, dest string) error {
 		return nil
 	}
 
-	if _, err := os.Stat(dest); os.IsNotExist(err) {
-		return errors.New("destination path does not exist")
+	err := os.MkdirAll(filepath.Dir(dest), 0700)
+	if err != nil {
+		return fmt.Errorf("failed to create destination directory for files: %w", err)
 	}
 
 	for path, file := range files {
