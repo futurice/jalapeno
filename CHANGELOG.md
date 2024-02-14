@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.4.0](https://github.com/futurice/jalapeno/compare/v1.3.5...v1.4.0) (2024-02-14)
+
+
+### Features
+
+* support executing recipe to a subpath ([c3777fc](https://github.com/futurice/jalapeno/commit/c3777fc383e4b6fdc158494ab03b13ab54bb4073))
+* support templates in initHelp ([75da7fa](https://github.com/futurice/jalapeno/commit/75da7fa6e75f51d9e9dc0a04617beec56c401e10))
+
 ## [1.3.5](https://github.com/futurice/jalapeno/compare/v1.3.4...v1.3.5) (2024-02-07)
 
 
