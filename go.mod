@@ -1,6 +1,6 @@
 module github.com/futurice/jalapeno
 
-go 1.21
+go 1.22
 
 require (
 	github.com/Masterminds/sprig/v3 v3.2.3
@@ -13,6 +13,7 @@ require (
 	github.com/cucumber/godog v0.13.0
 	github.com/docker/cli v24.0.6+incompatible
 	github.com/expr-lang/expr v1.16.0
+	github.com/fatih/structs v1.1.0
 	github.com/kylelemons/godebug v1.1.0
 	github.com/muesli/reflow v0.3.0
 	github.com/muesli/termenv v0.15.2
@@ -35,7 +36,6 @@ require (
 	github.com/cucumber/messages/go/v21 v21.0.1 // indirect
 	github.com/docker/docker v24.0.6+incompatible // indirect
 	github.com/docker/docker-credential-helpers v0.8.0 // indirect
-	github.com/fatih/structs v1.1.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
