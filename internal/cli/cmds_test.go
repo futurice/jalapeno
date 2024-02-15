@@ -71,10 +71,12 @@ func TestFeatures(t *testing.T) {
 			s.Step(`^a project directory$`, aProjectDirectory)
 			s.Step(`^a recipes directory$`, aRecipesDirectory)
 			s.Step(`^a recipe "([^"]*)" that generates file "([^"]*)" with content "([^"]*)"$`, aRecipeThatGeneratesFileWithContent)
+			s.Step(`^I remove file "([^"]*)" from the recipe "([^"]*)"$`, iRemoveFileFromTheRecipe)
 			s.Step(`^the file "([^"]*)" exist in the recipe "([^"]*)"$`, theFileExistInTheRecipe)
 			s.Step(`^I create a file "([^"]*)" with contents "([^"]*)" to the project directory$`, iCreateAFileWithContentsToTheProjectDir)
 			s.Step(`^the project directory should contain file "([^"]*)"$`, theProjectDirectoryShouldContainFile)
 			s.Step(`^the project directory should contain file "([^"]*)" with "([^"]*)"$`, theProjectDirectoryShouldContainFileWith)
+			s.Step(`^the project directory should not contain file "([^"]*)"$`, theProjectDirectoryShouldNotContainFile)
 			s.Step(`^the sauce file contains a sauce in index (\d) which should have property "([^"]*)"$`, theSauceFileShouldHaveProperty)
 			s.Step(`^the sauce file contains a sauce in index (\d) which should have property "([^"]*)" with value "([^"]*)"$`, theSauceFileShouldHavePropertyWithValue)
 			s.Step(`^the sauce file contains a sauce in index (\d) which has a valid ID$`, theSauceFileShouldHasAValidID)
@@ -310,6 +312,15 @@ description: %[1]s
 	return ctx, nil
 }
 
+func iRemoveFileFromTheRecipe(ctx context.Context, filename, recipe string) (context.Context, error) {
+	dir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
+
+	templateDir := filepath.Join(dir, recipe, re.RecipeTemplatesDirName)
+
+	err := os.Remove(filepath.Join(templateDir, filename))
+	return ctx, err
+}
+
 func aLocalOCIRegistry(ctx context.Context) (context.Context, error) {
 	resource, err := createLocalRegistry(&dockertest.RunOptions{Repository: "registry", Tag: "2"})
 	if err != nil {
@@ -376,6 +387,15 @@ func theRecipesDirectoryShouldContainRecipe(ctx context.Context, recipeName stri
 	}
 
 	return nil
+}
+
+func theProjectDirectoryShouldNotContainFile(ctx context.Context, filename string) error {
+	err := theProjectDirectoryShouldContainFile(ctx, filename)
+	if errors.Is(err, os.ErrNotExist) {
+		return nil
+	}
+
+	return err
 }
 
 func theProjectDirectoryShouldContainFile(ctx context.Context, filename string) error {

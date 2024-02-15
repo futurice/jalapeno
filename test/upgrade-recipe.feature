@@ -24,6 +24,33 @@ Feature: Upgrade sauce
 		And the project directory should contain file ".jalapeno/sauces.yml" with "version: v0\.0\.1"
 		And no conflicts were reported
 
+	Scenario: Upgrading sauce removes old files from the project directory if deprecated
+		Given a project directory
+		And a recipes directory
+		And a recipe "foo" that generates file "README.md" with content "initial"
+		And a recipe "foo" that generates file "will-be-removed-in-next-version.md" with content "removed"
+		And I execute recipe "foo"
+		And I change recipe "foo" to version "v0.0.2"
+		And I change recipe "foo" template "README.md" to render "New version"
+		And I remove file "will-be-removed-in-next-version.md" from the recipe "foo"
+		When I upgrade recipe "foo"
+		Then no errors were printed
+		And the project directory should not contain file "will-be-removed-in-next-version.md"
+
+	Scenario: Upgrading the recipe does not remove old files from the project directory if modified by the user
+		Given a project directory
+		And a recipes directory
+		And a recipe "foo" that generates file "README.md" with content "initial"
+		And a recipe "foo" that generates file "will-be-removed-in-next-version.md" with content "removed"
+		And I execute recipe "foo"
+		And I change recipe "foo" to version "v0.0.2"
+		And I change recipe "foo" template "README.md" to render "New version"
+		And I remove file "will-be-removed-in-next-version.md" from the recipe "foo"
+		And I change project file "will-be-removed-in-next-version.md" to contain "Locally modified"
+		When I upgrade recipe "foo"
+		Then no errors were printed
+		And the project directory should contain file "will-be-removed-in-next-version.md"
+
 	Scenario: Try to upgrade sauces with same recipes without providing sauce ID
 		Given a project directory
 		And a recipes directory
