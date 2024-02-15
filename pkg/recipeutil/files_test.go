@@ -3,7 +3,6 @@ package recipeutil_test
 import (
 	"testing"
 
-	"github.com/futurice/jalapeno/pkg/recipe"
 	"github.com/futurice/jalapeno/pkg/recipeutil"
 )
 
@@ -11,15 +10,13 @@ func TestCreateFileTree(t *testing.T) {
 	testCases := []struct {
 		Name     string
 		Root     string
-		Input    map[string]recipe.File
+		Input    []string
 		Expected string
 	}{
 		{
 			"single_file_in_root",
 			".",
-			map[string]recipe.File{
-				"foo": {},
-			},
+			[]string{"foo"},
 			`.
 └── foo
 `,
@@ -27,10 +24,7 @@ func TestCreateFileTree(t *testing.T) {
 		{
 			"multiple_files_in_root",
 			".",
-			map[string]recipe.File{
-				"foo": {},
-				"bar": {},
-			},
+			[]string{"foo", "bar"},
 			`.
 ├── bar
 └── foo
@@ -39,9 +33,7 @@ func TestCreateFileTree(t *testing.T) {
 		{
 			"nested_file",
 			".",
-			map[string]recipe.File{
-				"foo/bar/baz": {},
-			},
+			[]string{"foo/bar/baz"},
 			`.
 └── foo
     └── bar
@@ -51,10 +43,7 @@ func TestCreateFileTree(t *testing.T) {
 		{
 			"nested_files_in_same_dir",
 			".",
-			map[string]recipe.File{
-				"foo/bar/baz-1": {},
-				"foo/bar/baz-2": {},
-			},
+			[]string{"foo/bar/baz-1", "foo/bar/baz-2"},
 			`.
 └── foo
     └── bar
@@ -65,10 +54,7 @@ func TestCreateFileTree(t *testing.T) {
 		{
 			"nested_files_in_different_dirs",
 			".",
-			map[string]recipe.File{
-				"foo/bar-1/baz": {},
-				"foo/bar-2/baz": {},
-			},
+			[]string{"foo/bar-1/baz", "foo/bar-2/baz"},
 			`.
 └── foo
     ├── bar-1
@@ -80,14 +66,7 @@ func TestCreateFileTree(t *testing.T) {
 		{
 			"files_are_alphabetically_sorted",
 			".",
-			map[string]recipe.File{
-				"b/a/b": {},
-				"b/b/a": {},
-				"c/a":   {},
-				"a/a/c": {},
-				"a/a/a": {},
-				"a/a/b": {},
-			},
+			[]string{"b/a/b", "b/b/a", "c/a", "a/a/c", "a/a/a", "a/a/b"},
 			`.
 ├── a
 │   └── a

@@ -9,6 +9,7 @@ import (
 	"github.com/futurice/jalapeno/pkg/recipe"
 	"github.com/futurice/jalapeno/pkg/recipeutil"
 	"github.com/spf13/cobra"
+	"golang.org/x/exp/maps"
 )
 
 type testOptions struct {
@@ -128,7 +129,7 @@ func runTest(cmd *cobra.Command, opts testOptions) error {
 				cmd.Print(
 					recipeutil.CreateFileTree(
 						fmt.Sprintf("%s/files", test.Name),
-						fileUpdatesFound,
+						maps.Keys(fileUpdatesFound),
 					),
 				)
 			}

@@ -4,20 +4,11 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/futurice/jalapeno/pkg/recipe"
 	"github.com/xlab/treeprint"
 )
 
-func CreateFileTree(root string, files map[string]recipe.File) string {
+func CreateFileTree(root string, filepaths []string) string {
 	tree := treeprint.NewWithRoot(root)
-
-	filepaths := make([]string, len(files))
-
-	i := 0
-	for f := range files {
-		filepaths[i] = f
-		i++
-	}
 
 	slices.Sort(filepaths)
 
