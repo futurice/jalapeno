@@ -21,7 +21,7 @@ func NewFile(content []byte) File {
 	return f
 }
 
-func (f File) HasBeenModified() bool {
+func (f File) HasBeenModifiedByUser() bool {
 	return f.Checksum != f.hash()
 }
 

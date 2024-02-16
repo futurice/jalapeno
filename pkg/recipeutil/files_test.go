@@ -20,7 +20,7 @@ func TestCreateFileTree(t *testing.T) {
 				"foo": recipeutil.FileUnchanged,
 			},
 			`.
-└── foo
+└── foo (unchanged)
 `,
 		},
 		{
@@ -31,8 +31,8 @@ func TestCreateFileTree(t *testing.T) {
 				"bar": recipeutil.FileUnchanged,
 			},
 			`.
-├── bar
-└── foo
+├── bar (unchanged)
+└── foo (unchanged)
 `,
 		},
 		{
@@ -44,7 +44,7 @@ func TestCreateFileTree(t *testing.T) {
 			`.
 └── foo
     └── bar
-        └── baz
+        └── baz (unchanged)
 `,
 		},
 		{
@@ -57,8 +57,8 @@ func TestCreateFileTree(t *testing.T) {
 			`.
 └── foo
     └── bar
-        ├── baz-1
-        └── baz-2
+        ├── baz-1 (unchanged)
+        └── baz-2 (unchanged)
 `,
 		},
 		{
@@ -71,9 +71,9 @@ func TestCreateFileTree(t *testing.T) {
 			`.
 └── foo
     ├── bar-1
-    │   └── baz
+    │   └── baz (unchanged)
     └── bar-2
-        └── baz
+        └── baz (unchanged)
 `,
 		},
 		{
@@ -90,16 +90,16 @@ func TestCreateFileTree(t *testing.T) {
 			`.
 ├── a
 │   └── a
-│       ├── a
-│       ├── b
-│       └── c
+│       ├── a (unchanged)
+│       ├── b (unchanged)
+│       └── c (unchanged)
 ├── b
 │   ├── a
-│   │   └── b
+│   │   └── b (unchanged)
 │   └── b
-│       └── a
+│       └── a (unchanged)
 └── c
-    └── a
+    └── a (unchanged)
 `,
 		},
 		{
@@ -112,7 +112,7 @@ func TestCreateFileTree(t *testing.T) {
 				"d": recipeutil.FileDeleted,
 			},
 			`.
-├── a
+├── a (unchanged)
 ├── b (added)
 ├── c (modified)
 └── d (deleted)

@@ -32,7 +32,7 @@ func CreateFileTree(root string, files map[string]FileStatus) string {
 			if node := cursor.FindByValue(filepathSegment); node == nil {
 				branchName := filepathSegment
 				status := files[filepath]
-				if i == len(filepathSegments)-1 && status != FileUnchanged {
+				if i == len(filepathSegments)-1 {
 					branchName = fmt.Sprintf("%s (%s)", filepathSegment, status)
 				}
 				cursor = cursor.AddBranch(branchName)
@@ -47,6 +47,8 @@ func CreateFileTree(root string, files map[string]FileStatus) string {
 
 func (f FileStatus) String() string {
 	switch f {
+	case FileUnchanged:
+		return lipgloss.NewStyle().Foreground(lipgloss.Color("#808080")).Render("unchanged")
 	case FileAdded:
 		return lipgloss.NewStyle().Foreground(lipgloss.Color("#26A568")).Render("added")
 	case FileModified:

@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -138,8 +139,6 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 		)
 	}
 
-	cmd.Println()
-
 	// Check if the new version of the recipe has removed some variables
 	// which existed on previous version
 	for valueName := range oldSauce.Values {
@@ -182,6 +181,7 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 
 	providedValues, err := recipeutil.ParseProvidedValues(re.Variables, opts.Values.Flags, opts.CSVDelimiter)
 	if err != nil {
+		cmd.Println()
 		return fmt.Errorf("failed to parse provided values: %w", err)
 	}
 
@@ -208,6 +208,7 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 				if v.Default != "" {
 					defaultValue, err := v.ParseDefaultValue()
 					if err != nil {
+						cmd.Println()
 						return fmt.Errorf("failed to parse default value for variable '%s': %w", v.Name, err)
 					}
 					values[v.Name] = defaultValue
@@ -218,6 +219,7 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 
 			// If there are still variables without values, return error
 			if len(varsWithoutDefaultValues) > 0 {
+				cmd.Println()
 				return recipeutil.NewNoInputError(varsWithoutDefaultValues)
 			}
 		}
@@ -252,6 +254,7 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 	if data, err := os.ReadFile(filepath.Join(opts.Dir, recipe.IgnoreFileName)); err == nil {
 		ignorePatterns = append(ignorePatterns, strings.Split(string(data), "\n")...)
 	} else if !errors.Is(err, fs.ErrNotExist) {
+		cmd.Println()
 		// something else happened than trying to read an ignore file that does not exist
 		return fmt.Errorf("failed to read ignore file: %w\n\n%s", err, cliutil.MakeRetryMessage(os.Args, values))
 	}
@@ -260,11 +263,13 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 	// Collect files which should be written to the destination directory
 	output := make(map[string]recipe.File, len(newSauce.Files))
 	overrideNoticed := false
+	fileStatuses := make(map[string]recipeutil.FileStatus, len(newSauce.Files))
 
 	for path := range newSauce.Files {
 		skip := false
 		for _, pattern := range ignorePatterns {
 			if matched, err := filepath.Match(pattern, path); err != nil {
+				cmd.Println()
 				return fmt.Errorf("bad ignore pattern '%s': %w\n\n%s", pattern, err, cliutil.MakeRetryMessage(os.Args, values))
 			} else if matched {
 				// file was marked as ignored for upgrades
@@ -276,60 +281,75 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 			continue
 		}
 
-		file := newSauce.Files[path]
-
-		var previousConflictingFileContent []byte
+		newFile := newSauce.Files[path]
 
 		// Check if the file from previous recipe version has been modified manually
-		if prevFile, exists := oldSauce.Files[path]; exists {
-			if prevFile.HasBeenModified() {
-				previousConflictingFileContent = prevFile.Content
+		prevFile, exists := oldSauce.Files[path]
+		if exists {
+			if !prevFile.HasBeenModifiedByUser() {
+				output[path] = newFile
+				if prevFile.Checksum == newFile.Checksum {
+					fileStatuses[path] = recipeutil.FileUnchanged
+				} else {
+					fileStatuses[path] = recipeutil.FileModified
+				}
+				continue
 			}
 
 			// Check if the file has been already created manually by the user
 		} else {
-			prevFile, err := os.ReadFile(filepath.Join(opts.Dir, path))
-			if err == nil {
-				previousConflictingFileContent = prevFile
-			} else if !errors.Is(err, os.ErrNotExist) {
+			existingFileContent, err := os.ReadFile(filepath.Join(opts.Dir, path))
+			if errors.Is(err, os.ErrNotExist) {
+				fileStatuses[path] = recipeutil.FileAdded
+				output[path] = newFile
+				continue
+			} else if err != nil {
 				return err
 			}
+
+			prevFile = recipe.NewFile(existingFileContent)
 		}
 
-		if previousConflictingFileContent != nil {
-			if opts.NoInput {
-				return recipeutil.NewNoInputError(varsWithoutValues)
-			}
-
-			if !overrideNoticed {
-				cmd.Println("\nSome of the files has been manually modified. Do you want to override the following files:")
-				overrideNoticed = true
-			}
-
-			conflictResult, err := conflict.Solve(
-				cmd.InOrStdin(),
-				cmd.OutOrStdout(),
-				path,
-				previousConflictingFileContent,
-				newSauce.Files[path].Content,
-			)
-
-			if err != nil {
-				if errors.Is(err, uiutil.ErrUserAborted) {
-					cmd.Printf("User aborted\n\n%s\n", cliutil.MakeRetryMessage(os.Args, values))
-					return nil
-				}
-
-				return fmt.Errorf("error when prompting for question: %w\n\n%s", err, cliutil.MakeRetryMessage(os.Args, values))
-			}
-
-			// NOTE: We need to save the checksum of the original file from the new sauce
-			// so we would detect again if the file has been modified manually
-			// when upgrading again
-			file.Content = conflictResult
+		if opts.NoInput {
+			return recipeutil.NewNoInputError(varsWithoutValues)
 		}
 
-		output[path] = file
+		if !overrideNoticed {
+			cmd.Println("\nSome of the files has been manually modified. Do you want to override the following files:")
+			overrideNoticed = true
+		}
+
+		conflictResult, err := conflict.Solve(
+			cmd.InOrStdin(),
+			cmd.OutOrStdout(),
+			path,
+			prevFile.Content,
+			newFile.Content,
+		)
+
+		if err != nil {
+			if errors.Is(err, uiutil.ErrUserAborted) {
+				cmd.Printf("User aborted\n\n%s\n", cliutil.MakeRetryMessage(os.Args, values))
+				return nil
+			}
+
+			cmd.Println()
+			return fmt.Errorf("error when prompting for question: %w\n\n%s", err, cliutil.MakeRetryMessage(os.Args, values))
+		}
+
+		if bytes.Equal(conflictResult, prevFile.Content) {
+			fileStatuses[path] = recipeutil.FileUnchanged
+			continue
+		} else {
+			fileStatuses[path] = recipeutil.FileModified
+		}
+
+		// NOTE: We need to save the checksum of the original file from the new sauce
+		// so we would detect again if the file has been modified manually
+		// when upgrading again
+		newFile.Content = conflictResult
+
+		output[path] = newFile
 	}
 
 	cmd.Println()
@@ -341,7 +361,20 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 		return err
 	}
 
-	cmd.Printf("Recipe upgraded %s\n", opts.Colors.Green.Render("successfully!"))
+	changesFound := false
+	for _, status := range fileStatuses {
+		if status != recipeutil.FileUnchanged {
+			changesFound = true
+			cmd.Printf("Recipe upgraded %s\n", opts.Colors.Green.Render("successfully!"))
+			tree := recipeutil.CreateFileTree(opts.Dir, fileStatuses)
+			cmd.Printf("The following files have been processed by the recipe:\n\n%s", tree)
+			break
+		}
+	}
+
+	if !changesFound {
+		cmd.Println("Upgrade completed, but no changes were made to any files.")
+	}
 
 	return nil
 }

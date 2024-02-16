@@ -88,13 +88,13 @@ func iRunUpgradeFromRemoteRecipe(ctx context.Context, repository string) (contex
 }
 
 func conflictsAreReported(ctx context.Context) (context.Context, error) {
-	return ctx, expectGivenOutput(ctx, "modified")
+	return ctx, expectGivenOutput(ctx, "manually modified")
 }
 
 func noConflictsWereReported(ctx context.Context) (context.Context, error) {
 	cmdStdOut := ctx.Value(cmdStdOutCtxKey{}).(*bytes.Buffer)
 	cmdStdErr := ctx.Value(cmdStdErrCtxKey{}).(*bytes.Buffer)
-	if matched, _ := regexp.MatchString("modified", cmdStdOut.String()); matched {
+	if matched, _ := regexp.MatchString("manually modified", cmdStdOut.String()); matched {
 		return ctx, fmt.Errorf("Conflict in recipe\nstdout:\n%s\n\nstderr:\n%s\n", cmdStdOut, cmdStdErr)
 	}
 	return ctx, nil
