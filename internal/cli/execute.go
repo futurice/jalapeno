@@ -17,7 +17,6 @@ import (
 	uiutil "github.com/futurice/jalapeno/pkg/ui/util"
 	"github.com/gofrs/uuid"
 	"github.com/spf13/cobra"
-	"golang.org/x/exp/maps"
 	"golang.org/x/mod/semver"
 )
 
@@ -228,7 +227,12 @@ func runExecute(cmd *cobra.Command, opts executeOptions) error {
 		}
 	}
 
-	tree := recipeutil.CreateFileTree(opts.Dir, maps.Keys(files))
+	fileTreeFiles := make(map[string]recipeutil.FileStatus, len(files))
+	for path := range files {
+		fileTreeFiles[path] = recipeutil.FileAdded
+	}
+
+	tree := recipeutil.CreateFileTree(opts.Dir, fileTreeFiles)
 	cmd.Printf("The following files were created:\n\n%s", tree)
 
 	if re.InitHelp != "" {

@@ -26,7 +26,8 @@ Feature: Running tests for a recipe
 		Given a recipes directory
 		When I create a recipe with name "foo"
 		And I change recipe "foo" template "README.md" to render "New version"
-		And I run tests for recipe "foo" while updating snapshots
+		And I update tests snapshosts for recipe "foo"
 		Then CLI produced an output "test snapshots updated"
-		When I run tests for recipe "foo"
-		Then no errors were printed
+		And CLI produced an output "README\.md \(modified\)"
+		Then I run tests for recipe "foo"
+		And CLI produced an output "No snapshot updates required"

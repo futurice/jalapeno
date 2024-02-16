@@ -56,36 +56,34 @@ func iRunExecute(ctx context.Context, recipe string) (context.Context, error) {
 func iExecuteRemoteRecipe(ctx context.Context, repository string) (context.Context, error) {
 	ociRegistry := ctx.Value(ociRegistryCtxKey{}).(OCIRegistry)
 	configDir, configFileExists := ctx.Value(dockerConfigDirectoryPathCtxKey{}).(string)
-	flags := ctx.Value(cmdAdditionalFlagsCtxKey{}).(map[string]string)
+	additionalFlags := ctx.Value(cmdAdditionalFlagsCtxKey{}).(map[string]string)
 
 	url := fmt.Sprintf("oci://%s/%s", ociRegistry.Resource.GetHostPort("5000/tcp"), repository)
 
 	if ociRegistry.TLSEnabled {
 		// Allow self-signed certificates
-		flags["insecure"] = "true"
+		additionalFlags["insecure"] = "true"
 	} else {
-		flags["plain-http"] = "true"
+		additionalFlags["plain-http"] = "true"
 	}
 
 	if ociRegistry.AuthEnabled {
-		flags["username"] = "foo"
-		flags["password"] = "bar"
+		additionalFlags["username"] = "foo"
+		additionalFlags["password"] = "bar"
 	}
 
 	if configFileExists && os.Getenv("DOCKER_CONFIG") == "" {
-		flags["registry-config"] = filepath.Join(configDir, DOCKER_CONFIG_FILENAME)
+		additionalFlags["registry-config"] = filepath.Join(configDir, DOCKER_CONFIG_FILENAME)
 	}
-
-	ctx = context.WithValue(ctx, cmdAdditionalFlagsCtxKey{}, flags)
 
 	return iRunExecute(ctx, url)
 }
 
 func recipesWillBeExecutedToTheSubPath(ctx context.Context, path string) (context.Context, error) {
-	flags := ctx.Value(cmdAdditionalFlagsCtxKey{}).(map[string]string)
-	flags["subpath"] = path
+	additionalFlags := ctx.Value(cmdAdditionalFlagsCtxKey{}).(map[string]string)
+	additionalFlags["subpath"] = path
 
-	return context.WithValue(ctx, cmdAdditionalFlagsCtxKey{}, flags), nil
+	return ctx, nil
 }
 
 func executionOfTheRecipeHasSucceeded(ctx context.Context) (context.Context, error) {

@@ -84,8 +84,6 @@ func iRunUpgradeFromRemoteRecipe(ctx context.Context, repository string) (contex
 		additionalFlags["registry-config"] = filepath.Join(configDir, DOCKER_CONFIG_FILENAME)
 	}
 
-	ctx = context.WithValue(ctx, cmdAdditionalFlagsCtxKey{}, additionalFlags)
-
 	return iRunUpgrade(ctx, url)
 }
 
@@ -139,7 +137,7 @@ func iChangeRecipeToVersion(ctx context.Context, recipeName, version string) (co
 
 func iSelectSauceForUpgrade(ctx context.Context, sauceIndex string) (context.Context, error) {
 	projectDir := ctx.Value(projectDirectoryPathCtxKey{}).(string)
-	flags := ctx.Value(cmdAdditionalFlagsCtxKey{}).(map[string]string)
+	additionalFlags := ctx.Value(cmdAdditionalFlagsCtxKey{}).(map[string]string)
 
 	sauces, err := recipe.LoadSauces(projectDir)
 	if err != nil {
@@ -151,7 +149,7 @@ func iSelectSauceForUpgrade(ctx context.Context, sauceIndex string) (context.Con
 		return ctx, err
 	}
 
-	flags["sauce-id"] = sauces[i].ID.String()
+	additionalFlags["sauce-id"] = sauces[i].ID.String()
 
 	return ctx, nil
 }

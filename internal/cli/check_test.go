@@ -46,7 +46,6 @@ func iRunCheckForRecipe(ctx context.Context, recipe string) (context.Context, er
 	additionalFlags := ctx.Value(cmdAdditionalFlagsCtxKey{}).(map[string]string)
 	additionalFlags["recipe"] = recipe
 
-	ctx = context.WithValue(ctx, cmdAdditionalFlagsCtxKey{}, additionalFlags)
 	return iRunCheck(ctx)
 }
 
@@ -57,7 +56,6 @@ func iRunCheckForRecipeFrom(ctx context.Context, recipe, from string) (context.C
 	additionalFlags["recipe"] = recipe
 	additionalFlags["from"] = fmt.Sprintf("oci://%s/%s", ociRegistry.Resource.GetHostPort("5000/tcp"), from)
 
-	ctx = context.WithValue(ctx, cmdAdditionalFlagsCtxKey{}, additionalFlags)
 	return iRunCheck(ctx)
 }
 

@@ -10,7 +10,7 @@ import (
 
 func AddTestSteps(s *godog.ScenarioContext) {
 	s.Step(`^I run tests for recipe "([^"]*)"$`, iRunTest)
-	s.Step(`^I run tests for recipe "([^"]*)" while updating snapshots$`, iRunTestWithSnapshotUpdate)
+	s.Step(`^I update tests snapshosts for recipe "([^"]*)"$`, iUpdateTestSnapshot)
 	s.Step(`^I create a test for recipe "([^"]*)"$`, iCreateRecipeTest)
 }
 
@@ -35,21 +35,15 @@ func iRunTest(ctx context.Context, recipe string) (context.Context, error) {
 }
 
 func iCreateRecipeTest(ctx context.Context, recipe string) (context.Context, error) {
-	ctx = context.WithValue(
-		ctx,
-		cmdAdditionalFlagsCtxKey{},
-		map[string]string{"create": "true"},
-	)
+	additionalFlags := ctx.Value(cmdAdditionalFlagsCtxKey{}).(map[string]string)
+	additionalFlags["create"] = "true"
 
 	return iRunTest(ctx, recipe)
 }
 
-func iRunTestWithSnapshotUpdate(ctx context.Context, recipe string) (context.Context, error) {
-	ctx = context.WithValue(
-		ctx,
-		cmdAdditionalFlagsCtxKey{},
-		map[string]string{"update-snapshots": "true"},
-	)
+func iUpdateTestSnapshot(ctx context.Context, recipe string) (context.Context, error) {
+	additionalFlags := ctx.Value(cmdAdditionalFlagsCtxKey{}).(map[string]string)
+	additionalFlags["update-snapshots"] = "true"
 
 	return iRunTest(ctx, recipe)
 }

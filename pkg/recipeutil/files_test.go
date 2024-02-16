@@ -10,13 +10,15 @@ func TestCreateFileTree(t *testing.T) {
 	testCases := []struct {
 		Name     string
 		Root     string
-		Input    []string
+		Input    map[string]recipeutil.FileStatus
 		Expected string
 	}{
 		{
 			"single_file_in_root",
 			".",
-			[]string{"foo"},
+			map[string]recipeutil.FileStatus{
+				"foo": recipeutil.FileUnchanged,
+			},
 			`.
 └── foo
 `,
@@ -24,7 +26,10 @@ func TestCreateFileTree(t *testing.T) {
 		{
 			"multiple_files_in_root",
 			".",
-			[]string{"foo", "bar"},
+			map[string]recipeutil.FileStatus{
+				"foo": recipeutil.FileUnchanged,
+				"bar": recipeutil.FileUnchanged,
+			},
 			`.
 ├── bar
 └── foo
@@ -33,7 +38,9 @@ func TestCreateFileTree(t *testing.T) {
 		{
 			"nested_file",
 			".",
-			[]string{"foo/bar/baz"},
+			map[string]recipeutil.FileStatus{
+				"foo/bar/baz": recipeutil.FileUnchanged,
+			},
 			`.
 └── foo
     └── bar
@@ -43,7 +50,10 @@ func TestCreateFileTree(t *testing.T) {
 		{
 			"nested_files_in_same_dir",
 			".",
-			[]string{"foo/bar/baz-1", "foo/bar/baz-2"},
+			map[string]recipeutil.FileStatus{
+				"foo/bar/baz-1": recipeutil.FileUnchanged,
+				"foo/bar/baz-2": recipeutil.FileUnchanged,
+			},
 			`.
 └── foo
     └── bar
@@ -54,7 +64,10 @@ func TestCreateFileTree(t *testing.T) {
 		{
 			"nested_files_in_different_dirs",
 			".",
-			[]string{"foo/bar-1/baz", "foo/bar-2/baz"},
+			map[string]recipeutil.FileStatus{
+				"foo/bar-1/baz": recipeutil.FileUnchanged,
+				"foo/bar-2/baz": recipeutil.FileUnchanged,
+			},
 			`.
 └── foo
     ├── bar-1
@@ -66,7 +79,14 @@ func TestCreateFileTree(t *testing.T) {
 		{
 			"files_are_alphabetically_sorted",
 			".",
-			[]string{"b/a/b", "b/b/a", "c/a", "a/a/c", "a/a/a", "a/a/b"},
+			map[string]recipeutil.FileStatus{
+				"b/a/b": recipeutil.FileUnchanged,
+				"b/b/a": recipeutil.FileUnchanged,
+				"c/a":   recipeutil.FileUnchanged,
+				"a/a/c": recipeutil.FileUnchanged,
+				"a/a/a": recipeutil.FileUnchanged,
+				"a/a/b": recipeutil.FileUnchanged,
+			},
 			`.
 ├── a
 │   └── a
@@ -80,6 +100,22 @@ func TestCreateFileTree(t *testing.T) {
 │       └── a
 └── c
     └── a
+`,
+		},
+		{
+			"file statuses",
+			".",
+			map[string]recipeutil.FileStatus{
+				"a": recipeutil.FileUnchanged,
+				"b": recipeutil.FileAdded,
+				"c": recipeutil.FileModified,
+				"d": recipeutil.FileDeleted,
+			},
+			`.
+├── a
+├── b (added)
+├── c (modified)
+└── d (deleted)
 `,
 		},
 	}

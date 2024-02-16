@@ -9,7 +9,6 @@ import (
 	"github.com/futurice/jalapeno/pkg/recipe"
 	"github.com/futurice/jalapeno/pkg/recipeutil"
 	"github.com/spf13/cobra"
-	"golang.org/x/exp/maps"
 )
 
 type testOptions struct {
@@ -92,46 +91,48 @@ func runTest(cmd *cobra.Command, opts testOptions) error {
 		anyUpdatesFound := false
 		for i := range re.Tests {
 			test := &re.Tests[i]
-			fileUpdatesFound := make(map[string]recipe.File)
 			sauce, err := re.Execute(engine.New(), test.Values, recipe.TestID)
 			if err != nil {
 				return fmt.Errorf("failed to render templates: %w", err)
 			}
 
+			fileStatuses := make(map[string]recipeutil.FileStatus, len(sauce.Files))
+
 			for filename, file := range sauce.Files {
-				if _, found := test.Files[filename]; test.IgnoreExtraFiles && !found {
+				_, found := test.Files[filename]
+				if test.IgnoreExtraFiles && !found {
 					continue
 				}
 
-				if file.Checksum != test.Files[filename].Checksum {
-					fileUpdatesFound[filename] = file
+				if !found {
+					fileStatuses[filename] = recipeutil.FileAdded
+				} else if file.Checksum == test.Files[filename].Checksum {
+					fileStatuses[filename] = recipeutil.FileUnchanged
+				} else {
+					fileStatuses[filename] = recipeutil.FileModified
 				}
 			}
 
 			// Update test files
-			for filename, update := range fileUpdatesFound {
-				test.Files[filename] = update
+			for filename := range fileStatuses {
+				test.Files[filename] = sauce.Files[filename]
 			}
 
 			// Remove files which do not exist anymore in the templates
 			for filename := range test.Files {
 				if _, found := sauce.Files[filename]; !found {
 					delete(test.Files, filename)
+					fileStatuses[filename] = recipeutil.FileDeleted
 				}
 			}
 
-			if len(fileUpdatesFound) > 0 {
-				if !anyUpdatesFound {
-					cmd.Print("The following files have been updated:\n\n")
+			for _, status := range fileStatuses {
+				if status != recipeutil.FileUnchanged {
 					anyUpdatesFound = true
+					tree := recipeutil.CreateFileTree(fmt.Sprintf("%s/files", test.Name), fileStatuses)
+					cmd.Printf("The following files have been updated:\n\n%s", tree)
+					break
 				}
-
-				cmd.Print(
-					recipeutil.CreateFileTree(
-						fmt.Sprintf("%s/files", test.Name),
-						maps.Keys(fileUpdatesFound),
-					),
-				)
 			}
 		}
 

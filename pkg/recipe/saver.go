@@ -86,6 +86,11 @@ func (re *Recipe) saveTests(dest string) error {
 		}
 
 		testFileDirPath := filepath.Join(testDirPath, RecipeTestFilesDirName)
+		err = os.RemoveAll(testFileDirPath)
+		if err != nil {
+			return fmt.Errorf("failed to clean up test file directory for test '%s': %w", test.Name, err)
+		}
+
 		err = os.MkdirAll(testFileDirPath, defaultFileMode)
 		if err != nil {
 			return fmt.Errorf("failed to create test file directory for test '%s': %w", test.Name, err)
