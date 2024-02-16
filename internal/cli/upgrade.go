@@ -356,6 +356,17 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 
 	newSauce.Files = output
 
+	for filename := range oldSauce.Files {
+		if _, found := newSauce.Files[filename]; !found {
+			err := os.Remove(filepath.Join(opts.Dir, filename))
+			if err != nil {
+				return fmt.Errorf("failed to remove deprecated file '%s': %w", filename, err)
+			}
+
+			fileStatuses[filename] = recipeutil.FileDeleted
+		}
+	}
+
 	err = newSauce.Save(opts.Dir)
 	if err != nil {
 		return err

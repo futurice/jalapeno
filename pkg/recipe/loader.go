@@ -58,7 +58,7 @@ func LoadRecipe(path string) (*Recipe, error) {
 	}
 
 	if err := recipe.Validate(); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("loaded recipe was invalid: %w", err)
 	}
 
 	return recipe, nil
