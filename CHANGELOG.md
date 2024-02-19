@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.5.0](https://github.com/futurice/jalapeno/compare/v1.4.0...v1.5.0) (2024-02-19)
+
+
+### Features
+
+* add statuses to printed file trees ([b891c48](https://github.com/futurice/jalapeno/commit/b891c48a13e87545b09e6ed350463387d9c30783))
+* print file tree after upgrade ([be1d443](https://github.com/futurice/jalapeno/commit/be1d443b7cc9afd38f2b5d6ed858b01e2fe00e14))
+
+
+### Bug Fixes
+
+* remove old files after upgrading ([6296c77](https://github.com/futurice/jalapeno/commit/6296c776a6051ddceb2697488bffb3c18b801f17))
+* save files correctly after upgrading ([3c565c1](https://github.com/futurice/jalapeno/commit/3c565c1bd3fbd4a0402dfff08a002c40300d9a9d))
+
 ## [1.4.0](https://github.com/futurice/jalapeno/compare/v1.3.5...v1.4.0) (2024-02-14)
 
 
