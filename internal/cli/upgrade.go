@@ -132,6 +132,7 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 			re.Metadata.Version,
 		)
 	} else {
+		opts.ReuseOldValues = false
 		cmd.Printf(
 			"Modifying values for sauce with recipe '%s' version %s\n",
 			oldSauce.Recipe.Name,
@@ -224,6 +225,7 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 			}
 		}
 
+		cmd.Println()
 		promptedValues, err := survey.PromptUserForValues(cmd.InOrStdin(), cmd.OutOrStdout(), varsWithoutValues, predefinedValues)
 		if err != nil {
 			if errors.Is(err, uiutil.ErrUserAborted) {
@@ -347,8 +349,6 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 			Content:  conflictResult,
 		}
 	}
-
-	cmd.Println()
 
 	for filename := range oldSauce.Files {
 		if _, found := newSauce.Files[filename]; !found {
