@@ -37,7 +37,7 @@ Feature: Upgrade sauce
 		Then no errors were printed
 		And the project directory should not contain file "will-be-removed-in-next-version.md"
 
-	Scenario: Upgrading the recipe does not remove old files from the project directory if modified by the user
+	Scenario: Upgrading the recipe does remove old files from the project directory if modified by the user
 		Given a project directory
 		And a recipes directory
 		And a recipe "foo" that generates file "README.md" with content "initial"
@@ -49,7 +49,7 @@ Feature: Upgrade sauce
 		And I change project file "will-be-removed-in-next-version.md" to contain "Locally modified"
 		When I upgrade recipe "foo"
 		Then no errors were printed
-		And the project directory should contain file "will-be-removed-in-next-version.md"
+		And the project directory should not contain file "will-be-removed-in-next-version.md"
 
 	Scenario: Try to upgrade sauces with same recipes without providing sauce ID
 		Given a project directory

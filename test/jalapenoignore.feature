@@ -27,3 +27,20 @@ Feature: Jalapenoignore
 		Then no conflicts were reported
 		And no errors were printed
 		And the project directory should contain file "README.md" with "modified"
+
+	Scenario: Ignored file will not be removed even if new recipe version deprecates it
+		Given a project directory
+		And a recipes directory
+		And a recipe "foo" that generates file "README.md" with content "initial"
+		And a recipe "foo" that generates file "will-be-removed-in-next-version" with content "initial"
+		And recipe "foo" ignores pattern "will-be-removed-in-next-version"
+		When I execute recipe "foo"
+		Then no errors were printed
+		When I change project file "will-be-removed-in-next-version" to contain "modified"
+		And I change recipe "foo" to version "v0.0.2"
+		And I remove file "will-be-removed-in-next-version" from the recipe "foo"
+		And I upgrade recipe "foo"
+		Then no conflicts were reported
+		And no errors were printed
+		And the project directory should contain file "will-be-removed-in-next-version" with "modified"
+		And the sauce file contains a sauce in index 0 which should not have property "files.will-be-removed-in-next-version"

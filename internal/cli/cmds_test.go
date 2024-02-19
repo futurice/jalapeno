@@ -78,6 +78,7 @@ func TestFeatures(t *testing.T) {
 			s.Step(`^the project directory should contain file "([^"]*)" with "([^"]*)"$`, theProjectDirectoryShouldContainFileWith)
 			s.Step(`^the project directory should not contain file "([^"]*)"$`, theProjectDirectoryShouldNotContainFile)
 			s.Step(`^the sauce file contains a sauce in index (\d) which should have property "([^"]*)"$`, theSauceFileShouldHaveProperty)
+			s.Step(`^the sauce file contains a sauce in index (\d) which should not have property "([^"]*)"$`, theSauceFileShouldNotHaveProperty)
 			s.Step(`^the sauce file contains a sauce in index (\d) which should have property "([^"]*)" with value "([^"]*)"$`, theSauceFileShouldHavePropertyWithValue)
 			s.Step(`^the sauce file contains a sauce in index (\d) which has a valid ID$`, theSauceFileShouldHasAValidID)
 			s.Step(`^CLI produced an output "([^"]*)"$`, expectGivenOutput)
@@ -477,6 +478,19 @@ func theSauceFileShouldHaveProperty(ctx context.Context, index int, propertyName
 	_, err = nestedMapLookup(sauces[index], strings.Split(propertyName, ".")...)
 	if err != nil {
 		return fmt.Errorf("sauce file does not have property %s: %w", propertyName, err)
+	}
+
+	return nil
+}
+
+func theSauceFileShouldNotHaveProperty(ctx context.Context, index int, propertyName string) error {
+	err := theSauceFileShouldHaveProperty(ctx, index, propertyName)
+	if err == nil {
+		return fmt.Errorf("sauce file contains the property %s: %w", propertyName, err)
+	}
+
+	if !strings.Contains(err.Error(), "key not found") {
+		return err
 	}
 
 	return nil

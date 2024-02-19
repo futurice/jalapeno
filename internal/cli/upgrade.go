@@ -260,8 +260,6 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 	}
 	ignorePatterns = append(ignorePatterns, re.IgnorePatterns...)
 
-	// Collect files which should be written to the destination directory
-	output := make(map[string]recipe.File, len(newSauce.Files))
 	overrideNoticed := false
 	fileStatuses := make(map[string]recipeutil.FileStatus, len(newSauce.Files))
 
@@ -278,17 +276,15 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 			}
 		}
 		if skip {
+			delete(newSauce.Files, path)
 			continue
 		}
-
-		newFile := newSauce.Files[path]
 
 		// Check if the file from previous recipe version has been modified manually
 		prevFile, exists := oldSauce.Files[path]
 		if exists {
 			if !prevFile.HasBeenModifiedByUser() {
-				output[path] = newFile
-				if prevFile.Checksum == newFile.Checksum {
+				if prevFile.Checksum == newSauce.Files[path].Checksum {
 					fileStatuses[path] = recipeutil.FileUnchanged
 				} else {
 					fileStatuses[path] = recipeutil.FileModified
@@ -301,7 +297,6 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 			existingFileContent, err := os.ReadFile(filepath.Join(opts.Dir, path))
 			if errors.Is(err, os.ErrNotExist) {
 				fileStatuses[path] = recipeutil.FileAdded
-				output[path] = newFile
 				continue
 			} else if err != nil {
 				return err
@@ -324,7 +319,7 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 			cmd.OutOrStdout(),
 			path,
 			prevFile.Content,
-			newFile.Content,
+			newSauce.Files[path].Content,
 		)
 
 		if err != nil {
@@ -338,32 +333,45 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 		}
 
 		if bytes.Equal(conflictResult, prevFile.Content) {
+			newSauce.Files[path] = prevFile
 			fileStatuses[path] = recipeutil.FileUnchanged
 			continue
-		} else {
-			fileStatuses[path] = recipeutil.FileModified
 		}
 
+		fileStatuses[path] = recipeutil.FileModified
 		// NOTE: We need to save the checksum of the original file from the new sauce
 		// so we would detect again if the file has been modified manually
 		// when upgrading again
-		newFile.Content = conflictResult
-
-		output[path] = newFile
+		newSauce.Files[path] = recipe.File{
+			Checksum: newSauce.Files[path].Checksum,
+			Content:  conflictResult,
+		}
 	}
 
 	cmd.Println()
 
-	newSauce.Files = output
-
 	for filename := range oldSauce.Files {
 		if _, found := newSauce.Files[filename]; !found {
-			err := os.Remove(filepath.Join(opts.Dir, filename))
-			if err != nil {
-				return fmt.Errorf("failed to remove deprecated file '%s': %w", filename, err)
+			keep := false
+			for _, pattern := range ignorePatterns {
+				if matched, err := filepath.Match(pattern, filename); err != nil {
+					cmd.Println()
+					return fmt.Errorf("bad ignore pattern '%s': %w\n\n%s", pattern, err, cliutil.MakeRetryMessage(os.Args, values))
+				} else if matched {
+					keep = true
+					break
+				}
 			}
 
-			fileStatuses[filename] = recipeutil.FileDeleted
+			if !keep {
+				err := os.Remove(filepath.Join(opts.Dir, filename))
+				if err != nil {
+					cmd.Println()
+					return fmt.Errorf("failed to remove deprecated file '%s': %w", filename, err)
+				}
+
+				fileStatuses[filename] = recipeutil.FileDeleted
+			}
 		}
 	}
 
