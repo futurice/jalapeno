@@ -33,6 +33,9 @@ func CreateFileTree(root string, files map[string]FileStatus) string {
 				branchName := filepathSegment
 				status := files[filepath]
 				if i == len(filepathSegments)-1 {
+					if status == FileDeleted {
+						filepathSegment = lipgloss.NewStyle().Strikethrough(true).Render(filepathSegment)
+					}
 					branchName = fmt.Sprintf("%s (%s)", filepathSegment, status)
 				}
 				cursor = cursor.AddBranch(branchName)
