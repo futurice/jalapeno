@@ -10,6 +10,7 @@ Feature: Upgrade sauce
 		And I change recipe "foo" template "README.md" to render "New version"
 		When I upgrade recipe "foo"
 		Then no errors were printed
+		And CLI produced an output "README\.md \(modified\)"
 		And the project directory should contain file ".jalapeno/sauces.yml" with "version: v0\.0\.2"
 		And the project directory should contain file "README.md" with "New version"
 		And no conflicts were reported
@@ -21,6 +22,7 @@ Feature: Upgrade sauce
 		And I execute recipe "foo"
 		When I upgrade recipe "foo"
 		Then no errors were printed
+		And CLI produced an output "no changes were made"
 		And the project directory should contain file ".jalapeno/sauces.yml" with "version: v0\.0\.1"
 		And no conflicts were reported
 
@@ -35,6 +37,7 @@ Feature: Upgrade sauce
 		And I remove file "will-be-removed-in-next-version.md" from the recipe "foo"
 		When I upgrade recipe "foo"
 		Then no errors were printed
+		And CLI produced an output "README\.md \(modified\)"
 		And the project directory should not contain file "will-be-removed-in-next-version.md"
 
 	Scenario: Upgrading the recipe does remove old files from the project directory if modified by the user
@@ -89,6 +92,7 @@ Feature: Upgrade sauce
 		And I select sauce in index 0 for the upgrade
 		And I upgrade recipe "shared"
 		Then no errors were printed
+		Then CLI produced an output "README\.md \(modified\)"
 		And the project directory should contain file "./foo/README.md" with "New version"
 		And the project directory should contain file "./bar/README.md" with "initial"
 
@@ -103,6 +107,7 @@ Feature: Upgrade sauce
 		And the recipe "foo" is pushed to the local OCI repository "foo:v0.0.2"
 		When I upgrade recipe from the local OCI repository "foo:v0.0.2"
 		Then no errors were printed
+		Then CLI produced an output "README\.md \(modified\)"
 		And the project directory should contain file ".jalapeno/sauces.yml" with "version: v0\.0\.2"
 		And the project directory should contain file ".jalapeno/sauces.yml" with "from: oci://localhost:\d+/foo"
 		And the project directory should contain file "README.md" with "New version"
@@ -130,7 +135,8 @@ Feature: Upgrade sauce
 		And I change project file "README.md" to contain "Locally modified"
 		And I buffer key presses "n\r"
 		When I upgrade recipe "foo"
-		Then CLI produced an output "README.md: keep"
+		Then CLI produced an output "README\.md: keep"
+		Then CLI produced an output "no changes were made to any files"
 		And the project directory should contain file "README.md" with "Locally modified"
 
 	Scenario: Attempt upgrade when user overrides the locally modified file
@@ -143,7 +149,8 @@ Feature: Upgrade sauce
 		And I change project file "README.md" to contain "Locally modified"
 		And I buffer key presses "y\r"
 		When I upgrade recipe "foo"
-		Then CLI produced an output "README.md: override"
+		Then CLI produced an output "README\.md: override"
+		Then CLI produced an output "README\.md \(modified\)"
 		And the project directory should contain file "README.md" with "New version"
 
 	Scenario: Attempt upgrade when user overrides the locally modified file while using arrow keys
@@ -157,6 +164,7 @@ Feature: Upgrade sauce
 		And I buffer key presses "→←→\r"
 		When I upgrade recipe "foo"
 		Then CLI produced an output "README.md: override"
+		Then CLI produced an output "README\.md \(modified\)"
 		And the project directory should contain file "README.md" with "New version"
 
 	Scenario: Attempt upgrade when new file conflicts with existing manually created file
