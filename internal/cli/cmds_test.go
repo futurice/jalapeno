@@ -30,7 +30,7 @@ import (
 	"gopkg.in/yaml.v3"
 
 	"github.com/futurice/jalapeno/internal/cli"
-	re "github.com/futurice/jalapeno/pkg/recipe"
+	"github.com/futurice/jalapeno/pkg/recipe"
 )
 
 type (
@@ -70,7 +70,8 @@ func TestFeatures(t *testing.T) {
 			// Common steps
 			s.Step(`^a project directory$`, aProjectDirectory)
 			s.Step(`^a recipes directory$`, aRecipesDirectory)
-			s.Step(`^a recipe "([^"]*)" that generates file "([^"]*)" with content "([^"]*)"$`, aRecipeThatGeneratesFileWithContent)
+			s.Step(`^a recipe "([^"]*)"$`, aRecipe)
+			s.Step(`^recipe "([^"]*)" generates file "([^"]*)" with content "([^"]*)"$`, recipeGeneratesFileWithContent)
 			s.Step(`^I remove file "([^"]*)" from the recipe "([^"]*)"$`, iRemoveFileFromTheRecipe)
 			s.Step(`^the file "([^"]*)" exist in the recipe "([^"]*)"$`, theFileExistInTheRecipe)
 			s.Step(`^I create a file "([^"]*)" with contents "([^"]*)" to the project directory$`, iCreateAFileWithContentsToTheProjectDir)
@@ -193,7 +194,7 @@ func readProjectDirectoryFile(ctx context.Context, filename string) (string, err
 }
 
 func readSauceFile(ctx context.Context) ([]map[string]interface{}, error) {
-	content, err := readProjectDirectoryFile(ctx, filepath.Join(re.SauceDirName, re.SaucesFileName+re.YAMLExtension))
+	content, err := readProjectDirectoryFile(ctx, filepath.Join(recipe.SauceDirName, recipe.SaucesFileName+recipe.YAMLExtension))
 	if err != nil {
 		return nil, err
 	}
@@ -287,36 +288,39 @@ func bufferKeysToInput(ctx context.Context, keys string) (context.Context, error
 	return context.WithValue(ctx, cmdStdInCtxKey{}, stdIn), nil
 }
 
-func aRecipeThatGeneratesFileWithContent(ctx context.Context, recipe, filename, content string) (context.Context, error) {
+func aRecipe(ctx context.Context, recipeName string) (context.Context, error) {
 	dir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
-	if err := os.MkdirAll(filepath.Join(dir, recipe, "templates"), 0755); err != nil {
-		return ctx, err
-	}
-	template := `apiVersion: v1
-name: %[1]s
-version: v0.0.1
-description: %[1]s
-`
-	if err := os.WriteFile(filepath.Join(dir, recipe, re.RecipeFileName+re.YAMLExtension), []byte(fmt.Sprintf(template, recipe)), 0644); err != nil {
+	re := recipe.NewRecipe()
+	re.Name = recipeName
+	re.Version = "v0.0.1"
+
+	if err := re.Save(filepath.Join(dir, recipeName)); err != nil {
 		return ctx, err
 	}
 
-	templateDir := filepath.Join(dir, recipe, re.RecipeTemplatesDirName)
-	err := os.MkdirAll(filepath.Join(templateDir, filepath.Dir(filename)), 0755)
+	return ctx, nil
+}
+
+func recipeGeneratesFileWithContent(ctx context.Context, recipeName, filename, content string) (context.Context, error) {
+	dir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
+	re, err := recipe.LoadRecipe(filepath.Join(dir, recipeName))
 	if err != nil {
 		return ctx, err
 	}
 
-	if err := os.WriteFile(filepath.Join(templateDir, filename), []byte(content), 0644); err != nil {
+	re.Templates[filename] = recipe.NewFile([]byte(content))
+
+	if err := re.Save(filepath.Join(dir, recipeName)); err != nil {
 		return ctx, err
 	}
+
 	return ctx, nil
 }
 
-func iRemoveFileFromTheRecipe(ctx context.Context, filename, recipe string) (context.Context, error) {
-	dir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
+func iRemoveFileFromTheRecipe(ctx context.Context, filename, recipeName string) (context.Context, error) {
+	recipesDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
 
-	templateDir := filepath.Join(dir, recipe, re.RecipeTemplatesDirName)
+	templateDir := filepath.Join(recipesDir, recipeName, recipe.RecipeTemplatesDirName)
 
 	err := os.Remove(filepath.Join(templateDir, filename))
 	return ctx, err
@@ -378,7 +382,7 @@ func credentialsAreNotProvidedByTheCommand(ctx context.Context) (context.Context
 
 func theRecipesDirectoryShouldContainRecipe(ctx context.Context, recipeName string) error {
 	recipesDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
-	re, err := re.LoadRecipe(filepath.Join(recipesDir, recipeName))
+	re, err := recipe.LoadRecipe(filepath.Join(recipesDir, recipeName))
 	if err != nil {
 		return err
 	}
@@ -498,15 +502,17 @@ func theSauceFileShouldNotHaveProperty(ctx context.Context, index int, propertyN
 
 func recipeIgnoresPattern(ctx context.Context, recipeName, pattern string) (context.Context, error) {
 	recipesDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
-	recipeFile := filepath.Join(recipesDir, recipeName, re.RecipeFileName+re.YAMLExtension)
-	recipeData, err := os.ReadFile(recipeFile)
+	re, err := recipe.LoadRecipe(filepath.Join(recipesDir, recipeName))
 	if err != nil {
 		return ctx, err
 	}
-	recipe := fmt.Sprintf("%s\nignorePatterns:\n  - %s\n", string(recipeData), pattern)
-	if err := os.WriteFile(recipeFile, []byte(recipe), 0644); err != nil {
+
+	re.IgnorePatterns = append(re.IgnorePatterns, pattern)
+
+	if err := re.Save(filepath.Join(recipesDir, recipeName)); err != nil {
 		return ctx, err
 	}
+
 	return ctx, nil
 }
 

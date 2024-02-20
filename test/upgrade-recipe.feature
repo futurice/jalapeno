@@ -4,13 +4,16 @@ Feature: Upgrade sauce
 	Scenario: Upgrade sauce
 		Given a project directory
 		And a recipes directory
-		And a recipe "foo" that generates file "README.md" with content "initial"
+		And a recipe "foo"
+		And recipe "foo" generates file "README.md" with content "initial"
 		And I execute recipe "foo"
 		And I change recipe "foo" to version "v0.0.2"
 		And I change recipe "foo" template "README.md" to render "New version"
+		And recipe "foo" generates file "new_file.md" with content "initial"
 		When I upgrade recipe "foo"
 		Then no errors were printed
 		And CLI produced an output "README\.md \(modified\)"
+		And CLI produced an output "new_file\.md \(added\)"
 		And the project directory should contain file ".jalapeno/sauces.yml" with "version: v0\.0\.2"
 		And the project directory should contain file "README.md" with "New version"
 		And no conflicts were reported
@@ -18,7 +21,8 @@ Feature: Upgrade sauce
 	Scenario: Upgrade sauce with same version
 		Given a project directory
 		And a recipes directory
-		And a recipe "foo" that generates file "README.md" with content "initial"
+		And a recipe "foo"
+		And recipe "foo" generates file "README.md" with content "initial"
 		And I execute recipe "foo"
 		When I upgrade recipe "foo"
 		Then no errors were printed
@@ -29,8 +33,9 @@ Feature: Upgrade sauce
 	Scenario: Upgrading sauce removes old files from the project directory if deprecated
 		Given a project directory
 		And a recipes directory
-		And a recipe "foo" that generates file "README.md" with content "initial"
-		And a recipe "foo" that generates file "will-be-removed-in-next-version.md" with content "removed"
+		And a recipe "foo"
+		And recipe "foo" generates file "README.md" with content "initial"
+		And recipe "foo" generates file "will-be-removed-in-next-version.md" with content "removed"
 		And I execute recipe "foo"
 		And I change recipe "foo" to version "v0.0.2"
 		And I change recipe "foo" template "README.md" to render "New version"
@@ -38,13 +43,15 @@ Feature: Upgrade sauce
 		When I upgrade recipe "foo"
 		Then no errors were printed
 		And CLI produced an output "README\.md \(modified\)"
+		And CLI produced an output "will-be-removed-in-next-version\.md \(deleted\)"
 		And the project directory should not contain file "will-be-removed-in-next-version.md"
 
 	Scenario: Upgrading the recipe does remove old files from the project directory if modified by the user
 		Given a project directory
 		And a recipes directory
-		And a recipe "foo" that generates file "README.md" with content "initial"
-		And a recipe "foo" that generates file "will-be-removed-in-next-version.md" with content "removed"
+		And a recipe "foo"
+		And recipe "foo" generates file "README.md" with content "initial"
+		And recipe "foo" generates file "will-be-removed-in-next-version.md" with content "removed"
 		And I execute recipe "foo"
 		And I change recipe "foo" to version "v0.0.2"
 		And I change recipe "foo" template "README.md" to render "New version"
@@ -52,12 +59,15 @@ Feature: Upgrade sauce
 		And I change project file "will-be-removed-in-next-version.md" to contain "Locally modified"
 		When I upgrade recipe "foo"
 		Then no errors were printed
+		And CLI produced an output "README\.md \(modified\)"
+		And CLI produced an output "will-be-removed-in-next-version\.md \(deleted\)"
 		And the project directory should not contain file "will-be-removed-in-next-version.md"
 
 	Scenario: Try to upgrade sauces with same recipes without providing sauce ID
 		Given a project directory
 		And a recipes directory
-		And a recipe "shared" that generates file "README.md" with content "initial"
+		And a recipe "shared"
+		And recipe "shared" generates file "README.md" with content "initial"
 		And recipes will be executed to the subpath "foo"
 		And I execute recipe "shared"
 		Then execution of the recipe has succeeded
@@ -76,7 +86,8 @@ Feature: Upgrade sauce
 	Scenario: Upgrade sauces with same recipe but with different subpaths
 		Given a project directory
 		And a recipes directory
-		And a recipe "shared" that generates file "README.md" with content "initial"
+		And a recipe "shared"
+		And recipe "shared" generates file "README.md" with content "initial"
 		And recipes will be executed to the subpath "foo"
 		And I execute recipe "shared"
 		Then execution of the recipe has succeeded
@@ -100,7 +111,8 @@ Feature: Upgrade sauce
 		Given a project directory
 		And a recipes directory
 		And a local OCI registry
-		And a recipe "foo" that generates file "README.md" with content "initial"
+		And a recipe "foo"
+		And recipe "foo" generates file "README.md" with content "initial"
 		And I execute recipe "foo"
 		And I change recipe "foo" to version "v0.0.2"
 		And I change recipe "foo" template "README.md" to render "New version"
@@ -116,7 +128,8 @@ Feature: Upgrade sauce
 	Scenario: Attempt upgrade when previous sauce file was modified
 		Given a project directory
 		And a recipes directory
-		And a recipe "foo" that generates file "README.md" with content "initial"
+		And a recipe "foo"
+		And recipe "foo" generates file "README.md" with content "initial"
 		And I execute recipe "foo"
 		And I change recipe "foo" to version "v0.0.2"
 		And I change recipe "foo" template "README.md" to render "New version"
@@ -128,7 +141,8 @@ Feature: Upgrade sauce
 	Scenario: Attempt upgrade when user keeps the locally modified file
 		Given a project directory
 		And a recipes directory
-		And a recipe "foo" that generates file "README.md" with content "initial"
+		And a recipe "foo"
+		And recipe "foo" generates file "README.md" with content "initial"
 		And I execute recipe "foo"
 		And I change recipe "foo" to version "v0.0.2"
 		And I change recipe "foo" template "README.md" to render "New version"
@@ -142,7 +156,8 @@ Feature: Upgrade sauce
 	Scenario: Attempt upgrade when user overrides the locally modified file
 		Given a project directory
 		And a recipes directory
-		And a recipe "foo" that generates file "README.md" with content "initial"
+		And a recipe "foo"
+		And recipe "foo" generates file "README.md" with content "initial"
 		And I execute recipe "foo"
 		And I change recipe "foo" to version "v0.0.2"
 		And I change recipe "foo" template "README.md" to render "New version"
@@ -156,7 +171,8 @@ Feature: Upgrade sauce
 	Scenario: Attempt upgrade when user overrides the locally modified file while using arrow keys
 		Given a project directory
 		And a recipes directory
-		And a recipe "foo" that generates file "README.md" with content "initial"
+		And a recipe "foo"
+		And recipe "foo" generates file "README.md" with content "initial"
 		And I execute recipe "foo"
 		And I change recipe "foo" to version "v0.0.2"
 		And I change recipe "foo" template "README.md" to render "New version"
@@ -170,7 +186,8 @@ Feature: Upgrade sauce
 	Scenario: Attempt upgrade when new file conflicts with existing manually created file
 		Given a project directory
 		And a recipes directory
-		And a recipe "foo" that generates file "README.md" with content "initial"
+		And a recipe "foo"
+		And recipe "foo" generates file "README.md" with content "initial"
 		And I execute recipe "foo"
 		And I create a file "new.txt" with contents "manual" to the project directory
 		And I change recipe "foo" to version "v0.0.2"

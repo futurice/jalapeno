@@ -1,7 +1,8 @@
 Feature: Running tests for a recipe
 	Scenario: Using CLI to create a new recipe test
 		Given a recipes directory
-		And a recipe "foo" that generates file "README.md" with content "initial"
+		And a recipe "foo"
+		And recipe "foo" generates file "README.md" with content "initial"
 		When I create a test for recipe "foo"
 		Then CLI produced an output "Test 'example' created successfully!"
 		And no errors were printed

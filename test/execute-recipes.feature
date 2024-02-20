@@ -4,7 +4,8 @@ Feature: Execute recipes
 	Scenario: Execute single recipe
 		Given a project directory
 		And a recipes directory
-		And a recipe "foo" that generates file "README.md" with content "initial"
+		And a recipe "foo"
+		And recipe "foo" generates file "README.md" with content "initial"
 		When I execute recipe "foo"
 		Then execution of the recipe has succeeded
 		And the project directory should contain file "README.md"
@@ -14,7 +15,8 @@ Feature: Execute recipes
 	Scenario: Execute single recipe from remote registry
 		Given a project directory
 		And a recipes directory
-		And a recipe "foo" that generates file "README.md" with content "initial"
+		And a recipe "foo"
+		And recipe "foo" generates file "README.md" with content "initial"
 		And a local OCI registry
 		And the recipe "foo" is pushed to the local OCI repository "foo:v0.0.1"
 		When I execute the recipe from the local OCI repository "foo:v0.0.1"
@@ -25,8 +27,10 @@ Feature: Execute recipes
 	Scenario: Execute multiple recipes
 		Given a project directory
 		And a recipes directory
-		And a recipe "foo" that generates file "README.md" with content "initial"
-		And a recipe "bar" that generates file "Taskfile.yml" with content "initial"
+		And a recipe "foo"
+		And recipe "foo" generates file "README.md" with content "initial"
+		And a recipe "bar"
+		And recipe "bar" generates file "Taskfile.yml" with content "initial"
 		When I execute recipe "foo"
 		Then execution of the recipe has succeeded
 		When I execute recipe "bar"
@@ -40,9 +44,12 @@ Feature: Execute recipes
 	Scenario: New recipe conflicts with the previous recipe
 		Given a project directory
 		And a recipes directory
-		And a recipe "foo" that generates file "README.md" with content "initial"
-		And a recipe "bar" that generates file "Taskfile.yml" with content "initial"
-		And a recipe "quux" that generates file "Taskfile.yml" with content "initial"
+		And a recipe "foo"
+		And recipe "foo" generates file "README.md" with content "initial"
+		And a recipe "bar"
+		And recipe "bar" generates file "Taskfile.yml" with content "initial"
+		And a recipe "quux"
+		And recipe "quux" generates file "Taskfile.yml" with content "initial"
 		When I execute recipe "foo"
 		And no errors were printed
 		Then execution of the recipe has succeeded
@@ -55,7 +62,8 @@ Feature: Execute recipes
 	Scenario: Same recipe is executed twice
 		Given a project directory
 		And a recipes directory
-		And a recipe "foo" that generates file "README.md" with content "initial"
+		And a recipe "foo"
+		And recipe "foo" generates file "README.md" with content "initial"
 		When I execute recipe "foo"
 		And no errors were printed
 		Then execution of the recipe has succeeded
@@ -65,7 +73,8 @@ Feature: Execute recipes
 	Scenario: Execute single recipe to a subpath
 		Given a project directory
 		And a recipes directory
-		And a recipe "foo" that generates file "README" with content "initial"
+		And a recipe "foo"
+		And recipe "foo" generates file "README" with content "initial"
 		And recipes will be executed to the subpath "docs"
 		When I execute recipe "foo"
 		And no errors were printed
@@ -78,7 +87,8 @@ Feature: Execute recipes
 	Scenario: Execute multiple recipes to different subpaths
 		Given a project directory
 		And a recipes directory
-		And a recipe "foo" that generates file "README" with content "initial"
+		And a recipe "foo"
+		And recipe "foo" generates file "README" with content "initial"
 		And recipes will be executed to the subpath "foo"
 		When I execute recipe "foo"
 		Then no errors were printed
@@ -97,7 +107,8 @@ Feature: Execute recipes
 	Scenario: Try to execute recipe which escapes the project root
 		Given a project directory
 		And a recipes directory
-		And a recipe "foo" that generates file "README.md" with content "initial"
+		And a recipe "foo"
+		And recipe "foo" generates file "README.md" with content "initial"
 		And recipes will be executed to the subpath "foo/../.."
 		When I execute recipe "foo"
 		Then CLI produced an error "must point to a directory inside the project root"
@@ -105,7 +116,8 @@ Feature: Execute recipes
 	Scenario: Try to execute recipe which uses absolute sub path
 		Given a project directory
 		And a recipes directory
-		And a recipe "foo" that generates file "README.md" with content "initial"
+		And a recipe "foo"
+		And recipe "foo" generates file "README.md" with content "initial"
 		And recipes will be executed to the subpath "/root/foo"
 		When I execute recipe "foo"
 		Then CLI produced an error "must be a relative path"
