@@ -31,4 +31,4 @@ Feature: Running tests for a recipe
 		Then CLI produced an output "test snapshots updated"
 		And CLI produced an output "README\.md \(modified\)"
 		Then I run tests for recipe "foo"
-		And CLI produced an output "No snapshot updates required"
+		And CLI produced an output "✅: defaults"

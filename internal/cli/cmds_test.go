@@ -26,7 +26,6 @@ import (
 	"github.com/gofrs/uuid"
 	"github.com/muesli/termenv"
 	"github.com/ory/dockertest/v3"
-	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 
 	"github.com/futurice/jalapeno/internal/cli"
@@ -141,22 +140,29 @@ func TestFeatures(t *testing.T) {
  * UTILITIES
  */
 
-func wrapCmdOutputs(ctx context.Context) (context.Context, *cobra.Command) {
+func executeCLI(ctx context.Context, args ...string) (context.Context, error) {
 	rootCmd := cli.NewRootCmd()
-	cmdStdIn, isInteractive := ctx.Value(cmdStdInCtxKey{}).(*BlockBuffer)
-	if isInteractive {
-		rootCmd.SetIn(cmdStdIn)
-	}
 
 	cmdStdOut, cmdStdErr := new(bytes.Buffer), new(bytes.Buffer)
+	cmdStdIn := ctx.Value(cmdStdInCtxKey{}).(*BlockBuffer)
 	ctx = context.WithValue(ctx, cmdStdOutCtxKey{}, cmdStdOut)
 	ctx = context.WithValue(ctx, cmdStdErrCtxKey{}, cmdStdErr)
 
 	rootCmd.SetOut(cmdStdOut)
+	rootCmd.SetIn(cmdStdIn)
 	rootCmd.SetErr(cmdStdErr)
 	rootCmd.SetContext(context.Background())
 
-	return ctx, rootCmd
+	additionalFlags := ctx.Value(cmdAdditionalFlagsCtxKey{}).(map[string]string)
+	for name, value := range additionalFlags {
+		args = append(args, fmt.Sprintf("--%s=%s", name, value))
+	}
+
+	rootCmd.SetArgs(args)
+	_ = rootCmd.Execute()
+
+	ctx = clearAdditionalFlags(ctx)
+	return ctx, nil
 }
 
 func cleanTempDirs(ctx context.Context, sc *godog.Scenario, lastStepErr error) (context.Context, error) {

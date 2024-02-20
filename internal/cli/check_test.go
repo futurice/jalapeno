@@ -16,11 +16,8 @@ func AddCheckSteps(s *godog.ScenarioContext) {
 }
 
 func iRunCheck(ctx context.Context) (context.Context, error) {
-	projectDir := ctx.Value(projectDirectoryPathCtxKey{}).(string)
 	ociRegistry := ctx.Value(ociRegistryCtxKey{}).(OCIRegistry)
-	additionalFlags := ctx.Value(cmdAdditionalFlagsCtxKey{}).(map[string]string)
-
-	ctx, cmd := wrapCmdOutputs(ctx)
+	projectDir := ctx.Value(projectDirectoryPathCtxKey{}).(string)
 
 	args := []string{
 		"check",
@@ -33,13 +30,7 @@ func iRunCheck(ctx context.Context) (context.Context, error) {
 		args = append(args, "--plain-http=true")
 	}
 
-	for name, value := range additionalFlags {
-		args = append(args, fmt.Sprintf("--%s=%s", name, value))
-	}
-
-	cmd.SetArgs(args)
-	_ = cmd.Execute()
-	return ctx, nil
+	return executeCLI(ctx, args...)
 }
 
 func iRunCheckForRecipe(ctx context.Context, recipe string) (context.Context, error) {

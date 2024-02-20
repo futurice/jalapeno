@@ -13,17 +13,12 @@ func AddPullSteps(s *godog.ScenarioContext) {
 }
 
 func iPullRecipe(ctx context.Context, recipeName, repoName string) (context.Context, error) {
-	recipesDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
 	ociRegistry := ctx.Value(ociRegistryCtxKey{}).(OCIRegistry)
 	configDir, configFileExists := ctx.Value(dockerConfigDirectoryPathCtxKey{}).(string)
-	additionalFlags := ctx.Value(cmdAdditionalFlagsCtxKey{}).(map[string]string)
-
-	ctx, cmd := wrapCmdOutputs(ctx)
 
 	args := []string{
 		"pull",
 		filepath.Join(ociRegistry.Resource.GetHostPort("5000/tcp"), repoName),
-		fmt.Sprintf("--dir=%s", recipesDir),
 	}
 
 	if ociRegistry.TLSEnabled {
@@ -45,11 +40,5 @@ func iPullRecipe(ctx context.Context, recipeName, repoName string) (context.Cont
 		)
 	}
 
-	for name, value := range additionalFlags {
-		args = append(args, fmt.Sprintf("--%s=%s", name, value))
-	}
-
-	cmd.SetArgs(args)
-	_ = cmd.Execute()
-	return ctx, nil
+	return executeCLI(ctx, args...)
 }

@@ -17,9 +17,6 @@ func iRunPush(ctx context.Context, recipeName string) (context.Context, error) {
 	recipesDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
 	ociRegistry := ctx.Value(ociRegistryCtxKey{}).(OCIRegistry)
 	configDir, configFileExists := ctx.Value(dockerConfigDirectoryPathCtxKey{}).(string)
-	additionalFlags := ctx.Value(cmdAdditionalFlagsCtxKey{}).(map[string]string)
-
-	ctx, cmd := wrapCmdOutputs(ctx)
 
 	args := []string{
 		"push",
@@ -46,11 +43,5 @@ func iRunPush(ctx context.Context, recipeName string) (context.Context, error) {
 		)
 	}
 
-	for name, value := range additionalFlags {
-		args = append(args, fmt.Sprintf("--%s=%s", name, value))
-	}
-
-	cmd.SetArgs(args)
-	_ = cmd.Execute()
-	return ctx, nil
+	return executeCLI(ctx, args...)
 }

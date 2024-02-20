@@ -19,10 +19,7 @@ func AddExecuteSteps(s *godog.ScenarioContext) {
 
 func iRunExecute(ctx context.Context, recipe string) (context.Context, error) {
 	projectDir := ctx.Value(projectDirectoryPathCtxKey{}).(string)
-	additionalFlags := ctx.Value(cmdAdditionalFlagsCtxKey{}).(map[string]string)
 	stdIn := ctx.Value(cmdStdInCtxKey{}).(*BlockBuffer)
-
-	ctx, cmd := wrapCmdOutputs(ctx)
 
 	var url string
 	if strings.HasPrefix(recipe, "oci://") {
@@ -42,15 +39,7 @@ func iRunExecute(ctx context.Context, recipe string) (context.Context, error) {
 		args = append(args, "--no-input")
 	}
 
-	for name, value := range additionalFlags {
-		args = append(args, fmt.Sprintf("--%s=%s", name, value))
-	}
-
-	cmd.SetArgs(args)
-	_ = cmd.Execute()
-
-	ctx = clearAdditionalFlags(ctx)
-	return ctx, nil
+	return executeCLI(ctx, args...)
 }
 
 func iExecuteRemoteRecipe(ctx context.Context, repository string) (context.Context, error) {

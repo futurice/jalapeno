@@ -2,7 +2,6 @@ package cli_test
 
 import (
 	"context"
-	"fmt"
 	"path/filepath"
 
 	"github.com/cucumber/godog"
@@ -16,22 +15,11 @@ func AddTestSteps(s *godog.ScenarioContext) {
 
 func iRunTest(ctx context.Context, recipe string) (context.Context, error) {
 	recipesDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
-	additionalFlags := ctx.Value(cmdAdditionalFlagsCtxKey{}).(map[string]string)
 
-	ctx, cmd := wrapCmdOutputs(ctx)
-
-	args := []string{
+	return executeCLI(ctx,
 		"test",
 		filepath.Join(recipesDir, recipe),
-	}
-
-	for name, value := range additionalFlags {
-		args = append(args, fmt.Sprintf("--%s=%s", name, value))
-	}
-
-	cmd.SetArgs(args)
-	_ = cmd.Execute()
-	return ctx, nil
+	)
 }
 
 func iCreateRecipeTest(ctx context.Context, recipe string) (context.Context, error) {
