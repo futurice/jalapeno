@@ -16,6 +16,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"reflect"
 	"regexp"
 	"strings"
 	"testing"
@@ -26,7 +27,6 @@ import (
 	"github.com/gofrs/uuid"
 	"github.com/muesli/termenv"
 	"github.com/ory/dockertest/v3"
-	"gopkg.in/yaml.v3"
 
 	"github.com/futurice/jalapeno/internal/cli"
 	"github.com/futurice/jalapeno/pkg/recipe"
@@ -66,31 +66,33 @@ const (
 func TestFeatures(t *testing.T) {
 	suite := godog.TestSuite{
 		ScenarioInitializer: func(s *godog.ScenarioContext) {
-			// Common steps
+			// Setup steps
 			s.Step(`^a project directory$`, aProjectDirectory)
 			s.Step(`^a recipes directory$`, aRecipesDirectory)
 			s.Step(`^a recipe "([^"]*)"$`, aRecipe)
 			s.Step(`^recipe "([^"]*)" generates file "([^"]*)" with content "([^"]*)"$`, recipeGeneratesFileWithContent)
-			s.Step(`^I remove file "([^"]*)" from the recipe "([^"]*)"$`, iRemoveFileFromTheRecipe)
-			s.Step(`^the file "([^"]*)" exist in the recipe "([^"]*)"$`, theFileExistInTheRecipe)
-			s.Step(`^I create a file "([^"]*)" with contents "([^"]*)" to the project directory$`, iCreateAFileWithContentsToTheProjectDir)
-			s.Step(`^the project directory should contain file "([^"]*)"$`, theProjectDirectoryShouldContainFile)
-			s.Step(`^the project directory should contain file "([^"]*)" with "([^"]*)"$`, theProjectDirectoryShouldContainFileWith)
-			s.Step(`^the project directory should not contain file "([^"]*)"$`, theProjectDirectoryShouldNotContainFile)
-			s.Step(`^the sauce file contains a sauce in index (\d) which should have property "([^"]*)"$`, theSauceFileShouldHaveProperty)
-			s.Step(`^the sauce file contains a sauce in index (\d) which should not have property "([^"]*)"$`, theSauceFileShouldNotHaveProperty)
-			s.Step(`^the sauce file contains a sauce in index (\d) which should have property "([^"]*)" with value "([^"]*)"$`, theSauceFileShouldHavePropertyWithValue)
-			s.Step(`^the sauce file contains a sauce in index (\d) which has a valid ID$`, theSauceFileShouldHasAValidID)
-			s.Step(`^CLI produced an output "([^"]*)"$`, expectGivenOutput)
-			s.Step(`^CLI produced an error "(.*)"$`, expectGivenError)
 			s.Step(`^recipe "([^"]*)" ignores pattern "([^"]*)"$`, recipeIgnoresPattern)
-			s.Step(`^no errors were printed$`, noErrorsWerePrinted)
+			s.Step(`^I remove file "([^"]*)" from the recipe "([^"]*)"$`, iRemoveFileFromTheRecipe)
+			s.Step(`^I create a file "([^"]*)" with contents "([^"]*)" to the project directory$`, iCreateAFileWithContentsToTheProjectDir)
 			s.Step(`^a local OCI registry$`, aLocalOCIRegistry)
 			s.Step(`^a local OCI registry with authentication$`, aLocalOCIRegistryWithAuth)
 			s.Step(`^registry credentials are not provided by the command$`, credentialsAreNotProvidedByTheCommand)
 			s.Step(`^registry credentials are provided by config file$`, generateDockerConfigFile)
-			s.Step(`^the recipes directory should contain recipe "([^"]*)"$`, theRecipesDirectoryShouldContainRecipe)
 			s.Step(`^I buffer key presses "([^"]*)"$`, bufferKeysToInput)
+
+			// Assert steps
+			s.Step(`^the recipes directory should contain recipe "([^"]*)"$`, theRecipesDirectoryShouldContainRecipe)
+			s.Step(`^no errors were printed$`, noErrorsWerePrinted)
+			s.Step(`^CLI produced an output "([^"]*)"$`, expectGivenOutput)
+			s.Step(`^CLI produced an error "(.*)"$`, expectGivenError)
+			s.Step(`^the sauce in index (\d) which should have property "([^"]*)"$`, theSauceShouldHaveProperty)
+			s.Step(`^the sauce in index (\d) which should not have property "([^"]*)"$`, theSauceFileShouldNotHaveProperty)
+			s.Step(`^the sauce in index (\d) which should have property "([^"]*)" with value "([^"]*)"$`, theSauceFileShouldHavePropertyWithValue)
+			s.Step(`^the sauce in index (\d) which has a valid ID$`, theSauceFileShouldHasAValidID)
+			s.Step(`^the project directory should contain file "([^"]*)"$`, theProjectDirectoryShouldContainFile)
+			s.Step(`^the project directory should contain file "([^"]*)" with "([^"]*)"$`, theProjectDirectoryShouldContainFileWith)
+			s.Step(`^the project directory should not contain file "([^"]*)"$`, theProjectDirectoryShouldNotContainFile)
+			s.Step(`^the file "([^"]*)" exist in the recipe "([^"]*)"$`, theFileExistInTheRecipe)
 
 			// Command specific steps
 			AddCheckSteps(s)
@@ -199,24 +201,15 @@ func readProjectDirectoryFile(ctx context.Context, filename string) (string, err
 	return string(bytes), nil
 }
 
-func readSauceFile(ctx context.Context) ([]map[string]interface{}, error) {
-	content, err := readProjectDirectoryFile(ctx, filepath.Join(recipe.SauceDirName, recipe.SaucesFileName+recipe.YAMLExtension))
+func readSauces(ctx context.Context) ([]*recipe.Sauce, error) {
+	dir := ctx.Value(projectDirectoryPathCtxKey{}).(string)
+
+	sauces, err := recipe.LoadSauces(dir)
 	if err != nil {
 		return nil, err
 	}
-	var recipes []map[string]interface{}
-	decoder := yaml.NewDecoder(bytes.NewReader([]byte(content)))
-	for {
-		recipe := make(map[string]interface{})
-		if err := decoder.Decode(&recipe); err != nil {
-			if err != io.EOF {
-				return nil, fmt.Errorf("failed to decode recipe file: %w", err)
-			}
-			break
-		}
-		recipes = append(recipes, recipe)
-	}
-	return recipes, nil
+
+	return sauces, nil
 }
 
 /*
@@ -439,17 +432,12 @@ func theProjectDirectoryShouldContainFileWith(ctx context.Context, filename, sea
 }
 
 func theSauceFileShouldHasAValidID(ctx context.Context, index int) error {
-	recipes, err := readSauceFile(ctx)
+	sauces, err := readSauces(ctx)
 	if err != nil {
 		return err
 	}
 
-	value, exists := (recipes[index])["id"].(string)
-	if exists {
-		if _, err := uuid.FromString(value); err != nil {
-			return fmt.Errorf("found UUID but it does not parse: %w", err)
-		}
-	} else {
+	if sauces[index].ID == uuid.Nil {
 		return errors.New("recipe file does not have 'id' property")
 	}
 
@@ -461,45 +449,48 @@ func theSauceFileShouldHasAValidID(ctx context.Context, index int) error {
 }
 
 func theSauceFileShouldHavePropertyWithValue(ctx context.Context, index int, propertyName, expectedValue string) error {
-	sauces, err := readSauceFile(ctx)
+	sauces, err := readSauces(ctx)
 	if err != nil {
 		return err
 	}
 
-	value, err := nestedMapLookup(sauces[index], strings.Split(propertyName, ".")...)
-	if err != nil {
-		return fmt.Errorf("sauce file does not have property %s: %w", propertyName, err)
+	r := getDeepPropertyFromStruct(sauces[index], propertyName)
+	if !r.IsValid() {
+		return fmt.Errorf("sauce file does not have property %s", propertyName)
 	}
 
-	if matched, err := regexp.MatchString(expectedValue, value.(string)); err != nil {
+	value := r.String()
+
+	if matched, err := regexp.MatchString(expectedValue, value); err != nil {
 		return fmt.Errorf("regexp pattern matching caused an error: %w", err)
 	} else if !matched {
 		return fmt.Errorf("expected property %s to match regex '%s', got '%s'", propertyName, expectedValue, value)
 	}
+
 	return nil
 }
 
-func theSauceFileShouldHaveProperty(ctx context.Context, index int, propertyName string) error {
-	sauces, err := readSauceFile(ctx)
+func theSauceShouldHaveProperty(ctx context.Context, index int, propertyName string) error {
+	sauces, err := readSauces(ctx)
 	if err != nil {
 		return err
 	}
 
-	_, err = nestedMapLookup(sauces[index], strings.Split(propertyName, ".")...)
-	if err != nil {
-		return fmt.Errorf("sauce file does not have property %s: %w", propertyName, err)
+	r := getDeepPropertyFromStruct(sauces[index], propertyName)
+	if !r.IsValid() {
+		return fmt.Errorf("sauce file does not have property %s", propertyName)
 	}
 
 	return nil
 }
 
 func theSauceFileShouldNotHaveProperty(ctx context.Context, index int, propertyName string) error {
-	err := theSauceFileShouldHaveProperty(ctx, index, propertyName)
+	err := theSauceShouldHaveProperty(ctx, index, propertyName)
 	if err == nil {
 		return fmt.Errorf("sauce file contains the property %s: %w", propertyName, err)
 	}
 
-	if !strings.Contains(err.Error(), "key not found") {
+	if !strings.Contains(err.Error(), "not have property") {
 		return err
 	}
 
@@ -711,21 +702,20 @@ func theFileExistInTheRecipe(ctx context.Context, file, recipe string) (context.
 	return ctx, nil
 }
 
-func nestedMapLookup(m map[string]interface{}, ks ...string) (rval interface{}, err error) {
-	var ok bool
+func getDeepPropertyFromStruct(v any, key string) reflect.Value {
+	r := reflect.ValueOf(v)
+	for _, k := range strings.Split(key, ".") {
+		switch reflect.Indirect(r).Kind() {
+		case reflect.Struct:
+			r = reflect.Indirect(r).FieldByName(k)
+		case reflect.Map:
+			r = r.MapIndex(reflect.ValueOf(k))
+		default:
+			return r
+		}
+	}
 
-	if len(ks) == 0 { // degenerate input
-		return nil, fmt.Errorf("NestedMapLookup needs at least one key")
-	}
-	if rval, ok = m[ks[0]]; !ok {
-		return nil, fmt.Errorf("key not found; remaining keys: %v", ks)
-	} else if len(ks) == 1 { // we've reached the final key
-		return rval, nil
-	} else if m, ok = rval.(map[string]interface{}); !ok {
-		return nil, fmt.Errorf("malformed structure at %#v", rval)
-	} else { // 1+ more keys
-		return nestedMapLookup(m, ks[1:]...)
-	}
+	return r
 }
 
 func clearAdditionalFlags(ctx context.Context) context.Context {

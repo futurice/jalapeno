@@ -46,4 +46,4 @@ Feature: Jalapenoignore
 		Then no conflicts were reported
 		And no errors were printed
 		And the project directory should contain file "will-be-removed-in-next-version" with "modified"
-		And the sauce file contains a sauce in index 0 which should not have property "files.will-be-removed-in-next-version"
+		And the sauce in index 0 which should not have property "Files.will-be-removed-in-next-version"

@@ -1,7 +1,7 @@
 Feature: Eject
 	Ejecting removes all traces of Jalapeno from a project
 
-	Scenario: Eject project
+	Scenario: Eject from project
 		Given a project directory
 		And a recipes directory
 		And a recipe "foo"

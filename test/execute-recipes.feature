@@ -9,8 +9,8 @@ Feature: Execute recipes
 		When I execute recipe "foo"
 		Then execution of the recipe has succeeded
 		And the project directory should contain file "README.md"
-		And the sauce file contains a sauce in index 0 which should have property "recipe.name" with value "^foo$"
-		And the sauce file contains a sauce in index 0 which has a valid ID
+		And the sauce in index 0 which should have property "Recipe.Name" with value "^foo$"
+		And the sauce in index 0 which has a valid ID
 
 	Scenario: Execute single recipe from remote registry
 		Given a project directory
@@ -38,8 +38,8 @@ Feature: Execute recipes
 		And no errors were printed
 		And the project directory should contain file "README.md"
 		And the project directory should contain file "Taskfile.yml"
-		And the sauce file contains a sauce in index 0 which should have property "recipe.name" with value "^foo$"
-		And the sauce file contains a sauce in index 1 which should have property "recipe.name" with value "^bar$"
+		And the sauce in index 0 which should have property "Recipe.Name" with value "^foo$"
+		And the sauce in index 1 which should have property "Recipe.Name" with value "^bar$"
 
 	Scenario: New recipe conflicts with the previous recipe
 		Given a project directory
@@ -81,8 +81,8 @@ Feature: Execute recipes
 		Then execution of the recipe has succeeded
 		And CLI produced an output "docs[\S\s]+└── README"
 		And the project directory should contain file "docs/README"
-		And the sauce file contains a sauce in index 0 which should have property "files.README"
-		And the sauce file contains a sauce in index 0 which should have property "subPath" with value "^docs$"
+		And the sauce in index 0 which should have property "Files.README"
+		And the sauce in index 0 which should have property "SubPath" with value "^docs$"
 
 	Scenario: Execute multiple recipes to different subpaths
 		Given a project directory
@@ -99,10 +99,10 @@ Feature: Execute recipes
 		And execution of the recipe has succeeded
 		And the project directory should contain file "foo/README"
 		And the project directory should contain file "bar/README"
-		And the sauce file contains a sauce in index 0 which should have property "files.README"
-		And the sauce file contains a sauce in index 0 which should have property "subPath" with value "^foo$"
-		And the sauce file contains a sauce in index 1 which should have property "files.README"
-		And the sauce file contains a sauce in index 1 which should have property "subPath" with value "^bar$"
+		And the sauce in index 0 which should have property "Files.README"
+		And the sauce in index 0 which should have property "SubPath" with value "^foo$"
+		And the sauce in index 1 which should have property "Files.README"
+		And the sauce in index 1 which should have property "SubPath" with value "^bar$"
 
 	Scenario: Try to execute recipe which escapes the project root
 		Given a project directory

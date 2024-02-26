@@ -71,12 +71,12 @@ Feature: Upgrade sauce
 		And recipes will be executed to the subpath "foo"
 		And I execute recipe "shared"
 		Then execution of the recipe has succeeded
-		And the sauce file contains a sauce in index 0 which should have property "subPath" with value "^foo$"
+		And the sauce in index 0 which should have property "SubPath" with value "^foo$"
 		And the project directory should contain file "./foo/README.md"
 		When recipes will be executed to the subpath "bar"
 		And I execute recipe "shared"
 		Then execution of the recipe has succeeded
-		And the sauce file contains a sauce in index 1 which should have property "subPath" with value "^bar$"
+		And the sauce in index 1 which should have property "SubPath" with value "^bar$"
 		And the project directory should contain file "./bar/README.md"
 		When I change recipe "shared" to version "v0.0.2"
 		And I change recipe "shared" template "README.md" to render "New version"
@@ -91,12 +91,12 @@ Feature: Upgrade sauce
 		And recipes will be executed to the subpath "foo"
 		And I execute recipe "shared"
 		Then execution of the recipe has succeeded
-		And the sauce file contains a sauce in index 0 which should have property "subPath" with value "^foo$"
+		And the sauce in index 0 which should have property "SubPath" with value "^foo$"
 		And the project directory should contain file "./foo/README.md"
 		When recipes will be executed to the subpath "bar"
 		And I execute recipe "shared"
 		Then execution of the recipe has succeeded
-		And the sauce file contains a sauce in index 1 which should have property "subPath" with value "^bar$"
+		And the sauce in index 1 which should have property "SubPath" with value "^bar$"
 		And the project directory should contain file "./bar/README.md"
 		When I change recipe "shared" to version "v0.0.2"
 		And I change recipe "shared" template "README.md" to render "New version"
