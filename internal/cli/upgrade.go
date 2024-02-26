@@ -308,7 +308,7 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 		}
 
 		if opts.NoInput {
-			return recipeutil.NewNoInputError(varsWithoutValues)
+			return recipeutil.NewNoInputError(nil)
 		}
 
 		if !overrideNoticed {

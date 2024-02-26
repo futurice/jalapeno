@@ -8,7 +8,6 @@ import (
 
 	"github.com/futurice/jalapeno/internal/cli/option"
 	"github.com/futurice/jalapeno/pkg/recipe"
-	re "github.com/futurice/jalapeno/pkg/recipe"
 	"github.com/futurice/jalapeno/pkg/recipeutil"
 	"github.com/spf13/cobra"
 )
@@ -71,7 +70,7 @@ jalapeno check --recipe my-recipe --from oci://my-registry.com/my-recipe`,
 }
 
 func runCheck(cmd *cobra.Command, opts checkOptions) error {
-	sauces, err := re.LoadSauces(opts.Dir)
+	sauces, err := recipe.LoadSauces(opts.Dir)
 	if err != nil {
 		return fmt.Errorf("can not load sauces: %w", err)
 	}
@@ -82,7 +81,7 @@ func runCheck(cmd *cobra.Command, opts checkOptions) error {
 
 	// Check if we are looking updates for a specific recipe
 	if opts.RecipeName != "" {
-		filtered := make([]*re.Sauce, 0, len(sauces))
+		filtered := make([]*recipe.Sauce, 0, len(sauces))
 		for _, sauce := range sauces {
 			if sauce.Recipe.Name == opts.RecipeName {
 				filtered = append(filtered, sauce)

@@ -125,7 +125,7 @@ Feature: Upgrade sauce
 		And the project directory should contain file "README.md" with "New version"
 		And no conflicts were reported
 
-	Scenario: Attempt upgrade when previous sauce file was modified
+	Scenario: Attempt upgrade when a file was modified by the user
 		Given a project directory
 		And a recipes directory
 		And a recipe "foo"
