@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/futurice/jalapeno/internal/cli/option"
+	"github.com/futurice/jalapeno/pkg/recipe"
 	re "github.com/futurice/jalapeno/pkg/recipe"
 	"github.com/futurice/jalapeno/pkg/recipeutil"
 	"github.com/spf13/cobra"
@@ -56,7 +57,11 @@ jalapeno check --recipe my-recipe --from oci://my-registry.com/my-recipe`,
 
 	cmd.Flags().StringVarP(&opts.RecipeName, "recipe", "r", "", "Name of the recipe to check for new versions")
 	cmd.Flags().StringVar(&opts.CheckFrom, "from", "", "Add or override the URL used for checking updates for the recipe. Works only with --recipe flag")
-	cmd.Flags().BoolVar(&opts.UseDetailedExitCode, "detailed-exitcode", false, fmt.Sprintf("Returns a detailed exit code when the command exits. When provided, this argument changes the exit codes and their meanings to provide more granular information about what the resulting plan contains: 0 = Succeeded with no updates available, 1 = Error, %d = Succeeded with updates available", ExitCodeUpdatesAvailable))
+	cmd.Flags().BoolVar(
+		&opts.UseDetailedExitCode,
+		"detailed-exitcode",
+		false,
+		fmt.Sprintf("Returns a detailed exit code when the command exits. When provided, this argument changes the exit codes and their meanings to provide more granular information about what the resulting plan contains: %d = Succeeded with no updates available, %d = Error, %d = Succeeded with updates available", ExitCodeOK, ExitCodeUpdatesAvailable, ExitCodeUpdatesAvailable))
 
 	if err := option.ApplyFlags(&opts, cmd.Flags()); err != nil {
 		return nil
@@ -107,7 +112,7 @@ func runCheck(cmd *cobra.Command, opts checkOptions) error {
 	cmd.Println("Checking for new versions...")
 
 	errorsFound := false
-	upgradeCommands := make([]string, 0, len(sauces))
+	upgrades := make(map[*recipe.Sauce]string)
 	for _, sauce := range sauces {
 		versions, err := recipeutil.CheckForUpdates(sauce, opts.OCIRepository)
 		if err != nil {
@@ -116,19 +121,17 @@ func runCheck(cmd *cobra.Command, opts checkOptions) error {
 
 		} else if len(versions) > 0 {
 			cmd.Printf("🔄 %s: new versions found: %s\n", sauce.Recipe.Name, strings.Join(versions, ", "))
-			upgradeCommands = append(upgradeCommands,
-				fmt.Sprintf("%s upgrade %s:%s", os.Args[0], sauce.CheckFrom, versions[len(versions)-1]),
-			)
+			upgrades[sauce] = versions[len(versions)-1]
 
 		} else {
 			cmd.Printf("👍 %s: no new versions found\n", sauce.Recipe.Name)
 		}
 	}
 
-	if len(upgradeCommands) > 0 {
+	if len(upgrades) > 0 {
 		cmd.Println("\nTo upgrade recipes to the latest version run:")
-		for _, cmdMsg := range upgradeCommands {
-			cmd.Printf("  %s\n", cmdMsg)
+		for sauce, version := range upgrades {
+			cmd.Printf("  %s upgrade %s:%s\n", os.Args[0], sauce.CheckFrom, version)
 		}
 	}
 
@@ -136,7 +139,7 @@ func runCheck(cmd *cobra.Command, opts checkOptions) error {
 	switch {
 	case errorsFound:
 		exitCode = ExitCodeError
-	case len(upgradeCommands) > 0 && opts.UseDetailedExitCode:
+	case len(upgrades) > 0 && opts.UseDetailedExitCode:
 		exitCode = ExitCodeUpdatesAvailable
 	default:
 		exitCode = ExitCodeOK
@@ -146,4 +149,5 @@ func runCheck(cmd *cobra.Command, opts checkOptions) error {
 	cmd.SetContext(ctx)
 
 	return nil
+
 }
