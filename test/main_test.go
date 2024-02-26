@@ -44,6 +44,7 @@ type (
 	cmdStdErrCtxKey                 struct{}
 	cmdAdditionalFlagsCtxKey        struct{}
 	dockerResourcesCtxKey           struct{}
+	scenarioNameCtxKey              struct{}
 )
 
 type OCIRegistry struct {
@@ -117,6 +118,7 @@ func TestFeatures(t *testing.T) {
 				ctx = context.WithValue(ctx, cmdAdditionalFlagsCtxKey{}, make(map[string]string))
 				ctx = context.WithValue(ctx, dockerResourcesCtxKey{}, []*dockertest.Resource{})
 				ctx = context.WithValue(ctx, cmdStdInCtxKey{}, NewBlockBuffer())
+				ctx = context.WithValue(ctx, scenarioNameCtxKey{}, sc.Name)
 
 				return ctx, nil
 			})
@@ -128,7 +130,7 @@ func TestFeatures(t *testing.T) {
 			Strict:      true,
 			Concurrency: 8,
 			Format:      "pretty",
-			Paths:       []string{"../../test"},
+			Paths:       []string{"./features"},
 			TestingT:    t,
 		},
 	}
@@ -289,9 +291,12 @@ func bufferKeysToInput(ctx context.Context, keys string) (context.Context, error
 
 func aRecipe(ctx context.Context, recipeName string) (context.Context, error) {
 	dir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
+	scenarioName := ctx.Value(scenarioNameCtxKey{}).(string)
+
 	re := recipe.NewRecipe()
 	re.Name = recipeName
 	re.Version = "v0.0.1"
+	re.Description = scenarioName
 
 	if err := re.Save(filepath.Join(dir, recipeName)); err != nil {
 		return ctx, err
