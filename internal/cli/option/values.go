@@ -7,10 +7,11 @@ import (
 )
 
 type Values struct {
-	ReuseOtherSauceValues bool
-	NoInput               bool
-	CSVDelimiter          rune
-	Flags                 []string
+	ReuseOtherSauceValues     bool
+	NoInput                   bool
+	CSVDelimiter              rune
+	Flags                     []string
+	ParseEnvironmentVariables bool
 
 	delimiter string
 }
@@ -31,5 +32,6 @@ func (opts *Values) Parse() error {
 	}
 
 	opts.CSVDelimiter = rune(opts.delimiter[0])
+	opts.ParseEnvironmentVariables = true
 	return nil
 }

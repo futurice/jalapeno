@@ -79,7 +79,7 @@ func TestParsePredefinedValues(t *testing.T) {
 				defer os.Unsetenv(envName)
 			}
 
-			actual, err := recipeutil.ParseProvidedValues(test.vars, test.flags, ',')
+			actual, err := recipeutil.ParseProvidedValues(test.vars, test.flags, ',', true)
 			if err != nil {
 				if test.expectedErr == nil {
 					t.Fatalf("parser returned error when not expected, error: %+v", err)

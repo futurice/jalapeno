@@ -125,12 +125,21 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 	}
 
 	if versionComparison > 0 {
-		cmd.Printf(
-			"Upgrading recipe '%s' from version %s to %s\n",
-			oldSauce.Recipe.Name,
-			oldSauce.Recipe.Metadata.Version,
-			re.Metadata.Version,
-		)
+		if opts.SauceID == "" {
+			cmd.Printf("Upgrading sauce with recipe '%s' from version %s to %s\n",
+				oldSauce.Recipe.Name,
+				oldSauce.Recipe.Metadata.Version,
+				re.Metadata.Version,
+			)
+		} else {
+			cmd.Printf("Upgrading sauce (ID '%s') with recipe '%s' from version %s to %s\n",
+				oldSauce.ID,
+				oldSauce.Recipe.Metadata.Name,
+				oldSauce.Recipe.Metadata.Version,
+				re.Metadata.Version,
+			)
+		}
+
 	} else {
 		opts.ReuseOldValues = false
 		cmd.Printf(
@@ -155,6 +164,10 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 		}
 	}
 
+	var values recipe.VariableValues
+
+	// Check if predefined values should be parsed (from flags and env. variables)
+	// This is disabled when upgrading happens through `check` command
 	reusedValues := make(recipe.VariableValues)
 	if opts.ReuseOtherSauceValues {
 		sauces, err := recipe.LoadSauces(opts.Dir)
@@ -180,27 +193,31 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 		}
 	}
 
-	providedValues, err := recipeutil.ParseProvidedValues(re.Variables, opts.Values.Flags, opts.CSVDelimiter)
+	providedValues, err := recipeutil.ParseProvidedValues(
+		re.Variables,
+		opts.Values.Flags,
+		opts.Values.CSVDelimiter,
+		opts.Values.ParseEnvironmentVariables,
+	)
 	if err != nil {
 		cmd.Println()
 		return fmt.Errorf("failed to parse provided values: %w", err)
 	}
 
-	predefinedValues := recipeutil.MergeValues(reusedValues, providedValues)
+	values = recipeutil.MergeValues(reusedValues, providedValues)
 
 	if opts.ReuseOldValues {
-		predefinedValues = recipeutil.MergeValues(oldSauce.Values, predefinedValues)
+		values = recipeutil.MergeValues(oldSauce.Values, values)
 	}
 
 	// Don't prompt variables which already has a value in existing sauce or is predefined
 	varsWithoutValues := make([]recipe.Variable, 0, len(re.Variables))
 	for _, v := range re.Variables {
-		if _, predefinedValueExists := predefinedValues[v.Name]; !predefinedValueExists {
+		if _, predefinedValueExists := values[v.Name]; !predefinedValueExists {
 			varsWithoutValues = append(varsWithoutValues, v)
 		}
 	}
 
-	values := predefinedValues
 	if len(varsWithoutValues) > 0 {
 		// If --no-input flag is set, try to use default values
 		if opts.NoInput {
@@ -226,7 +243,13 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 		}
 
 		cmd.Println()
-		promptedValues, err := survey.PromptUserForValues(cmd.InOrStdin(), cmd.OutOrStdout(), varsWithoutValues, predefinedValues)
+		promptedValues, err := survey.PromptUserForValues(
+			cmd.InOrStdin(),
+			cmd.OutOrStdout(),
+			varsWithoutValues,
+			values,
+		)
+
 		if err != nil {
 			if errors.Is(err, uiutil.ErrUserAborted) {
 				return nil
@@ -235,7 +258,7 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 			return fmt.Errorf("error when prompting for values: %w", err)
 		}
 
-		values = recipeutil.MergeValues(predefinedValues, promptedValues)
+		values = recipeutil.MergeValues(values, promptedValues)
 	}
 
 	newSauce, err := re.Execute(engine.New(), values, oldSauce.ID)

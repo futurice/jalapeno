@@ -16,6 +16,7 @@ type checkOptions struct {
 	CheckFrom           string
 	RecipeName          string
 	UseDetailedExitCode bool
+	Upgrade             bool
 
 	option.Common
 	option.OCIRepository
@@ -50,12 +51,16 @@ jalapeno check
 # Check updates for a single recipe
 jalapeno check --recipe my-recipe
 
+# Upgrade recipes to the latest version if new versions are found
+jalapeno check --upgrade
+
 # Add check URL for recipe which does not have it yet
 jalapeno check --recipe my-recipe --from oci://my-registry.com/my-recipe`,
 	}
 
 	cmd.Flags().StringVarP(&opts.RecipeName, "recipe", "r", "", "Name of the recipe to check for new versions")
 	cmd.Flags().StringVar(&opts.CheckFrom, "from", "", "Add or override the URL used for checking updates for the recipe. Works only with --recipe flag")
+	cmd.Flags().BoolVar(&opts.Upgrade, "upgrade", false, "Upgrade recipes to the latest version if new versions are found")
 	cmd.Flags().BoolVar(
 		&opts.UseDetailedExitCode,
 		"detailed-exitcode",
@@ -127,26 +132,51 @@ func runCheck(cmd *cobra.Command, opts checkOptions) error {
 		}
 	}
 
-	if len(upgrades) > 0 {
-		cmd.Println("\nTo upgrade recipes to the latest version run:")
-		for sauce, version := range upgrades {
-			cmd.Printf("  %s upgrade %s:%s\n", os.Args[0], sauce.CheckFrom, version)
+	if !opts.Upgrade {
+		if len(upgrades) > 0 {
+			cmd.Println("\nTo upgrade recipes to the latest version run:")
+			for sauce, version := range upgrades {
+				cmd.Printf("  %s upgrade %s:%s\n", os.Args[0], sauce.CheckFrom, version)
+			}
+		}
+
+		var exitCode int
+		switch {
+		case errorsFound:
+			exitCode = ExitCodeError
+		case len(upgrades) > 0 && opts.UseDetailedExitCode:
+			exitCode = ExitCodeUpdatesAvailable
+		default:
+			exitCode = ExitCodeOK
+		}
+
+		ctx := context.WithValue(cmd.Context(), ExitCodeContextKey{}, exitCode)
+		cmd.SetContext(ctx)
+
+		return nil
+	}
+
+	cmd.Println()
+	n := 0
+	for sauce, version := range upgrades {
+		err := runUpgrade(cmd, upgradeOptions{
+			RecipeURL:        fmt.Sprintf("%s:%s", sauce.CheckFrom, version),
+			SauceID:          sauce.ID.String(),
+			ReuseOldValues:   true,
+			Common:           opts.Common,
+			OCIRepository:    opts.OCIRepository,
+			WorkingDirectory: opts.WorkingDirectory,
+		})
+		if err != nil {
+			return err
+		}
+
+		n++
+		if n <= len(upgrades) {
+			cmd.Print("\n- - - - - - - - - -\n\n")
 		}
 	}
 
-	var exitCode int
-	switch {
-	case errorsFound:
-		exitCode = ExitCodeError
-	case len(upgrades) > 0 && opts.UseDetailedExitCode:
-		exitCode = ExitCodeUpdatesAvailable
-	default:
-		exitCode = ExitCodeOK
-	}
-
-	ctx := context.WithValue(cmd.Context(), ExitCodeContextKey{}, exitCode)
-	cmd.SetContext(ctx)
-
+	cmd.Printf("All recipes with newer versions upgraded %s\n", opts.Colors.Green.Render("successfully!"))
 	return nil
-
 }

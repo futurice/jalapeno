@@ -16,15 +16,18 @@ var (
 	ErrVarNotDefinedInRecipe = errors.New("following variable does not exist in the recipe")
 )
 
-func ParseProvidedValues(variables []recipe.Variable, flags []string, delimiter rune) (recipe.VariableValues, error) {
+func ParseProvidedValues(variables []recipe.Variable, flags []string, delimiter rune, parseEnvs bool) (recipe.VariableValues, error) {
 	values := make(recipe.VariableValues)
-	for _, env := range os.Environ() {
-		if !strings.HasPrefix(env, ValueEnvVarPrefix) {
-			continue
-		}
 
-		// Add environment variables at the beginning of the slice so CLI flags override env. variables
-		flags = append([]string{strings.TrimPrefix(env, ValueEnvVarPrefix)}, flags...)
+	if parseEnvs {
+		for _, env := range os.Environ() {
+			if !strings.HasPrefix(env, ValueEnvVarPrefix) {
+				continue
+			}
+
+			// Add environment variables at the beginning of the slice so CLI flags override env. variables
+			flags = append([]string{strings.TrimPrefix(env, ValueEnvVarPrefix)}, flags...)
+		}
 	}
 
 	for _, flag := range flags {
