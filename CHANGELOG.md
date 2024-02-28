@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.6.0](https://github.com/futurice/jalapeno/compare/v1.5.0...v1.6.0) (2024-02-28)
+
+
+### Features
+
+* support directly upgrading recipes with check command ([f789c64](https://github.com/futurice/jalapeno/commit/f789c6456a112e59f04eb1ddad13ed388928067a))
+
+
+### Bug Fixes
+
+* when upgrading to same version, do not use previous values automatically ([9c32487](https://github.com/futurice/jalapeno/commit/9c3248735f2e3b112c911f9e367555af4b58ba03))
+
 ## [1.5.0](https://github.com/futurice/jalapeno/compare/v1.4.0...v1.5.0) (2024-02-19)
 
 
