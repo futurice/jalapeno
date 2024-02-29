@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.1](https://github.com/futurice/jalapeno/compare/v1.6.0...v1.6.1) (2024-02-29)
+
+
+### Bug Fixes
+
+* honor user abort when upgrading recipes with check command ([7486129](https://github.com/futurice/jalapeno/commit/74861291c920ec422b979cb483e88caddaf09b2b))
+
 ## [1.6.0](https://github.com/futurice/jalapeno/compare/v1.5.0...v1.6.0) (2024-02-28)
 
 
