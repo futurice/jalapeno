@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.2](https://github.com/futurice/jalapeno/compare/v1.6.1...v1.6.2) (2024-02-29)
+
+
+### Bug Fixes
+
+* make the order of upgradeable sauces deterministic ([3994757](https://github.com/futurice/jalapeno/commit/399475757095967febc4dd66caf59dbeff0e7435))
+
 ## [1.6.1](https://github.com/futurice/jalapeno/compare/v1.6.0...v1.6.1) (2024-02-29)
 
 
