@@ -2,10 +2,12 @@ package cli
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/carlmjohnson/versioninfo"
+	uiutil "github.com/futurice/jalapeno/pkg/ui/util"
 	"github.com/spf13/cobra"
 )
 
@@ -64,4 +66,21 @@ func NewRootCmd() *cobra.Command {
 	)
 
 	return cmd
+}
+
+func errorHandler(cmd *cobra.Command, err error) error {
+	if err == nil {
+		return nil
+	}
+
+	// Print empty line before error message
+	cmd.Println()
+
+	// If the error is a user abort, don't print the error message
+	if errors.Is(err, uiutil.ErrUserAborted) {
+		cmd.Println("User aborted")
+		return nil
+	}
+
+	return err
 }

@@ -27,7 +27,8 @@ func NewValidateCmd() *cobra.Command {
 			return option.Parse(&opts)
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runValidate(cmd, opts)
+			err := runValidate(cmd, opts)
+			return errorHandler(cmd, err)
 		},
 		Args:    cobra.ExactArgs(1),
 		Example: `jalapeno validate path/to/recipe`,

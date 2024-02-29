@@ -40,7 +40,8 @@ func NewCheckCmd() *cobra.Command {
 			return option.Parse(&opts)
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runCheck(cmd, opts)
+			err := runCheck(cmd, opts)
+			return errorHandler(cmd, err)
 		},
 		PostRun: func(cmd *cobra.Command, args []string) {
 			cmd.Root().SetContext(cmd.Context())
@@ -138,6 +139,7 @@ func runCheck(cmd *cobra.Command, opts checkOptions) error {
 			for sauce, version := range upgrades {
 				cmd.Printf("  %s upgrade %s:%s\n", os.Args[0], sauce.CheckFrom, version)
 			}
+			cmd.Println("\nor rerun the command with '--upgrade' flag to upgrade all recipes to the latest version.")
 		}
 
 		var exitCode int

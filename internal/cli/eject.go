@@ -26,7 +26,8 @@ func NewEjectCmd() *cobra.Command {
 			return option.Parse(&opts)
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runEject(cmd, opts)
+			err := runEject(cmd, opts)
+			return errorHandler(cmd, err)
 		},
 		Example: `jalapeno eject`,
 	}

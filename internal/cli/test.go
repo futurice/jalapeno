@@ -31,7 +31,8 @@ func NewTestCmd() *cobra.Command {
 			return option.Parse(&opts)
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runTest(cmd, opts)
+			err := runTest(cmd, opts)
+			return errorHandler(cmd, err)
 		},
 		Example: `# Run recipe tests
 jalapeno test path/to/recipe
@@ -169,7 +170,6 @@ func runTest(cmd *cobra.Command, opts testOptions) error {
 	}
 
 	if len(formattedErrs) > 0 {
-		cmd.Println()
 		return fmt.Errorf("recipe tests failed: %w", errors.Join(formattedErrs...))
 	}
 

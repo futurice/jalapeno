@@ -30,7 +30,8 @@ func NewPullCmd() *cobra.Command {
 			return option.Parse(&opts)
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runPull(cmd, opts)
+			err := runPull(cmd, opts)
+			return errorHandler(cmd, err)
 		},
 		Example: `# Pull recipe from OCI repository
 jalapeno pull ghcr.io/user/recipe:latest

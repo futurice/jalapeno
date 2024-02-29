@@ -30,7 +30,8 @@ func NewPushCmd() *cobra.Command {
 			return option.Parse(&opts)
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runPush(cmd, opts)
+			err := runPush(cmd, opts)
+			return errorHandler(cmd, err)
 		},
 		Example: `# Push recipe to OCI repository
 jalapeno push path/to/recipe ghcr.io/user/recipe

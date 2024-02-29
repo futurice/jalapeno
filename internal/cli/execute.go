@@ -14,7 +14,6 @@ import (
 	"github.com/futurice/jalapeno/pkg/recipe"
 	"github.com/futurice/jalapeno/pkg/recipeutil"
 	"github.com/futurice/jalapeno/pkg/ui/survey"
-	uiutil "github.com/futurice/jalapeno/pkg/ui/util"
 	"github.com/gofrs/uuid"
 	"github.com/spf13/cobra"
 	"golang.org/x/mod/semver"
@@ -43,7 +42,8 @@ func NewExecuteCmd() *cobra.Command {
 			return option.Parse(&opts)
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runExecute(cmd, opts)
+			err := runExecute(cmd, opts)
+			return errorHandler(cmd, err)
 		},
 		Example: `# Execute local recipe
 jalapeno execute path/to/recipe
@@ -185,11 +185,7 @@ func runExecute(cmd *cobra.Command, opts executeOptions) error {
 
 		promptedValues, err := survey.PromptUserForValues(cmd.InOrStdin(), cmd.OutOrStdout(), varsWithoutValues, values)
 		if err != nil {
-			if errors.Is(err, uiutil.ErrUserAborted) {
-				return nil
-			} else {
-				return fmt.Errorf("error when prompting for values: %s", err)
-			}
+			return fmt.Errorf("error when prompting for values: %s", err)
 		}
 		values = recipeutil.MergeValues(values, promptedValues)
 	} else {

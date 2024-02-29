@@ -17,7 +17,6 @@ import (
 	"github.com/futurice/jalapeno/pkg/recipeutil"
 	"github.com/futurice/jalapeno/pkg/ui/conflict"
 	"github.com/futurice/jalapeno/pkg/ui/survey"
-	uiutil "github.com/futurice/jalapeno/pkg/ui/util"
 	"github.com/gofrs/uuid"
 	"github.com/spf13/cobra"
 	"golang.org/x/mod/semver"
@@ -46,7 +45,8 @@ func NewUpgradeCmd() *cobra.Command {
 			return option.Parse(&opts)
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runUpgrade(cmd, opts)
+			err := runUpgrade(cmd, opts)
+			return errorHandler(cmd, err)
 		},
 		Example: `# Upgrade recipe with local recipe
 jalapeno upgrade path/to/recipe
@@ -200,7 +200,6 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 		opts.Values.ParseEnvironmentVariables,
 	)
 	if err != nil {
-		cmd.Println()
 		return fmt.Errorf("failed to parse provided values: %w", err)
 	}
 
@@ -226,7 +225,6 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 				if v.Default != "" {
 					defaultValue, err := v.ParseDefaultValue()
 					if err != nil {
-						cmd.Println()
 						return fmt.Errorf("failed to parse default value for variable '%s': %w", v.Name, err)
 					}
 					values[v.Name] = defaultValue
@@ -237,7 +235,6 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 
 			// If there are still variables without values, return error
 			if len(varsWithoutDefaultValues) > 0 {
-				cmd.Println()
 				return recipeutil.NewNoInputError(varsWithoutDefaultValues)
 			}
 		}
@@ -251,10 +248,6 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 		)
 
 		if err != nil {
-			if errors.Is(err, uiutil.ErrUserAborted) {
-				return nil
-			}
-
 			return fmt.Errorf("error when prompting for values: %w", err)
 		}
 
@@ -279,7 +272,6 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 	if data, err := os.ReadFile(filepath.Join(opts.Dir, recipe.IgnoreFileName)); err == nil {
 		ignorePatterns = append(ignorePatterns, strings.Split(string(data), "\n")...)
 	} else if !errors.Is(err, fs.ErrNotExist) {
-		cmd.Println()
 		// something else happened than trying to read an ignore file that does not exist
 		return fmt.Errorf("failed to read ignore file: %w\n\n%s", err, cliutil.MakeRetryMessage(os.Args, values))
 	}
@@ -292,7 +284,6 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 		skip := false
 		for _, pattern := range ignorePatterns {
 			if matched, err := filepath.Match(pattern, path); err != nil {
-				cmd.Println()
 				return fmt.Errorf("bad ignore pattern '%s': %w\n\n%s", pattern, err, cliutil.MakeRetryMessage(os.Args, values))
 			} else if matched {
 				// file was marked as ignored for upgrades
@@ -348,13 +339,7 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 		)
 
 		if err != nil {
-			if errors.Is(err, uiutil.ErrUserAborted) {
-				cmd.Printf("User aborted\n\n%s\n", cliutil.MakeRetryMessage(os.Args, values))
-				return nil
-			}
-
-			cmd.Println()
-			return fmt.Errorf("error when prompting for question: %w\n\n%s", err, cliutil.MakeRetryMessage(os.Args, values))
+			return fmt.Errorf("error when solving file conflicts: %w", err)
 		}
 
 		if bytes.Equal(conflictResult, prevFile.Content) {
@@ -378,7 +363,6 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 			keep := false
 			for _, pattern := range ignorePatterns {
 				if matched, err := filepath.Match(pattern, filename); err != nil {
-					cmd.Println()
 					return fmt.Errorf("bad ignore pattern '%s': %w\n\n%s", pattern, err, cliutil.MakeRetryMessage(os.Args, values))
 				} else if matched {
 					keep = true
@@ -389,7 +373,6 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 			if !keep {
 				err := os.Remove(filepath.Join(opts.Dir, filename))
 				if err != nil {
-					cmd.Println()
 					return fmt.Errorf("failed to remove deprecated file '%s': %w", filename, err)
 				}
 

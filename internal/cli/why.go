@@ -31,7 +31,8 @@ func NewWhyCmd() *cobra.Command {
 			return option.Parse(&opts)
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runWhy(cmd, opts)
+			err := runWhy(cmd, opts)
+			return errorHandler(cmd, err)
 		},
 		Example: `jalapeno why path/to/file`,
 	}

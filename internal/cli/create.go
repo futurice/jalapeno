@@ -51,7 +51,8 @@ my-recipe
 			return option.Parse(&opts)
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runCreate(cmd, opts)
+			err := runCreate(cmd, opts)
+			return errorHandler(cmd, err)
 		},
 	}
 
