@@ -117,7 +117,7 @@ func runCheck(cmd *cobra.Command, opts checkOptions) error {
 	cmd.Println("Checking for new versions...")
 
 	errorsFound := false
-	upgrades := make(map[*recipe.Sauce]string)
+	latestSauceVersions := make(map[*recipe.Sauce]string)
 	for _, sauce := range sauces {
 		versions, err := recipeutil.CheckForUpdates(sauce, opts.OCIRepository)
 		if err != nil {
@@ -126,18 +126,28 @@ func runCheck(cmd *cobra.Command, opts checkOptions) error {
 
 		} else if len(versions) > 0 {
 			cmd.Printf("🔄 %s: new versions found: %s\n", sauce.Recipe.Name, strings.Join(versions, ", "))
-			upgrades[sauce] = versions[len(versions)-1]
+			latestSauceVersions[sauce] = versions[len(versions)-1]
 
 		} else {
 			cmd.Printf("👍 %s: no new versions found\n", sauce.Recipe.Name)
 		}
 	}
 
+	cmd.Println()
+
+	// Construct a list of upgradeable sauces so the order is deterministic when we list them
+	upgradeableSauces := make([]*recipe.Sauce, 0, len(latestSauceVersions))
+	for _, sauce := range sauces {
+		if _, ok := latestSauceVersions[sauce]; ok {
+			upgradeableSauces = append(upgradeableSauces, sauce)
+		}
+	}
+
 	if !opts.Upgrade {
-		if len(upgrades) > 0 {
-			cmd.Println("\nTo upgrade recipes to the latest version run:")
-			for sauce, version := range upgrades {
-				cmd.Printf("  %s upgrade %s:%s\n", os.Args[0], sauce.CheckFrom, version)
+		if len(latestSauceVersions) > 0 {
+			cmd.Println("To upgrade recipes to the latest version run:")
+			for _, sauce := range upgradeableSauces {
+				cmd.Printf("  %s upgrade %s:%s\n", os.Args[0], sauce.CheckFrom, latestSauceVersions[sauce])
 			}
 			cmd.Println("\nor rerun the command with '--upgrade' flag to upgrade all recipes to the latest version.")
 		}
@@ -146,7 +156,7 @@ func runCheck(cmd *cobra.Command, opts checkOptions) error {
 		switch {
 		case errorsFound:
 			exitCode = ExitCodeError
-		case len(upgrades) > 0 && opts.UseDetailedExitCode:
+		case len(latestSauceVersions) > 0 && opts.UseDetailedExitCode:
 			exitCode = ExitCodeUpdatesAvailable
 		default:
 			exitCode = ExitCodeOK
@@ -158,11 +168,10 @@ func runCheck(cmd *cobra.Command, opts checkOptions) error {
 		return nil
 	}
 
-	cmd.Println()
 	n := 0
-	for sauce, version := range upgrades {
+	for _, sauce := range upgradeableSauces {
 		err := runUpgrade(cmd, upgradeOptions{
-			RecipeURL:        fmt.Sprintf("%s:%s", sauce.CheckFrom, version),
+			RecipeURL:        fmt.Sprintf("%s:%s", sauce.CheckFrom, latestSauceVersions[sauce]),
 			SauceID:          sauce.ID.String(),
 			ReuseOldValues:   true,
 			Common:           opts.Common,
@@ -174,7 +183,7 @@ func runCheck(cmd *cobra.Command, opts checkOptions) error {
 		}
 
 		n++
-		if n <= len(upgrades) {
+		if n <= len(latestSauceVersions) {
 			cmd.Print("\n- - - - - - - - - -\n\n")
 		}
 	}
