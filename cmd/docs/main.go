@@ -36,9 +36,9 @@ type CommandInfo struct {
 var tmpls embed.FS
 
 const (
-	referenceDocPath = "./docs/site/docs/api.md"
+	referenceDocPath = "./docs/site/docs/api.mdx"
 	changelogSource  = "./CHANGELOG.md"
-	changelogTarget  = "./docs/site/docs/changelog.md"
+	changelogTarget  = "./docs/site/docs/changelog.mdx"
 )
 
 var templates = template.Must(template.
