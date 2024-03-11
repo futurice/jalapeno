@@ -11,11 +11,13 @@ import (
 	"oras.land/oras-go/v2/content/file"
 )
 
+const LatestTag = "latest"
+
 var (
 	ErrorUnauthorized = errors.New("unauthorized")
 )
 
-func PushRecipe(ctx context.Context, path string, opts oci.Repository) error {
+func PushRecipe(ctx context.Context, path string, opts oci.Repository, replaceLatest bool) error {
 	re, err := LoadRecipe(path)
 	if err != nil {
 		return err
@@ -59,12 +61,19 @@ func PushRecipe(ctx context.Context, path string, opts oci.Repository) error {
 		return err
 	}
 
-	_, err = oras.Copy(ctx, store, re.Version, repo, re.Version, oras.DefaultCopyOptions)
-	if err != nil {
-		if strings.Contains(err.Error(), "credential required") {
-			return ErrorUnauthorized
-		} else {
-			return err
+	destTags := []string{re.Version}
+	if replaceLatest {
+		destTags = append(destTags, LatestTag)
+	}
+
+	for _, tag := range destTags {
+		_, err = oras.Copy(ctx, store, re.Version, repo, tag, oras.DefaultCopyOptions)
+		if err != nil {
+			if strings.Contains(err.Error(), "credential required") {
+				return ErrorUnauthorized
+			} else {
+				return err
+			}
 		}
 	}
 

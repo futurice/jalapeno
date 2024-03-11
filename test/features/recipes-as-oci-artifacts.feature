@@ -17,9 +17,48 @@ Feature: Recipes as OCI artifacts
 		And recipe "foo" generates file "README.md" with content "initial"
 		And a local OCI registry
 		And the recipe "foo" is pushed to the local OCI repository "foo:v0.0.1"
-		When I pull the recipe "foo" from the local OCI repository "foo:v0.0.1"
+		When I pull recipe from the local OCI repository "foo:v0.0.1"
 		Then no errors were printed
 		And the project directory should contain file "foo/recipe.yml"
+
+	Scenario: Push a recipe to OCI repository using the 'latest' tag
+		Given a recipes directory
+		And a project directory
+		And a recipe "foo"
+		And recipe "foo" generates file "README.md" with content "initial"
+		And a local OCI registry
+		When I push the recipe "foo" to the local OCI repository with '--latest' flag
+		Then no errors were printed
+		When I pull recipe from the local OCI repository "foo:latest"
+		Then no errors were printed
+		And the project directory should contain file "foo/recipe.yml" with "version: v0.0.1"
+
+	Scenario: Pushing a recipe to OCI repository using the 'latest' tag pushes the version tag also
+		Given a recipes directory
+		And a project directory
+		And a recipe "foo"
+		And recipe "foo" generates file "README.md" with content "initial"
+		And a local OCI registry
+		When I push the recipe "foo" to the local OCI repository with '--latest' flag
+		Then no errors were printed
+		When I pull recipe from the local OCI repository "foo:v0.0.1"
+		Then no errors were printed
+		And the project directory should contain file "foo/recipe.yml" with "version: v0.0.1"
+
+	Scenario: Pushing a recipe to OCI repository using the 'latest' tag replaces the previous tag
+		Given a recipes directory
+		And a project directory
+		And a recipe "foo"
+		And recipe "foo" generates file "README.md" with content "initial"
+		And a local OCI registry
+		When I push the recipe "foo" to the local OCI repository with '--latest' flag
+		Then no errors were printed
+		When I change recipe "foo" to version "v0.0.2"
+		And I change recipe "foo" template "README.md" to render "New version"
+		And I push the recipe "foo" to the local OCI repository with '--latest' flag
+		And I pull recipe from the local OCI repository "foo:latest"
+		Then no errors were printed
+		And the project directory should contain file "foo/recipe.yml" with "version: v0.0.2"
 	
 	Scenario: Push a recipe to OCI repository with authentication
 		Given a recipes directory
@@ -36,7 +75,7 @@ Feature: Recipes as OCI artifacts
 		And recipe "foo" generates file "README.md" with content "initial"
 		And a local OCI registry with authentication
 		And the recipe "foo" is pushed to the local OCI repository "foo:v0.0.1"
-		When I pull the recipe "foo" from the local OCI repository "foo:v0.0.1"
+		When I pull recipe from the local OCI repository "foo:v0.0.1"
 		Then no errors were printed
 		And the project directory should contain file "foo/recipe.yml"
 	
@@ -53,7 +92,7 @@ Feature: Recipes as OCI artifacts
 		Given a recipes directory
 		And a project directory
 		And a local OCI registry with authentication
-		When I pull the recipe "foo" from the local OCI repository "foo:v0.0.1"
+		When I pull recipe from the local OCI repository "foo:v0.0.1"
 		Then CLI produced an error "recipe not found"
 
 	Scenario: Push a recipe from OCI repository using credentials from config file

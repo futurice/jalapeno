@@ -10,8 +10,9 @@ import (
 )
 
 type pushOptions struct {
-	RecipePath string
-	TargetURL  string
+	RecipePath   string
+	TargetURL    string
+	PushToLatest bool
 
 	option.Common
 	option.OCIRepository
@@ -22,7 +23,7 @@ func NewPushCmd() *cobra.Command {
 	var cmd = &cobra.Command{
 		Use:   "push RECIPE_PATH TARGET_URL",
 		Short: "Push a recipe to OCI repository",
-		Long:  "Push a recipe to OCI repository (e.g. Docker registry). You can authenticate by using the `--username` and `--password` flags or logging in first with `docker login`.",
+		Long:  "Push a recipe to OCI repository (e.g. Docker registry). The version of the recipe will be used as a tag for the image. You can authenticate by using the `--username` and `--password` flags or logging in first with `docker login`.",
 		Args:  cobra.ExactArgs(2),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			opts.RecipePath = args[0]
@@ -44,6 +45,8 @@ docker login ghcr.io
 jalapeno push path/to/recipe oci://ghcr.io/user/my-recipe`,
 	}
 
+	cmd.Flags().BoolVarP(&opts.PushToLatest, "latest", "l", false, "Additionally push the recipe to 'latest' tag")
+
 	if err := option.ApplyFlags(&opts, cmd.Flags()); err != nil {
 		return nil
 	}
@@ -54,7 +57,7 @@ jalapeno push path/to/recipe oci://ghcr.io/user/my-recipe`,
 func runPush(cmd *cobra.Command, opts pushOptions) error {
 	ctx := context.Background()
 
-	err := recipe.PushRecipe(ctx, opts.RecipePath, opts.Repository(opts.TargetURL))
+	err := recipe.PushRecipe(ctx, opts.RecipePath, opts.Repository(opts.TargetURL), opts.PushToLatest)
 
 	if err != nil {
 		return fmt.Errorf("failed to push recipe: %w", err)

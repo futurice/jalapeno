@@ -10,6 +10,7 @@ import (
 
 func AddPushSteps(s *godog.ScenarioContext) {
 	s.Step(`^I push the recipe "([^"]*)" to the local OCI repository$`, iRunPush)
+	s.Step(`^I push the recipe "([^"]*)" to the local OCI repository with \'--latest\' flag$`, iRunPushWithLatestTag)
 	s.Step(`^the recipe "([^"]*)" is pushed to the local OCI repository "([^"]*)"$`, iRunPush)
 }
 
@@ -44,4 +45,11 @@ func iRunPush(ctx context.Context, recipeName string) (context.Context, error) {
 	}
 
 	return executeCLI(ctx, args...)
+}
+
+func iRunPushWithLatestTag(ctx context.Context, recipeName string) (context.Context, error) {
+	additionalFlags := ctx.Value(cmdAdditionalFlagsCtxKey{}).(map[string]string)
+	additionalFlags["latest"] = "true"
+
+	return iRunPush(ctx, recipeName)
 }

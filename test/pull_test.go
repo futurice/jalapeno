@@ -9,10 +9,10 @@ import (
 )
 
 func AddPullSteps(s *godog.ScenarioContext) {
-	s.Step(`^I pull the recipe "([^"]*)" from the local OCI repository "([^"]*)"$`, iPullRecipe)
+	s.Step(`^I pull recipe from the local OCI repository "([^"]*)"$`, iPullRecipe)
 }
 
-func iPullRecipe(ctx context.Context, recipeName, repoName string) (context.Context, error) {
+func iPullRecipe(ctx context.Context, repoName string) (context.Context, error) {
 	dir := ctx.Value(projectDirectoryPathCtxKey{}).(string)
 	ociRegistry := ctx.Value(ociRegistryCtxKey{}).(OCIRegistry)
 	configDir, configFileExists := ctx.Value(dockerConfigDirectoryPathCtxKey{}).(string)
