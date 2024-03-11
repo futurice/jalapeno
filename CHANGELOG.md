@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.7.0](https://github.com/futurice/jalapeno/compare/v1.6.2...v1.7.0) (2024-03-11)
+
+
+### Features
+
+* optionally push recipe to latest tag ([62fa60f](https://github.com/futurice/jalapeno/commit/62fa60f4d07a2bc6645c6767d8c867c32f10989a))
+
 ## [1.6.2](https://github.com/futurice/jalapeno/compare/v1.6.1...v1.6.2) (2024-02-29)
 
 
