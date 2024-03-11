@@ -20,15 +20,6 @@ jobs:
         with:
           go-version: "1.22"
 
-      - uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cache/go-build
-            ~/go/pkg/mod
-          key: ${{ runner.os }}-golang-${{ hashFiles('go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-golang-
-
       - uses: arduino/setup-task@v2
         with:
           version: 3.x
