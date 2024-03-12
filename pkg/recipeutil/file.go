@@ -20,7 +20,7 @@ const (
 )
 
 func CreateFileTree(root string, files map[string]FileStatus) string {
-	tree := treeprint.NewWithRoot(root)
+	tree := treeprint.NewWithRoot(lipgloss.NewStyle().Bold(true).Render(root))
 
 	filepaths := maps.Keys(files)
 	slices.Sort(filepaths)

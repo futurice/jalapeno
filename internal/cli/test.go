@@ -129,9 +129,12 @@ func runTest(cmd *cobra.Command, opts testOptions) error {
 
 			for _, status := range fileStatuses {
 				if status != recipeutil.FileUnchanged {
-					anyUpdatesFound = true
+					if !anyUpdatesFound {
+						cmd.Print("Updating snapshots for the following tests:\n\n")
+						anyUpdatesFound = true
+					}
 					tree := recipeutil.CreateFileTree(fmt.Sprintf("%s/files", test.Name), fileStatuses)
-					cmd.Printf("The following files have been updated:\n\n%s", tree)
+					cmd.Println(tree)
 					break
 				}
 			}
@@ -147,7 +150,7 @@ func runTest(cmd *cobra.Command, opts testOptions) error {
 			return fmt.Errorf("failed to save recipe: %w", err)
 		}
 
-		cmd.Printf("\nRecipe test snapshots updated %s\n", opts.Colors.Green.Render("successfully!"))
+		cmd.Printf("Recipe test snapshots updated %s\n", opts.Colors.Green.Render("successfully!"))
 		return nil
 	}
 
