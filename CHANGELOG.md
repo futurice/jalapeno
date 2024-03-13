@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.7.2](https://github.com/futurice/jalapeno/compare/v1.7.1...v1.7.2) (2024-03-13)
+
+
+### Bug Fixes
+
+* show prompt help also when using default value ([dd56128](https://github.com/futurice/jalapeno/commit/dd5612810154cd043d67d3e9d849a16a38093ee0))
+
 ## [1.7.1](https://github.com/futurice/jalapeno/compare/v1.7.0...v1.7.1) (2024-03-13)
 
 
