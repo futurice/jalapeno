@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.7.1](https://github.com/futurice/jalapeno/compare/v1.7.0...v1.7.1) (2024-03-13)
+
+
+### Bug Fixes
+
+* remove all tags from URL ([e94a331](https://github.com/futurice/jalapeno/commit/e94a3313fe7cb526a9ffa74efbc4928bbf582f22))
+
 ## [1.7.0](https://github.com/futurice/jalapeno/compare/v1.6.2...v1.7.0) (2024-03-11)
 
 
