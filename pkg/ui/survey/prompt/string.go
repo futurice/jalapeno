@@ -61,7 +61,7 @@ func (m StringModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case tea.KeyRunes:
 			switch string(msg.Runes) {
 			case "?":
-				if m.textInput.Value() == "" && m.variable.Description != "" && !m.showDescription {
+				if m.variable.Description != "" && !m.showDescription {
 					m.showDescription = true
 					return m, nil
 				}
