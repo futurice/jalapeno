@@ -23,6 +23,7 @@ Feature: Execute recipes
 		Then execution of the recipe has succeeded
 		And no errors were printed
 		And the project directory should contain file "README.md"
+		And the sauce in index 0 which should have property "CheckFrom" with value "^oci://.+/foo$"
 
 	Scenario: Execute multiple recipes
 		Given a project directory

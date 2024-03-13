@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/futurice/jalapeno/internal/cli/option"
@@ -202,7 +203,8 @@ func runExecute(cmd *cobra.Command, opts executeOptions) error {
 
 	// Automatically add recipe origin if the recipe was remote
 	if wasRemoteRecipe {
-		sauce.CheckFrom = strings.TrimSuffix(opts.RecipeURL, fmt.Sprintf(":%s", re.Metadata.Version))
+		re := regexp.MustCompile(`(.+)(:[^\/\/].+)$`)
+		sauce.CheckFrom = re.ReplaceAllString(opts.RecipeURL, "$1")
 	}
 
 	// Check for conflicts
