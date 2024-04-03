@@ -30,6 +30,26 @@ func TestPromptUserForValues(t *testing.T) {
 			input: "foo\r",
 		},
 		{
+			name: "boolean_variable_with_arrows",
+			variables: []recipe.Variable{
+				{Name: "VAR_1", Confirm: true},
+			},
+			expected: recipe.VariableValues{
+				"VAR_1": true,
+			},
+			input: "→\r",
+		},
+		{
+			name: "boolean_variable_with_keys",
+			variables: []recipe.Variable{
+				{Name: "VAR_1", Confirm: true},
+			},
+			expected: recipe.VariableValues{
+				"VAR_1": true,
+			},
+			input: "y\r",
+		},
+		{
 			name: "select_variable",
 			variables: []recipe.Variable{
 				{Name: "VAR_1", Options: []string{"a", "b", "c"}},
@@ -38,6 +58,44 @@ func TestPromptUserForValues(t *testing.T) {
 				"VAR_1": "c",
 			},
 			input: "↓↓\r",
+		},
+		{
+			name: "table_variable_with_arrows",
+			variables: []recipe.Variable{
+				{Name: "VAR_1", Columns: []string{"column_1", "column_2"}},
+			},
+			expected: recipe.VariableValues{
+				"VAR_1": recipe.TableValue{
+					Columns: []string{"column_1", "column_2"},
+					Rows:    [][]string{{"foo", "bar"}, {"", "quz"}},
+				},
+			},
+			input: "foo→bar↓quz\r",
+		},
+		{
+			name: "table_variable_with_tabs",
+			variables: []recipe.Variable{
+				{Name: "VAR_1", Columns: []string{"column_1", "column_2"}},
+			},
+			expected: recipe.VariableValues{
+				"VAR_1": recipe.TableValue{
+					Columns: []string{"column_1", "column_2"},
+					Rows:    [][]string{{"foo", "bar"}, {"baz", "quz"}},
+				},
+			},
+			input: "foo\tbar\tbaz\tquz\r",
+		},
+		{
+			name: "multiple_variables",
+			variables: []recipe.Variable{
+				{Name: "VAR_1"},
+				{Name: "VAR_2", Confirm: true},
+			},
+			expected: recipe.VariableValues{
+				"VAR_1": "foo",
+				"VAR_2": true,
+			},
+			input: "foo\ry\r",
 		},
 	}
 
