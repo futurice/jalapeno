@@ -86,6 +86,10 @@ func (m StringModel) View() string {
 		return s.String()
 	}
 
+	if m.variable.Optional {
+		s.WriteString(m.styles.HelpText.Render(" (optional)"))
+	}
+
 	if m.variable.Description != "" && !m.showDescription {
 		s.WriteString(m.styles.HelpText.Render(" [type ? for more info]"))
 	}

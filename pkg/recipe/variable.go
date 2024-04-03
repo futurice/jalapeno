@@ -86,11 +86,17 @@ func (v *Variable) Validate() error {
 			return errors.New("`confirm` and `options` properties can not be defined at the same time")
 		} else if len(v.Columns) > 0 {
 			return errors.New("`confirm` and `columns` properties can not be defined at the same time")
+		} else if v.Optional {
+			return errors.New("boolean variables can not be optional")
 		}
 	}
 
-	if len(v.Options) > 0 && len(v.Columns) > 0 {
-		return errors.New("`options` and `columns` properties can not be defined at the same time")
+	if len(v.Options) > 0 {
+		if len(v.Columns) > 0 {
+			return errors.New("`options` and `columns` properties can not be defined at the same time")
+		} else if v.Optional {
+			return errors.New("select variables can not be optional")
+		}
 	}
 
 	for i, validator := range v.Validators {

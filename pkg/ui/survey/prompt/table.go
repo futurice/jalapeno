@@ -112,6 +112,10 @@ func (m TableModel) View() string {
 		return s.String()
 	}
 
+	if m.variable.Optional {
+		s.WriteString(m.styles.HelpText.Render(" (optional)"))
+	}
+
 	if !m.showDescription {
 		s.WriteString(m.styles.HelpText.Render(" [type ? for more info]"))
 	}
