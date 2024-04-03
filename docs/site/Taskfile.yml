@@ -11,7 +11,7 @@ tasks:
 
   gen:
     desc: Generate CLI documentation
-    dir: "{{.ROOT_DIR}}"
+    dir: ../../
     cmds:
       - go run cmd/docs/main.go
 
@@ -19,18 +19,20 @@ tasks:
     desc: Start website
     aliases: [run]
     vars:
-      PORT: '{{default "3001" .PORT}}'
+      PORT: '{{ default "3001" .PORT }}'
     deps: [gen]
     cmds:
-      - npx docusaurus start --no-open --port={{.PORT}}
+      - npx docusaurus start --no-open --port={{ .PORT }}
+      - defer: { task: cleanup }
 
   build:
     desc: Build website
     deps: [gen]
     cmds:
-      - npx docusaurus build --out-dir {{.BUILD_DIR}}
+      - npx docusaurus build --out-dir {{ .BUILD_DIR }}
 
-  clean:
-    desc: Clean temp directories
+  cleanup:
+    desc: Clean up generated files and temp directories
     cmds:
-      - rm -rf {{.BUILD_DIR}}
+      - rm -rf {{ .BUILD_DIR }}
+      - git checkout HEAD -- docs/api.mdx docs/changelog.mdx
