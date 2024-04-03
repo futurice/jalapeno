@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="generator" content="Docusaurus v3.2.0">
 <title data-rh="true">Usage | Jalapeno</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:url" content="https://futurice.github.io/jalapeno/usage"><meta data-rh="true" property="og:locale" content="en"><meta data-rh="true" name="docusaurus_locale" content="en"><meta data-rh="true" name="docsearch:language" content="en"><meta data-rh="true" name="docusaurus_version" content="current"><meta data-rh="true" name="docusaurus_tag" content="docs-default-current"><meta data-rh="true" name="docsearch:version" content="current"><meta data-rh="true" name="docsearch:docusaurus_tag" content="docs-default-current"><meta data-rh="true" property="og:title" content="Usage | Jalapeno"><meta data-rh="true" name="description" content="Getting started"><meta data-rh="true" property="og:description" content="Getting started"><link data-rh="true" rel="icon" href="/jalapeno/img/logo.svg"><link data-rh="true" rel="canonical" href="https://futurice.github.io/jalapeno/usage"><link data-rh="true" rel="alternate" href="https://futurice.github.io/jalapeno/usage" hreflang="en"><link data-rh="true" rel="alternate" href="https://futurice.github.io/jalapeno/usage" hreflang="x-default"><link rel="stylesheet" href="/jalapeno/assets/css/styles.7f135179.css">
-<script src="/jalapeno/assets/js/runtime~main.591adc4c.js" defer="defer"></script>
+<script src="/jalapeno/assets/js/runtime~main.3126af6f.js" defer="defer"></script>
 <script src="/jalapeno/assets/js/main.086e1bcd.js" defer="defer"></script>
 </head>
 <body class="navigation-with-keyboard">
@@ -24,7 +24,7 @@
 <p>The <code>.jalapeno</code> directory contains files which Jalapeno uses internally. For example <code>sauces.yml</code> is Jalapeno metadata file which contains information about the <em>sauces</em> (aka executed recipes). This file is used to check for updates for the recipes later.</p>
 <p>The rest of the files are rendered from the templates. You can edit the templates and execute the recipe again to update the files.</p>
 <h2 class="anchor anchorWithStickyNavbar_LWe7" id="templating">Templating<a href="#templating" class="hash-link" aria-label="Direct link to Templating" title="Direct link to Templating">​</a></h2>
-<p>Templates are done by using <a href="https://pkg.go.dev/text/template" target="_blank" rel="noopener noreferrer">Go templates</a>.</p>
+<p>Templates are done by using <a href="https://pkg.go.dev/text/template" target="_blank" rel="noopener noreferrer">Go templates</a>. Examples how to write these templates can be found in <a href="https://www.digitalocean.com/community/tutorials/how-to-use-templates-in-go#step-4-writing-a-template" target="_blank" rel="noopener noreferrer">this article</a> and in the <a href="https://github.com/futurice/jalapeno/blob/main/examples/variable-types/templates/README.md?plain=1" target="_blank" rel="noopener noreferrer">example recipe</a>.</p>
 <p>The following context is available on the templates:</p>
 <ul>
 <li><code>.Recipe</code>: Metadata object of the recipe<!-- -->
