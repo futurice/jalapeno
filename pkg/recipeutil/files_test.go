@@ -17,105 +17,117 @@ func TestCreateFileTree(t *testing.T) {
 			"single_file_in_root",
 			".",
 			map[string]recipeutil.FileStatus{
-				"foo": recipeutil.FileUnchanged,
+				"foo": recipeutil.FileUnknown,
 			},
 			`.
-└── foo (unchanged)
+└── foo
 `,
 		},
 		{
 			"multiple_files_in_root",
 			".",
 			map[string]recipeutil.FileStatus{
-				"foo": recipeutil.FileUnchanged,
-				"bar": recipeutil.FileUnchanged,
+				"foo": recipeutil.FileUnknown,
+				"bar": recipeutil.FileUnknown,
 			},
 			`.
-├── bar (unchanged)
-└── foo (unchanged)
+├── bar
+└── foo
 `,
 		},
 		{
 			"nested_file",
 			".",
 			map[string]recipeutil.FileStatus{
-				"foo/bar/baz": recipeutil.FileUnchanged,
+				"foo/bar/baz": recipeutil.FileUnknown,
 			},
 			`.
 └── foo
     └── bar
-        └── baz (unchanged)
+        └── baz
 `,
 		},
 		{
 			"nested_files_in_same_dir",
 			".",
 			map[string]recipeutil.FileStatus{
-				"foo/bar/baz-1": recipeutil.FileUnchanged,
-				"foo/bar/baz-2": recipeutil.FileUnchanged,
+				"foo/bar/baz-1": recipeutil.FileUnknown,
+				"foo/bar/baz-2": recipeutil.FileUnknown,
 			},
 			`.
 └── foo
     └── bar
-        ├── baz-1 (unchanged)
-        └── baz-2 (unchanged)
+        ├── baz-1
+        └── baz-2
 `,
 		},
 		{
 			"nested_files_in_different_dirs",
 			".",
 			map[string]recipeutil.FileStatus{
-				"foo/bar-1/baz": recipeutil.FileUnchanged,
-				"foo/bar-2/baz": recipeutil.FileUnchanged,
+				"foo/bar-1/baz": recipeutil.FileUnknown,
+				"foo/bar-2/baz": recipeutil.FileUnknown,
 			},
 			`.
 └── foo
     ├── bar-1
-    │   └── baz (unchanged)
+    │   └── baz
     └── bar-2
-        └── baz (unchanged)
+        └── baz
 `,
 		},
 		{
 			"files_are_alphabetically_sorted",
 			".",
 			map[string]recipeutil.FileStatus{
-				"b/a/b": recipeutil.FileUnchanged,
-				"b/b/a": recipeutil.FileUnchanged,
-				"c/a":   recipeutil.FileUnchanged,
-				"a/a/c": recipeutil.FileUnchanged,
-				"a/a/a": recipeutil.FileUnchanged,
-				"a/a/b": recipeutil.FileUnchanged,
+				"b/a/b": recipeutil.FileUnknown,
+				"b/b/a": recipeutil.FileUnknown,
+				"c/a":   recipeutil.FileUnknown,
+				"a/a/c": recipeutil.FileUnknown,
+				"a/a/a": recipeutil.FileUnknown,
+				"a/a/b": recipeutil.FileUnknown,
 			},
 			`.
 ├── a
 │   └── a
-│       ├── a (unchanged)
-│       ├── b (unchanged)
-│       └── c (unchanged)
+│       ├── a
+│       ├── b
+│       └── c
 ├── b
 │   ├── a
-│   │   └── b (unchanged)
+│   │   └── b
 │   └── b
-│       └── a (unchanged)
+│       └── a
 └── c
-    └── a (unchanged)
+    └── a
+`,
+		},
+		{
+			"directory_as_entry",
+			".",
+			map[string]recipeutil.FileStatus{
+				"a/": recipeutil.FileUnknown,
+			},
+			`.
+└── a/
 `,
 		},
 		{
 			"file statuses",
 			".",
 			map[string]recipeutil.FileStatus{
-				"a": recipeutil.FileUnchanged,
-				"b": recipeutil.FileAdded,
-				"c": recipeutil.FileModified,
-				"d": recipeutil.FileDeleted,
+				"a": recipeutil.FileUnknown,
+				"b": recipeutil.FileUnchanged,
+				"c": recipeutil.FileAdded,
+				"d": recipeutil.FileModified,
+				"e": recipeutil.FileDeleted,
 			},
 			`.
-├── a (unchanged)
-├── b (added)
-├── c (modified)
-└── d (deleted)
+├── a
+├── b (unchanged)
+├── c (added)
+├── d (modified)
+└── e (deleted)
 `,
 		},
 	}

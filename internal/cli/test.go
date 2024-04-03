@@ -76,10 +76,15 @@ func runTest(cmd *cobra.Command, opts testOptions) error {
 		}
 
 		cmd.Printf(
-			"Test '%s' created %s\n",
+			"Test '%s' created %s\n\n",
 			test.Name,
 			opts.Colors.Green.Render("successfully!"),
 		)
+
+		fmt.Printf("Following files were created: \n%s", recipeutil.CreateFileTree(opts.RecipePath, map[string]recipeutil.FileStatus{
+			fmt.Sprintf("tests/%s/test.yml", test.Name): recipeutil.FileAdded,
+			fmt.Sprintf("tests/%s/files/", test.Name):   recipeutil.FileAdded,
+		}))
 		return nil
 	}
 

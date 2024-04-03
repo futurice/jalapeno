@@ -13,7 +13,8 @@ import (
 type FileStatus int
 
 const (
-	FileUnchanged FileStatus = iota
+	FileUnknown FileStatus = iota
+	FileUnchanged
 	FileAdded
 	FileModified
 	FileDeleted
@@ -27,16 +28,30 @@ func CreateFileTree(root string, files map[string]FileStatus) string {
 
 	for _, filepath := range filepaths {
 		filepathSegments := strings.Split(filepath, "/")
+
+		// If the last segment is empty, it means the filepath should represent a directory
+		if filepathSegments[len(filepathSegments)-1] == "" {
+			filepathSegments = filepathSegments[:len(filepathSegments)-1]
+			filepathSegments[len(filepathSegments)-1] += "/"
+		}
+
 		cursor := tree
 		for i, filepathSegment := range filepathSegments {
 			if node := cursor.FindByValue(filepathSegment); node == nil {
 				branchName := filepathSegment
 				status := files[filepath]
-				if i == len(filepathSegments)-1 {
-					if status == FileDeleted {
+				isLeaf := i == len(filepathSegments)-1
+
+				if isLeaf {
+					switch status {
+					case FileUnknown:
+						break
+					case FileDeleted:
 						filepathSegment = lipgloss.NewStyle().Strikethrough(true).Render(filepathSegment)
+						fallthrough
+					default:
+						branchName = fmt.Sprintf("%s (%s)", filepathSegment, status)
 					}
-					branchName = fmt.Sprintf("%s (%s)", filepathSegment, status)
 				}
 				cursor = cursor.AddBranch(branchName)
 			} else {
