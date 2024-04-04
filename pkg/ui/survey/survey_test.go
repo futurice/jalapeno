@@ -1,7 +1,10 @@
 package survey_test
 
 import (
+	"io"
 	"reflect"
+	"regexp"
+	"strings"
 	"testing"
 	"time"
 
@@ -13,18 +16,19 @@ import (
 
 func TestPromptUserForValues(t *testing.T) {
 	testCases := []struct {
-		name           string
-		variables      []recipe.Variable
-		existingValues recipe.VariableValues
-		expected       recipe.VariableValues
-		input          string
+		name                 string
+		variables            []recipe.Variable
+		existingValues       recipe.VariableValues
+		expectedValues       recipe.VariableValues
+		input                string
+		expectedOutputRegexp string
 	}{
 		{
 			name: "string_variable",
 			variables: []recipe.Variable{
 				{Name: "VAR_1"},
 			},
-			expected: recipe.VariableValues{
+			expectedValues: recipe.VariableValues{
 				"VAR_1": "foo",
 			},
 			input: "foo\r",
@@ -34,7 +38,7 @@ func TestPromptUserForValues(t *testing.T) {
 			variables: []recipe.Variable{
 				{Name: "VAR_1", Confirm: true},
 			},
-			expected: recipe.VariableValues{
+			expectedValues: recipe.VariableValues{
 				"VAR_1": true,
 			},
 			input: "→\r",
@@ -44,7 +48,7 @@ func TestPromptUserForValues(t *testing.T) {
 			variables: []recipe.Variable{
 				{Name: "VAR_1", Confirm: true},
 			},
-			expected: recipe.VariableValues{
+			expectedValues: recipe.VariableValues{
 				"VAR_1": true,
 			},
 			input: "y\r",
@@ -54,7 +58,7 @@ func TestPromptUserForValues(t *testing.T) {
 			variables: []recipe.Variable{
 				{Name: "VAR_1", Options: []string{"a", "b", "c"}},
 			},
-			expected: recipe.VariableValues{
+			expectedValues: recipe.VariableValues{
 				"VAR_1": "c",
 			},
 			input: "↓↓\r",
@@ -64,7 +68,7 @@ func TestPromptUserForValues(t *testing.T) {
 			variables: []recipe.Variable{
 				{Name: "VAR_1", Columns: []string{"column_1", "column_2"}},
 			},
-			expected: recipe.VariableValues{
+			expectedValues: recipe.VariableValues{
 				"VAR_1": recipe.TableValue{
 					Columns: []string{"column_1", "column_2"},
 					Rows:    [][]string{{"foo", "bar"}, {"", "quz"}},
@@ -77,7 +81,7 @@ func TestPromptUserForValues(t *testing.T) {
 			variables: []recipe.Variable{
 				{Name: "VAR_1", Columns: []string{"column_1", "column_2"}},
 			},
-			expected: recipe.VariableValues{
+			expectedValues: recipe.VariableValues{
 				"VAR_1": recipe.TableValue{
 					Columns: []string{"column_1", "column_2"},
 					Rows:    [][]string{{"foo", "bar"}, {"baz", "quz"}},
@@ -91,11 +95,22 @@ func TestPromptUserForValues(t *testing.T) {
 				{Name: "VAR_1"},
 				{Name: "VAR_2", Confirm: true},
 			},
-			expected: recipe.VariableValues{
+			expectedValues: recipe.VariableValues{
 				"VAR_1": "foo",
 				"VAR_2": true,
 			},
 			input: "foo\ry\r",
+		},
+		{
+			name: "optional_variable",
+			variables: []recipe.Variable{
+				{Name: "VAR_1", Optional: true},
+			},
+			expectedValues: recipe.VariableValues{
+				"VAR_1": "",
+			},
+			input:                "\r",
+			expectedOutputRegexp: "VAR_1: empty",
 		},
 	}
 
@@ -115,8 +130,22 @@ func TestPromptUserForValues(t *testing.T) {
 
 			// Assert that the result is correct
 			result := m.Values()
-			if !reflect.DeepEqual(result, tc.expected) {
-				t.Errorf("Unexpected result. Got %v, expected %v", result, tc.expected)
+			if !reflect.DeepEqual(result, tc.expectedValues) {
+				t.Errorf("Unexpected result. Got %v, expected %v", result, tc.expectedValues)
+			}
+
+			// Assert that the output is correct
+			if tc.expectedOutputRegexp != "" {
+				buf := new(strings.Builder)
+				_, err := io.Copy(buf, tm.FinalOutput(tt))
+				if err != nil {
+					t.Fatalf("Could not read output of the survey: %v", err)
+				}
+
+				reg := regexp.MustCompile(tc.expectedOutputRegexp)
+				if !reg.MatchString(buf.String()) {
+					t.Errorf("The output did not match the regular expression \"%s\". Output is: %v", tc.expectedOutputRegexp, buf.String())
+				}
 			}
 		})
 	}

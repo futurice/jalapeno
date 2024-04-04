@@ -278,7 +278,7 @@ func (m Model) View() string {
 func (m *Model) AddRow() {
 	row := make(Row, len(m.cols))
 	for i := range row {
-		row[i].input = m.newTextInput(m.cols[i])
+		row[i].input = m.newTextInput()
 	}
 
 	m.rows = append(m.rows, row)
@@ -452,7 +452,7 @@ func (m *Model) validateCell(y, x int) {
 }
 
 // newTextInput initializes a text input which is used inside a cell.
-func (m Model) newTextInput(c Column) textinput.Model {
+func (m Model) newTextInput() textinput.Model {
 	ti := textinput.New()
 	ti.Prompt = ""
 

@@ -75,7 +75,7 @@ func (m TableModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, nil
 			}
 
-			if !m.variable.Optional && len(m.table.Values()) == 0 {
+			if !m.variable.Optional && m.IsEmpty() {
 				m.err = errors.New("table can not be empty since the variable is not optional")
 				return m, nil
 			}
@@ -108,6 +108,13 @@ func (m TableModel) View() string {
 
 	if m.submitted {
 		s.WriteString(": ")
+
+		if m.IsEmpty() {
+			s.WriteString(m.styles.HelpText.Render("empty"))
+		} else {
+			s.WriteString(m.tableAsCSV)
+		}
+
 		s.WriteString(m.tableAsCSV)
 		return s.String()
 	}
@@ -176,4 +183,8 @@ func (m TableModel) ValueAsCSV() string {
 	}
 
 	return s
+}
+
+func (m TableModel) IsEmpty() bool {
+	return len(m.table.Values()) == 0
 }

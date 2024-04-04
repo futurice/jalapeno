@@ -82,7 +82,13 @@ func (m StringModel) View() string {
 
 	if m.submitted {
 		s.WriteString(": ")
-		s.WriteString(m.textInput.Value())
+
+		if m.textInput.Value() == "" {
+			s.WriteString(m.styles.HelpText.Render("empty"))
+		} else {
+			s.WriteString(m.textInput.Value())
+		}
+
 		return s.String()
 	}
 
