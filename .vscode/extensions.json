@@ -1,3 +1,8 @@
 {
-  "recommendations": ["rioj7.command-variable", "golang.go", "cucumberopen.cucumber-official"]
+  "recommendations": [
+    "rioj7.command-variable",
+    "golang.go",
+    "cucumberopen.cucumber-official",
+    "task.vscode-task"
+  ]
 }

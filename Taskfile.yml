@@ -6,17 +6,18 @@ includes:
     dir: ./docs/site
 
 vars:
-  ENTRYPOINT: ./cmd/jalapeno # Path to main package
+  ENTRYPOINT: "{{.TASKFILE_DIR}}/cmd/jalapeno" # Path to main package
 
 tasks:
   lint:
-    desc: Runs golangci-lint
+    desc: Runs linters
     sources:
       - "./**/*.go"
     cmds:
       - golangci-lint run
 
   run:
+    desc: "Run a CLI command with arguments. Example: `task run -- execute ./my-recipe`"
     cmds:
       - go run {{.ENTRYPOINT}} {{.CLI_ARGS}}
 
@@ -42,4 +43,5 @@ tasks:
   test:
     desc: Run the test suite
     cmds:
+      - task: lint
       - go test {{.CLI_ARGS}} ./...
