@@ -448,10 +448,6 @@ func theSauceFileShouldHasAValidID(ctx context.Context, index int) error {
 		return errors.New("recipe file does not have 'id' property")
 	}
 
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 
