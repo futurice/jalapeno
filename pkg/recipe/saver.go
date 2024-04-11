@@ -29,7 +29,7 @@ func (re *Recipe) Save(dest string) error {
 	encoder := yaml.NewEncoder(file)
 	encoder.SetIndent(yamlIndent)
 	if err := encoder.Encode(re); err != nil {
-		return fmt.Errorf("failed to write recipe test to a file: %w", err)
+		return fmt.Errorf("failed to write recipe to a file: %w", err)
 	}
 
 	if err := encoder.Close(); err != nil {
@@ -221,5 +221,27 @@ func saveFileMap(files map[string]File, dest string) error {
 			return err
 		}
 	}
+	return nil
+}
+
+func (m *Manifest) Save(path string) error {
+	file, err := os.Create(path)
+	if err != nil {
+		return fmt.Errorf("failed to create manifest file: %w", err)
+	}
+
+	encoder := yaml.NewEncoder(file)
+	encoder.SetIndent(yamlIndent)
+	if err := encoder.Encode(m); err != nil {
+		return fmt.Errorf("failed to write manifest to a file: %w", err)
+	}
+
+	if err := encoder.Close(); err != nil {
+		return fmt.Errorf("failed to close manifest YAML encoder: %w", err)
+	}
+	if err := file.Close(); err != nil {
+		return fmt.Errorf("failed to close manifest file: %w", err)
+	}
+
 	return nil
 }

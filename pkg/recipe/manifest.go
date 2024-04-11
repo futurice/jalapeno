@@ -1,6 +1,8 @@
 package recipe
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type Manifest struct {
 	APIVersion string           `yaml:"apiVersion"`
@@ -14,6 +16,12 @@ type ManifestRecipe struct {
 	Values     VariableValues `yaml:"values,omitempty"`
 }
 
+func NewManifest() *Manifest {
+	return &Manifest{
+		APIVersion: "v1",
+	}
+}
+
 func (m *Manifest) Validate() error {
 	if m.APIVersion != "v1" {
 		return fmt.Errorf("unreconized manifest API version \"%s\"", m.APIVersion)
@@ -23,6 +31,15 @@ func (m *Manifest) Validate() error {
 }
 
 func (m *Manifest) GetRecipes() ([]*Recipe, error) {
-	// TODO
-	return nil, nil
+	recipes := make([]*Recipe, len(m.Recipes))
+	for i, recipe := range m.Recipes {
+		re, err := LoadRecipe(recipe.Repository)
+		if err != nil {
+			return nil, fmt.Errorf("can not load recipe \"%s\": %w", recipe.Name, err)
+		}
+
+		recipes[i] = re
+	}
+
+	return recipes, nil
 }

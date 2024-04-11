@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/cucumber/godog"
-	re "github.com/futurice/jalapeno/pkg/recipe"
+	"github.com/futurice/jalapeno/pkg/recipe"
 )
 
 func AddExecuteSteps(s *godog.ScenarioContext) {
@@ -16,20 +16,25 @@ func AddExecuteSteps(s *godog.ScenarioContext) {
 	s.Step(`^I execute the recipe from the local OCI repository "([^"]*)"$`, iExecuteRemoteRecipe)
 	s.Step(`^recipes will be executed to the subpath "([^"]*)"$`, recipesWillBeExecutedToTheSubPath)
 	s.Step(`^execution of the recipe has succeeded$`, executionOfTheRecipeHasSucceeded)
-	s.Step(`^a manifest file that includes recipes "([^"]*)" and "([^"]*)"$`, aManifestFileThatIncludesRecipesAnd)
+	s.Step(`^a manifest file that includes recipes$`, aManifestFileThatIncludesRecipes)
 	s.Step(`^I execute the manifest file$`, iExecuteTheManifestFile)
 }
 
-func iRunExecute(ctx context.Context, recipe string) (context.Context, error) {
+const TestManifestFileName = "manifest.yml"
+
+func iRunExecute(ctx context.Context, target string) (context.Context, error) {
 	projectDir := ctx.Value(projectDirectoryPathCtxKey{}).(string)
 	stdIn := ctx.Value(cmdStdInCtxKey{}).(*BlockBuffer)
 
 	var url string
-	if strings.HasPrefix(recipe, "oci://") {
-		url = recipe
+	if strings.HasPrefix(target, "oci://") {
+		url = target
+	} else if target == TestManifestFileName {
+		manifestDir := ctx.Value(manifestDirectoryPathCtxKey{}).(string)
+		url = filepath.Join(manifestDir, TestManifestFileName)
 	} else {
 		recipesDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
-		url = filepath.Join(recipesDir, recipe)
+		url = filepath.Join(recipesDir, target)
 	}
 
 	args := []string{
@@ -82,28 +87,40 @@ func executionOfTheRecipeHasSucceeded(ctx context.Context) (context.Context, err
 	return ctx, expectGivenOutput(ctx, "Recipe executed successfully")
 }
 
-func aManifestFileThatIncludesRecipesAnd(ctx context.Context, recipe1, recipe2 string) (context.Context, error) {
+func aManifestFileThatIncludesRecipes(ctx context.Context, recipeNames *godog.Table) (context.Context, error) {
 	recipeDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
 	dir, err := os.MkdirTemp("", "jalapeno-test-manifest")
 	if err != nil {
 		return ctx, err
 	}
-	ctx = context.WithValue(ctx, manifestDirectoryPathCtxKey{}, dir)
-	manifest := fmt.Sprintf(`apiVersion: v1
-recipes:
-  - name: %[2]s
-    version: 0.0.0
-    repository: file://%[1]s/%[2]s
-  - name: %[3]s
-    version: 0.0.0
-    repository: file://%[1]s/%[3]s
-`, recipeDir, recipe1, recipe2)
-	if err := os.WriteFile(filepath.Join(dir, re.ManifestFileName+re.YAMLExtension), []byte(manifest), 0644); err != nil {
+
+	recipes := make([]recipe.ManifestRecipe, len(recipeNames.Rows[0].Cells))
+	for i, name := range recipeNames.Rows[0].Cells {
+		re, err := recipe.LoadRecipe(filepath.Join(recipeDir, name.Value))
+		if err != nil {
+			return ctx, err
+		}
+
+		recipes[i] = recipe.ManifestRecipe{
+			Name:       re.Name,
+			Version:    re.Version,
+			Repository: fmt.Sprintf("file://%s/%s", recipeDir, name.Value),
+		}
+	}
+
+	manifest := recipe.NewManifest()
+	manifest.Recipes = recipes
+
+	err = manifest.Save(filepath.Join(dir, TestManifestFileName))
+	if err != nil {
 		return ctx, err
 	}
-	return ctx, godog.ErrPending
+
+	ctx = context.WithValue(ctx, manifestDirectoryPathCtxKey{}, dir)
+
+	return ctx, nil
 }
 
-func iExecuteTheManifestFile() error {
-	return godog.ErrPending
+func iExecuteTheManifestFile(ctx context.Context) (context.Context, error) {
+	return iRunExecute(ctx, TestManifestFileName)
 }

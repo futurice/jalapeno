@@ -67,6 +67,13 @@ const (
 
 func TestFeatures(t *testing.T) {
 	suite := godog.TestSuite{
+		Options: &godog.Options{
+			Format:      "pretty",
+			Strict:      true,
+			Concurrency: 8,
+			Paths:       []string{"features"},
+			TestingT:    t,
+		},
 		ScenarioInitializer: func(s *godog.ScenarioContext) {
 			// Setup steps
 			s.Step(`^a project directory$`, aProjectDirectory)
@@ -126,13 +133,6 @@ func TestFeatures(t *testing.T) {
 
 			s.After(cleanDockerResources)
 			s.After(cleanTempDirs)
-		},
-		Options: &godog.Options{
-			Strict:      true,
-			Concurrency: 8,
-			Format:      "pretty",
-			Paths:       []string{"./features"},
-			TestingT:    t,
 		},
 	}
 

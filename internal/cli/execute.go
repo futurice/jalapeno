@@ -265,17 +265,21 @@ func executeRecipe(cmd *cobra.Command, opts executeOptions, re *recipe.Recipe) e
 }
 
 func executeManifest(cmd *cobra.Command, opts executeOptions, manifest *recipe.Manifest) error {
-	cmd.Printf("Executing manifest with %d recipes...\n", len(manifest.Recipes))
+	cmd.Printf("Executing manifest with %d recipes...\n\n", len(manifest.Recipes))
 
 	recipes, err := manifest.GetRecipes()
 	if err != nil {
 		return err
 	}
 
-	for _, re := range recipes {
+	for i, re := range recipes {
 		err = executeRecipe(cmd, opts, re)
 		if err != nil {
 			return err
+		}
+
+		if i < len(recipes)-1 {
+			cmd.Print("\n- - - - - - - - - -\n\n")
 		}
 	}
 
