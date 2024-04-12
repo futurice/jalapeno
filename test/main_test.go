@@ -705,6 +705,30 @@ func theFileExistInTheRecipe(ctx context.Context, file, recipe string) (context.
 	return ctx, nil
 }
 
+func addRegistryRelatedFlags(ctx context.Context) context.Context {
+	ociRegistry := ctx.Value(ociRegistryCtxKey{}).(OCIRegistry)
+	configDir, configFileExists := ctx.Value(dockerConfigDirectoryPathCtxKey{}).(string)
+	additionalFlags := ctx.Value(cmdAdditionalFlagsCtxKey{}).(map[string]string)
+
+	if ociRegistry.TLSEnabled {
+		// Allow self-signed certificates
+		additionalFlags["insecure"] = "true"
+	} else {
+		additionalFlags["plain-http"] = "true"
+	}
+
+	if ociRegistry.AuthEnabled {
+		additionalFlags["username"] = "foo"
+		additionalFlags["password"] = "bar"
+	}
+
+	if configFileExists && os.Getenv("DOCKER_CONFIG") == "" {
+		additionalFlags["registry-config"] = filepath.Join(configDir, DOCKER_CONFIG_FILENAME)
+	}
+
+	return ctx
+}
+
 func getDeepPropertyFromStruct(v any, key string) reflect.Value {
 	r := reflect.ValueOf(v)
 	for _, k := range strings.Split(key, ".") {

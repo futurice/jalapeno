@@ -278,5 +278,4 @@ func LoadManifest(path string) (*Manifest, error) {
 	}
 
 	return manifest, nil
-
 }

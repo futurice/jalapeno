@@ -100,7 +100,7 @@ func runExecute(cmd *cobra.Command, opts executeOptions) error {
 		ctx := context.Background()
 		re, err = recipe.PullRecipe(ctx, opts.Repository(opts.RecipeURL))
 		if err != nil {
-			return fmt.Errorf("can not load the recipe: %s", err)
+			return fmt.Errorf("can not load the remote recipe: %s", err)
 		}
 		return executeRecipe(cmd, opts, re)
 
@@ -267,13 +267,31 @@ func executeRecipe(cmd *cobra.Command, opts executeOptions, re *recipe.Recipe) e
 func executeManifest(cmd *cobra.Command, opts executeOptions, manifest *recipe.Manifest) error {
 	cmd.Printf("Executing manifest with %d recipes...\n\n", len(manifest.Recipes))
 
-	recipes, err := manifest.GetRecipes()
-	if err != nil {
-		return err
+	recipes := make([]*recipe.Recipe, len(manifest.Recipes))
+	for i, manifestRecipe := range manifest.Recipes {
+		var re *recipe.Recipe
+		var err error
+
+		switch recipe.DetermineRecipeURLType(manifestRecipe.Repository) {
+		case recipe.OCIType:
+			re, err = recipe.PullRecipe(
+				context.Background(), // TODO: probably needs a timeout
+				opts.Repository(fmt.Sprintf("%s:%s", manifestRecipe.Repository, manifestRecipe.Version)),
+			)
+
+		case recipe.LocalType:
+			re, err = recipe.LoadRecipe(manifestRecipe.Repository)
+		}
+
+		if err != nil {
+			return fmt.Errorf("can not load the recipe '%s': %s", manifestRecipe.Name, err)
+		}
+
+		recipes[i] = re
 	}
 
 	for i, re := range recipes {
-		err = executeRecipe(cmd, opts, re)
+		err := executeRecipe(cmd, opts, re)
 		if err != nil {
 			return err
 		}

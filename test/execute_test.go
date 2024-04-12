@@ -17,7 +17,9 @@ func AddExecuteSteps(s *godog.ScenarioContext) {
 	s.Step(`^recipes will be executed to the subpath "([^"]*)"$`, recipesWillBeExecutedToTheSubPath)
 	s.Step(`^execution of the recipe has succeeded$`, executionOfTheRecipeHasSucceeded)
 	s.Step(`^a manifest file that includes recipes$`, aManifestFileThatIncludesRecipes)
+	s.Step(`^a manifest file that includes remote recipes$`, aManifestFileThatIncludesRemoteRecipes)
 	s.Step(`^I execute the manifest file$`, iExecuteTheManifestFile)
+	s.Step(`^I execute the manifest file with remote recipes$`, iExecuteTheManifestFileWithRemoteRecipes)
 }
 
 const TestManifestFileName = "manifest.yml"
@@ -52,26 +54,9 @@ func iRunExecute(ctx context.Context, target string) (context.Context, error) {
 
 func iExecuteRemoteRecipe(ctx context.Context, repository string) (context.Context, error) {
 	ociRegistry := ctx.Value(ociRegistryCtxKey{}).(OCIRegistry)
-	configDir, configFileExists := ctx.Value(dockerConfigDirectoryPathCtxKey{}).(string)
-	additionalFlags := ctx.Value(cmdAdditionalFlagsCtxKey{}).(map[string]string)
-
 	url := fmt.Sprintf("oci://%s/%s", ociRegistry.Resource.GetHostPort("5000/tcp"), repository)
 
-	if ociRegistry.TLSEnabled {
-		// Allow self-signed certificates
-		additionalFlags["insecure"] = "true"
-	} else {
-		additionalFlags["plain-http"] = "true"
-	}
-
-	if ociRegistry.AuthEnabled {
-		additionalFlags["username"] = "foo"
-		additionalFlags["password"] = "bar"
-	}
-
-	if configFileExists && os.Getenv("DOCKER_CONFIG") == "" {
-		additionalFlags["registry-config"] = filepath.Join(configDir, DOCKER_CONFIG_FILENAME)
-	}
+	ctx = addRegistryRelatedFlags(ctx)
 
 	return iRunExecute(ctx, url)
 }
@@ -94,9 +79,10 @@ func aManifestFileThatIncludesRecipes(ctx context.Context, recipeNames *godog.Ta
 		return ctx, err
 	}
 
-	recipes := make([]recipe.ManifestRecipe, len(recipeNames.Rows[0].Cells))
-	for i, name := range recipeNames.Rows[0].Cells {
-		re, err := recipe.LoadRecipe(filepath.Join(recipeDir, name.Value))
+	recipes := make([]recipe.ManifestRecipe, len(recipeNames.Rows))
+	for i, row := range recipeNames.Rows {
+		name := row.Cells[0].Value
+		re, err := recipe.LoadRecipe(filepath.Join(recipeDir, name))
 		if err != nil {
 			return ctx, err
 		}
@@ -104,7 +90,39 @@ func aManifestFileThatIncludesRecipes(ctx context.Context, recipeNames *godog.Ta
 		recipes[i] = recipe.ManifestRecipe{
 			Name:       re.Name,
 			Version:    re.Version,
-			Repository: fmt.Sprintf("file://%s/%s", recipeDir, name.Value),
+			Repository: fmt.Sprintf("file://%s/%s", recipeDir, name),
+		}
+	}
+
+	manifest := recipe.NewManifest()
+	manifest.Recipes = recipes
+
+	err = manifest.Save(filepath.Join(dir, TestManifestFileName))
+	if err != nil {
+		return ctx, err
+	}
+
+	ctx = context.WithValue(ctx, manifestDirectoryPathCtxKey{}, dir)
+
+	return ctx, nil
+}
+
+func aManifestFileThatIncludesRemoteRecipes(ctx context.Context, recipeNames *godog.Table) (context.Context, error) {
+	ociRegistry := ctx.Value(ociRegistryCtxKey{}).(OCIRegistry)
+	dir, err := os.MkdirTemp("", "jalapeno-test-manifest")
+	if err != nil {
+		return ctx, err
+	}
+
+	recipes := make([]recipe.ManifestRecipe, len(recipeNames.Rows))
+	for i, row := range recipeNames.Rows {
+		name := row.Cells[0].Value
+		version := row.Cells[1].Value
+
+		recipes[i] = recipe.ManifestRecipe{
+			Name:       name,
+			Version:    version,
+			Repository: fmt.Sprintf("oci://%s/%s", ociRegistry.Resource.GetHostPort("5000/tcp"), name),
 		}
 	}
 
@@ -122,5 +140,10 @@ func aManifestFileThatIncludesRecipes(ctx context.Context, recipeNames *godog.Ta
 }
 
 func iExecuteTheManifestFile(ctx context.Context) (context.Context, error) {
+	return iRunExecute(ctx, TestManifestFileName)
+}
+
+func iExecuteTheManifestFileWithRemoteRecipes(ctx context.Context) (context.Context, error) {
+	ctx = addRegistryRelatedFlags(ctx)
 	return iRunExecute(ctx, TestManifestFileName)
 }

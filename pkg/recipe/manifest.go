@@ -2,6 +2,8 @@ package recipe
 
 import (
 	"fmt"
+
+	"golang.org/x/mod/semver"
 )
 
 type Manifest struct {
@@ -27,19 +29,21 @@ func (m *Manifest) Validate() error {
 		return fmt.Errorf("unreconized manifest API version \"%s\"", m.APIVersion)
 	}
 
-	return nil
-}
-
-func (m *Manifest) GetRecipes() ([]*Recipe, error) {
-	recipes := make([]*Recipe, len(m.Recipes))
-	for i, recipe := range m.Recipes {
-		re, err := LoadRecipe(recipe.Repository)
-		if err != nil {
-			return nil, fmt.Errorf("can not load recipe \"%s\": %w", recipe.Name, err)
+	for _, r := range m.Recipes {
+		if r.Name == "" {
+			return fmt.Errorf("recipe name is required")
 		}
 
-		recipes[i] = re
+		if !semver.IsValid(r.Version) {
+			return fmt.Errorf("recipe version is not a valid semver")
+		}
+
+		if r.Repository == "" {
+			return fmt.Errorf("recipe repository is required")
+		} else {
+			// TODO: make sure that the repository is a valid URL
+		}
 	}
 
-	return recipes, nil
+	return nil
 }
