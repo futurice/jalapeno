@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.8.0](https://github.com/futurice/jalapeno/compare/v1.7.2...v1.8.0) (2024-04-15)
+
+
+### Features
+
+* introduce manifest file to execute multiple recipes ([#94](https://github.com/futurice/jalapeno/issues/94)) ([04cc757](https://github.com/futurice/jalapeno/commit/04cc75745344658c7df9f62f809a29b41d5bca89))
+* show empty variable value when variable was optional ([de97ad9](https://github.com/futurice/jalapeno/commit/de97ad900feec1cfa0423006732f6c6a6f6a2ebc))
+* show if the variable is optional ([dc265a4](https://github.com/futurice/jalapeno/commit/dc265a4d7aaffdbe2a4b5698f30e3b318f847bf0))
+
 ## [1.7.2](https://github.com/futurice/jalapeno/compare/v1.7.1...v1.7.2) (2024-03-13)
 
 
