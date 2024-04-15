@@ -101,7 +101,13 @@ The following context is available on the templates:
 - `.ID`: An UUID which is generated after the first execution of the recipe. It can be used to generate unique pseudo-random values which stays the same over the upgrades, for example `my-resource-{{ sha1sum .ID | trunc 5 }}`
 - `.Variables`: Object which contains the values of the variables defined for the recipe. Example: `{{ .Variables.FOO }}`
 
-### Template only specific files
+:::note
+
+Template files starting with `_` are not rendered to the output. This is useful when you have a file which contains helper templates for other files, like `_helpers.yml`.
+
+:::
+
+### Template only specific type of files
 
 By defining `templateExtension` property in the `recipe.yml` file, you can define that only the files with the given file extensions should be rendered from the `templates` directory. The rest of the files will be copied as is. This is useful when there are files that do not need templating, but you would still need to escape the `{{` and `}}` characters (for example [Taskfiles](https://taskfile.dev/usage/)).
 
