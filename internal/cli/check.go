@@ -21,6 +21,7 @@ type checkOptions struct {
 	option.Common
 	option.OCIRepository
 	option.WorkingDirectory
+	option.Timeout
 }
 
 const (
@@ -177,6 +178,7 @@ func runCheck(cmd *cobra.Command, opts checkOptions) error {
 			Common:           opts.Common,
 			OCIRepository:    opts.OCIRepository,
 			WorkingDirectory: opts.WorkingDirectory,
+			Timeout:          opts.Timeout,
 		})
 		if err != nil {
 			return err

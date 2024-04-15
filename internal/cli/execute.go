@@ -27,6 +27,7 @@ type executeOptions struct {
 	option.OCIRepository
 	option.Values
 	option.WorkingDirectory
+	option.Timeout
 }
 
 func NewExecuteCmd() *cobra.Command {
@@ -97,7 +98,9 @@ func runExecute(cmd *cobra.Command, opts executeOptions) error {
 
 	switch recipe.DetermineRecipeURLType(opts.RecipeURL) {
 	case recipe.OCIType:
-		ctx := context.Background()
+		ctx, cancel := context.WithTimeout(cmd.Context(), opts.Timeout.Duration)
+		defer cancel()
+
 		re, err = recipe.PullRecipe(ctx, opts.Repository(opts.RecipeURL))
 		if err != nil {
 			return fmt.Errorf("can not load the remote recipe: %s", err)
@@ -271,11 +274,13 @@ func executeManifest(cmd *cobra.Command, opts executeOptions, manifest *recipe.M
 	for i, manifestRecipe := range manifest.Recipes {
 		var re *recipe.Recipe
 		var err error
+		ctx, cancel := context.WithTimeout(cmd.Context(), opts.Timeout.Duration)
+		defer cancel()
 
 		switch recipe.DetermineRecipeURLType(manifestRecipe.Repository) {
 		case recipe.OCIType:
 			re, err = recipe.PullRecipe(
-				context.Background(), // TODO: probably needs a timeout
+				ctx,
 				opts.Repository(fmt.Sprintf("%s:%s", manifestRecipe.Repository, manifestRecipe.Version)),
 			)
 

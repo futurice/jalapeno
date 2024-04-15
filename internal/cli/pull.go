@@ -16,6 +16,7 @@ type pullOptions struct {
 	option.Common
 	option.OCIRepository
 	option.WorkingDirectory
+	option.Timeout
 }
 
 func NewPullCmd() *cobra.Command {
@@ -55,7 +56,8 @@ jalapeno pull oci://ghcr.io/user/my-recipe:latest --dir other/dir`,
 }
 
 func runPull(cmd *cobra.Command, opts pullOptions) error {
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(cmd.Context(), opts.Timeout.Duration)
+	defer cancel()
 
 	err := recipe.SaveRemoteRecipe(ctx, opts.Dir, opts.Repository(opts.TargetRef))
 

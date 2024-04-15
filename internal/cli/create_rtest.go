@@ -18,7 +18,7 @@ func NewCreateTestCmd() *cobra.Command {
 	var opts createTestOptions
 	var cmd = &cobra.Command{
 		Use:     "test",
-		Short:   "Create a test",
+		Short:   "Create a recipe test",
 		Example: `jalapeno create test`,
 		Args:    cobra.NoArgs,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
