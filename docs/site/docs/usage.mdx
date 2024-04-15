@@ -182,6 +182,29 @@ jalapeno pull oci://ghcr.io/my-user/my-recipe:v0.0.0
 jalapeno execute my-recipe
 ```
 
+### Executing multiple recipes with a manifest file
+
+You can execute multiple recipes at once by using a manifest file. The manifest file is a YAML file which contains the list of recipes which should be executed. The manifest file should be in the following format:
+
+```yaml
+apiVersion: v1
+recipes:
+  - name: recipe-a
+    version: v0.0.1
+    repository: ./path/to/local/recipe-a
+  - name: recipe-b
+    version: v0.0.1
+    repository: oci://url/to/remote/recipe-b
+    values:
+      MY_VAR: "Hello World" # Predefined values for the recipe
+```
+
+After you've created the manifest file, you can execute the recipes by running:
+
+```bash
+jalapeno execute ./path/to/manifest.yml -d my-project
+```
+
 ### Checking updates for a recipe
 
 After you have executed a recipe, Jalapeno will create a `.jalapeno/sauces.yml` file to the project directory. This file contains information about the executed recipes and their versions. If the recipe was executed directly from a Container Registry, the registry URL is also stored in the file for checking for new versions. To check the new versions for the recipes, you can run:
