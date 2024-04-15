@@ -12,7 +12,6 @@ import (
 )
 
 type testOptions struct {
-	Create          bool
 	RecipePath      string
 	UpdateSnapshots bool
 
@@ -45,7 +44,6 @@ jalapeno test path/to/recipe --update-snapshots`,
 	}
 
 	cmd.Flags().BoolVarP(&opts.UpdateSnapshots, "update-snapshots", "u", false, "Update test file snapshots")
-	cmd.Flags().BoolVarP(&opts.Create, "create", "c", false, "Create a new test case")
 
 	if err := option.ApplyFlags(&opts, cmd.Flags()); err != nil {
 		return nil
@@ -58,34 +56,6 @@ func runTest(cmd *cobra.Command, opts testOptions) error {
 	re, err := recipe.LoadRecipe(opts.RecipePath)
 	if err != nil {
 		return fmt.Errorf("can not load the recipe: %w", err)
-	}
-
-	if opts.Create {
-		// TODO: What if there already exists a test called "example"?
-		test := recipeutil.CreateExampleTest("example")
-
-		if len(re.Tests) > 0 {
-			re.Tests = append(re.Tests, test)
-		} else {
-			re.Tests = []recipe.Test{test}
-		}
-
-		err := re.Save(opts.RecipePath)
-		if err != nil {
-			return fmt.Errorf("failed to save recipe: %w", err)
-		}
-
-		cmd.Printf(
-			"Test '%s' created %s\n\n",
-			test.Name,
-			opts.Colors.Green.Render("successfully!"),
-		)
-
-		fmt.Printf("Following files were created: \n%s", recipeutil.CreateFileTree(opts.RecipePath, map[string]recipeutil.FileStatus{
-			fmt.Sprintf("tests/%s/test.yml", test.Name): recipeutil.FileAdded,
-			fmt.Sprintf("tests/%s/files/", test.Name):   recipeutil.FileAdded,
-		}))
-		return nil
 	}
 
 	if len(re.Tests) == 0 {

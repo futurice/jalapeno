@@ -18,8 +18,8 @@ type ManifestRecipe struct {
 	Values     VariableValues `yaml:"values,omitempty"`
 }
 
-func NewManifest() *Manifest {
-	return &Manifest{
+func NewManifest() Manifest {
+	return Manifest{
 		APIVersion: "v1",
 	}
 }

@@ -88,6 +88,7 @@ func TestFeatures(t *testing.T) {
 			s.Step(`^registry credentials are not provided by the command$`, credentialsAreNotProvidedByTheCommand)
 			s.Step(`^registry credentials are provided by config file$`, generateDockerConfigFile)
 			s.Step(`^I buffer key presses "([^"]*)"$`, bufferKeysToInput)
+			s.Step(`^I clear the output$`, iClearTheOutput)
 
 			// Assert steps
 			s.Step(`^the recipes directory should contain recipe "([^"]*)"$`, theRecipesDirectoryShouldContainRecipe)
@@ -407,6 +408,10 @@ func theProjectDirectoryShouldNotContainFile(ctx context.Context, filename strin
 	}
 
 	return err
+}
+
+func iClearTheOutput(ctx context.Context) (context.Context, error) {
+	return context.WithValue(ctx, cmdStdOutCtxKey{}, new(bytes.Buffer)), nil
 }
 
 func theProjectDirectoryShouldContainFile(ctx context.Context, filename string) error {

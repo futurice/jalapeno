@@ -22,7 +22,7 @@ func AddExecuteSteps(s *godog.ScenarioContext) {
 	s.Step(`^I execute the manifest file with remote recipes$`, iExecuteTheManifestFileWithRemoteRecipes)
 }
 
-const TestManifestFileName = "manifest.yml"
+var TestManifestFileName = fmt.Sprintf("%s.%s", recipe.ManifestFileName, recipe.YAMLExtension)
 
 func iRunExecute(ctx context.Context, target string) (context.Context, error) {
 	projectDir := ctx.Value(projectDirectoryPathCtxKey{}).(string)

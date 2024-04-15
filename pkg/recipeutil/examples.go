@@ -2,7 +2,7 @@ package recipeutil
 
 import "github.com/futurice/jalapeno/pkg/recipe"
 
-func CreateExampleRecipe(name string) *recipe.Recipe {
+func CreateExampleRecipe(name string) recipe.Recipe {
 	r := recipe.NewRecipe()
 
 	variableName := "MY_VAR"
@@ -34,4 +34,10 @@ func CreateExampleTest(name string) recipe.Test {
 	return recipe.Test{
 		Name: name,
 	}
+}
+
+func CreateExampleManifest() recipe.Manifest {
+	m := recipe.NewManifest()
+
+	return m
 }

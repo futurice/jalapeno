@@ -42,7 +42,7 @@ func TestRenderInitHelp(t *testing.T) {
 			re.InitHelp = scenario.help
 
 			sauce := NewSauce()
-			sauce.Recipe = *re
+			sauce.Recipe = re
 			sauce.ID = uuid.Must(uuid.NewV4())
 			sauce.Values = scenario.values
 

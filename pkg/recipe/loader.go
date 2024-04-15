@@ -44,7 +44,7 @@ func LoadRecipe(path string) (*Recipe, error) {
 	}
 
 	recipe := NewRecipe()
-	err = yaml.Unmarshal(dat, recipe)
+	err = yaml.Unmarshal(dat, &recipe)
 	if err != nil {
 		return nil, err
 	}
@@ -63,7 +63,7 @@ func LoadRecipe(path string) (*Recipe, error) {
 		return nil, fmt.Errorf("loaded recipe was invalid: %w", err)
 	}
 
-	return recipe, nil
+	return &recipe, nil
 }
 
 func loadTemplates(recipePath string) (map[string]File, error) {

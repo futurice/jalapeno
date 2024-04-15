@@ -11,8 +11,8 @@ type Recipe struct {
 	Tests     []Test          `yaml:"-"`
 }
 
-func NewRecipe() *Recipe {
-	return &Recipe{
+func NewRecipe() Recipe {
+	return Recipe{
 		Metadata: Metadata{
 			APIVersion: "v1",
 		},
