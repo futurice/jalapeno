@@ -270,7 +270,10 @@ func executeRecipe(cmd *cobra.Command, opts executeOptions, re *recipe.Recipe) e
 func executeManifest(cmd *cobra.Command, opts executeOptions, manifest *recipe.Manifest) error {
 	cmd.Printf("Executing manifest with %d recipes...\n\n", len(manifest.Recipes))
 
-	recipes := make([]*recipe.Recipe, len(manifest.Recipes))
+	if len(opts.Values.Flags) > 0 {
+		return errors.New("values can not be provided when executing a manifest. Use values in the manifest file instead")
+	}
+
 	for i, manifestRecipe := range manifest.Recipes {
 		var re *recipe.Recipe
 		var err error
@@ -292,19 +295,22 @@ func executeManifest(cmd *cobra.Command, opts executeOptions, manifest *recipe.M
 			return fmt.Errorf("can not load the recipe '%s': %s", manifestRecipe.Name, err)
 		}
 
-		recipes[i] = re
-	}
+		// Apply values provided by the manifest
+		valueFlags := make([]string, 0, len(manifestRecipe.Values))
+		for name, value := range manifestRecipe.Values {
+			valueFlags = append(valueFlags, fmt.Sprintf("%s=%s", name, value))
+		}
 
-	for i, re := range recipes {
-		err := executeRecipe(cmd, opts, re)
+		opts.Values.Flags = valueFlags
+
+		err = executeRecipe(cmd, opts, re)
 		if err != nil {
 			return err
 		}
 
-		if i < len(recipes)-1 {
+		if i < len(manifest.Recipes)-1 {
 			cmd.Print("\n- - - - - - - - - -\n\n")
 		}
 	}
-
 	return nil
 }
