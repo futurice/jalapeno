@@ -78,6 +78,7 @@ func TestFeatures(t *testing.T) {
 			// Setup steps
 			s.Step(`^a project directory$`, aProjectDirectory)
 			s.Step(`^a recipes directory$`, aRecipesDirectory)
+			s.Step(`^a manifest directory$`, aManifestDirectory)
 			s.Step(`^a recipe "([^"]*)"$`, aRecipe)
 			s.Step(`^recipe "([^"]*)" generates file "([^"]*)" with content "([^"]*)"$`, recipeGeneratesFileWithContent)
 			s.Step(`^recipe "([^"]*)" ignores pattern "([^"]*)"$`, recipeIgnoresPattern)
@@ -92,6 +93,7 @@ func TestFeatures(t *testing.T) {
 
 			// Assert steps
 			s.Step(`^the recipes directory should contain recipe "([^"]*)"$`, theRecipesDirectoryShouldContainRecipe)
+			s.Step(`^the manifest directory should contain manifest named "([^"]*)"$`, theManifestDirectoryShouldContainManifest)
 			s.Step(`^no errors were printed$`, noErrorsWerePrinted)
 			s.Step(`^CLI produced an output "([^"]*)"$`, expectGivenOutput)
 			s.Step(`^CLI produced an error "(.*)"$`, expectGivenError)
@@ -251,6 +253,15 @@ func aRecipesDirectory(ctx context.Context) (context.Context, error) {
 	return context.WithValue(ctx, recipesDirectoryPathCtxKey{}, dir), nil
 }
 
+func aManifestDirectory(ctx context.Context) (context.Context, error) {
+	dir, err := os.MkdirTemp("", "jalapeno-test-manifest")
+	if err != nil {
+		return ctx, err
+	}
+
+	return context.WithValue(ctx, manifestDirectoryPathCtxKey{}, dir), nil
+}
+
 func bufferKeysToInput(ctx context.Context, keys string) (context.Context, error) {
 	stdIn := ctx.Value(cmdStdInCtxKey{}).(*BlockBuffer)
 
@@ -399,6 +410,16 @@ func theRecipesDirectoryShouldContainRecipe(ctx context.Context, recipeName stri
 	}
 
 	return nil
+}
+
+func theManifestDirectoryShouldContainManifest(ctx context.Context, manifestName string) error {
+	manifestDir := ctx.Value(manifestDirectoryPathCtxKey{}).(string)
+	info, err := os.Stat(filepath.Join(manifestDir, manifestName))
+	if err == nil && !info.Mode().IsRegular() {
+		return fmt.Errorf("%s is not a regular file", manifestName)
+	}
+
+	return err
 }
 
 func theProjectDirectoryShouldNotContainFile(ctx context.Context, filename string) error {

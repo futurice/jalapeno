@@ -11,6 +11,7 @@ import (
 func AddCreateSteps(s *godog.ScenarioContext) {
 	s.Step(`^I create a recipe with name "([^"]*)"$`, iRunCreateRecipe)
 	s.Step(`^I create a test for recipe "([^"]*)"$`, iRunCreateTest)
+	s.Step(`^I create a manifest with the CLI$`, iRunCreateManifest)
 }
 
 func iRunCreateRecipe(ctx context.Context, recipe string) (context.Context, error) {
@@ -25,12 +26,12 @@ func iRunCreateRecipe(ctx context.Context, recipe string) (context.Context, erro
 }
 
 func iRunCreateManifest(ctx context.Context) (context.Context, error) {
-	recipesDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
+	manifestDir := ctx.Value(manifestDirectoryPathCtxKey{}).(string)
 
 	return executeCLI(ctx,
 		"create",
 		"manifest",
-		fmt.Sprintf("--dir=%s", recipesDir),
+		fmt.Sprintf("--dir=%s", manifestDir),
 	)
 }
 

@@ -149,6 +149,24 @@ func (v *Variable) Validate() error {
 	return nil
 }
 
+func (val VariableValues) Validate() error {
+	for name, v := range val {
+		if name == "" {
+			return errors.New("variable name can not be empty")
+		}
+
+		switch v.(type) {
+		// List allowed types
+		case string, bool, TableValue:
+			break
+		default:
+			return fmt.Errorf("unsupported variable value type")
+		}
+	}
+
+	return nil
+}
+
 func (r *VariableValidator) CreateValidatorFunc() func(input string) error {
 	reg := regexp.MustCompile(r.Pattern)
 

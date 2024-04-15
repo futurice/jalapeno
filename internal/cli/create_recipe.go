@@ -65,16 +65,16 @@ my-recipe
 func runCreateRecipe(cmd *cobra.Command, opts createRecipeOptions) error {
 	re := recipeutil.CreateExampleRecipe(opts.RecipeName)
 
-	err := re.Validate()
-	if err != nil {
-		return fmt.Errorf("internal error: example recipe is not valid: %w", err)
-	}
-
-	err = re.Save(filepath.Join(opts.Dir, opts.RecipeName))
+	err := re.Save(filepath.Join(opts.Dir, opts.RecipeName))
 	if err != nil {
 		return fmt.Errorf("can not save recipe to the directory: %w", err)
 	}
 
-	cmd.Printf("Recipe '%s' created!\n", opts.RecipeName)
+	cmd.Printf(
+		"Recipe '%s' created %s\n",
+		opts.RecipeName,
+		opts.Colors.Green.Render("successfully!"),
+	)
+
 	return nil
 }

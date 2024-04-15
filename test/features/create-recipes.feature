@@ -13,3 +13,10 @@ Feature: Create new recipes
 		Then CLI produced an output "Test 'example' created successfully!"
 		And no errors were printed
 		And the file "tests/example/test.yml" exist in the recipe "foo"
+
+	Scenario: Using CLI to create a manifest
+		Given a manifest directory
+		When I create a manifest with the CLI
+		Then CLI produced an output "Manifest created successfully!"
+		And no errors were printed
+		And the manifest directory should contain manifest named "manifest.yml"

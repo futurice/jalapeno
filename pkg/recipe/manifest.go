@@ -34,14 +34,21 @@ func (m *Manifest) Validate() error {
 			return fmt.Errorf("recipe name is required")
 		}
 
+		errPrefix := fmt.Sprintf("recipe '%s'", r.Name)
 		if !semver.IsValid(r.Version) {
-			return fmt.Errorf("recipe version is not a valid semver")
+			return fmt.Errorf("%s: recipe version is not a valid semver", errPrefix)
 		}
 
 		if r.Repository == "" {
-			return fmt.Errorf("recipe repository is required")
-		} else {
-			// TODO: make sure that the repository is a valid URL
+			return fmt.Errorf("%s: recipe repository is required", errPrefix)
+		}
+
+		// if {
+		// 	// TODO: make sure that the repository is a valid URL
+		// }
+
+		if err := r.Values.Validate(); err != nil {
+			return fmt.Errorf("%s: variable values were invalid: %w", errPrefix, err)
 		}
 	}
 

@@ -41,16 +41,15 @@ func NewCreateManifestCmd() *cobra.Command {
 func runCreateManifest(cmd *cobra.Command, opts createManifestOptions) error {
 	m := recipeutil.CreateExampleManifest()
 
-	err := m.Validate()
-	if err != nil {
-		return fmt.Errorf("internal error: example manifest is not valid: %w", err)
-	}
-
-	err = m.Save(filepath.Join(opts.Dir, fmt.Sprintf(recipe.ManifestFileName+recipe.YAMLExtension)))
+	err := m.Save(filepath.Join(opts.Dir, fmt.Sprintf(recipe.ManifestFileName+recipe.YAMLExtension)))
 	if err != nil {
 		return fmt.Errorf("can not save recipe to the directory: %w", err)
 	}
 
-	cmd.Printf("Manifest created!\n")
+	cmd.Printf(
+		"Manifest created %s\n",
+		opts.Colors.Green.Render("successfully!"),
+	)
+
 	return nil
 }

@@ -39,5 +39,21 @@ func CreateExampleTest(name string) recipe.Test {
 func CreateExampleManifest() recipe.Manifest {
 	m := recipe.NewManifest()
 
+	m.Recipes = []recipe.ManifestRecipe{
+		{
+			Name:       "recipe-a",
+			Version:    "v0.0.1",
+			Repository: "./path/to/recipe-a",
+		},
+		{
+			Name:       "recipe-b",
+			Version:    "v0.0.1",
+			Repository: "oci://url/to/recipe-b",
+			Values: recipe.VariableValues{
+				"MY_VAR": "Hello World!",
+			},
+		},
+	}
+
 	return m
 }
