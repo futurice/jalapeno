@@ -19,3 +19,10 @@ func TestExampleTestIsValid(t *testing.T) {
 		t.Error(err)
 	}
 }
+
+func TestExampleManifestIsValid(t *testing.T) {
+	m := recipeutil.CreateExampleManifest()
+	if err := m.Validate(); err != nil {
+		t.Error(err)
+	}
+}

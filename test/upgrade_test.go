@@ -52,26 +52,9 @@ func iRunUpgrade(ctx context.Context, recipe string) (context.Context, error) {
 
 func iRunUpgradeFromRemoteRecipe(ctx context.Context, repository string) (context.Context, error) {
 	registry := ctx.Value(ociRegistryCtxKey{}).(OCIRegistry)
-	configDir, configFileExists := ctx.Value(dockerConfigDirectoryPathCtxKey{}).(string)
-	additionalFlags := ctx.Value(cmdAdditionalFlagsCtxKey{}).(map[string]string)
-
 	url := fmt.Sprintf("oci://%s/%s", registry.Resource.GetHostPort("5000/tcp"), repository)
 
-	if registry.TLSEnabled {
-		// Allow self-signed certificates
-		additionalFlags["insecure"] = "true"
-	} else {
-		additionalFlags["plain-http"] = "true"
-	}
-
-	if registry.AuthEnabled {
-		additionalFlags["username"] = "foo"
-		additionalFlags["password"] = "bar"
-	}
-
-	if configFileExists && os.Getenv("DOCKER_CONFIG") == "" {
-		additionalFlags["registry-config"] = filepath.Join(configDir, DOCKER_CONFIG_FILENAME)
-	}
+	ctx = addRegistryRelatedFlags(ctx)
 
 	return iRunUpgrade(ctx, url)
 }

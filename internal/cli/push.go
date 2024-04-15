@@ -16,6 +16,7 @@ type pushOptions struct {
 
 	option.Common
 	option.OCIRepository
+	option.Timeout
 }
 
 func NewPushCmd() *cobra.Command {
@@ -55,7 +56,8 @@ jalapeno push path/to/recipe oci://ghcr.io/user/my-recipe`,
 }
 
 func runPush(cmd *cobra.Command, opts pushOptions) error {
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(cmd.Context(), opts.Timeout.Duration)
+	defer cancel()
 
 	err := recipe.PushRecipe(ctx, opts.RecipePath, opts.Repository(opts.TargetURL), opts.PushToLatest)
 

@@ -2,7 +2,7 @@ package recipeutil
 
 import "github.com/futurice/jalapeno/pkg/recipe"
 
-func CreateExampleRecipe(name string) *recipe.Recipe {
+func CreateExampleRecipe(name string) recipe.Recipe {
 	r := recipe.NewRecipe()
 
 	variableName := "MY_VAR"
@@ -34,4 +34,26 @@ func CreateExampleTest(name string) recipe.Test {
 	return recipe.Test{
 		Name: name,
 	}
+}
+
+func CreateExampleManifest() recipe.Manifest {
+	m := recipe.NewManifest()
+
+	m.Recipes = []recipe.ManifestRecipe{
+		{
+			Name:       "recipe-a",
+			Version:    "v0.0.1",
+			Repository: "./path/to/recipe-a",
+		},
+		{
+			Name:       "recipe-b",
+			Version:    "v0.0.1",
+			Repository: "oci://url/to/recipe-b",
+			Values: recipe.VariableValues{
+				"MY_VAR": "Hello World!",
+			},
+		},
+	}
+
+	return m
 }

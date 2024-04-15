@@ -39,6 +39,10 @@ func (t Test) Validate() error {
 		return errors.New("test name can not be empty")
 	}
 
+	if err := t.Values.Validate(); err != nil {
+		return fmt.Errorf("variable values were invalid: %w", err)
+	}
+
 	return nil
 }
 

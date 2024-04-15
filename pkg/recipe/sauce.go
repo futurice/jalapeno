@@ -78,6 +78,10 @@ func (s *Sauce) Validate() error {
 		return fmt.Errorf("sauce recipe was invalid: %w", err)
 	}
 
+	if err := s.Values.Validate(); err != nil {
+		return fmt.Errorf("variable values were invalid: %w", err)
+	}
+
 	for _, variable := range s.Recipe.Variables {
 		if _, found := s.Values[variable.Name]; !(variable.Optional || variable.If != "") && !found {
 			return fmt.Errorf("sauce did not have value for required variable '%s'", variable.Name)

@@ -21,6 +21,7 @@ const (
 	RecipeTestMetaFileName = "test"
 	RecipeTestFilesDirName = "files"
 	IgnoreFileName         = ".jalapenoignore"
+	ManifestFileName       = "manifest"
 )
 
 var (
@@ -30,7 +31,8 @@ var (
 
 // LoadRecipe reads a recipe from a given path
 func LoadRecipe(path string) (*Recipe, error) {
-	rootDir, err := filepath.Abs(path)
+	// TODO: is there a better way to handle this?
+	rootDir, err := filepath.Abs(strings.TrimPrefix(path, "file://"))
 	if err != nil {
 		return nil, err
 	}
@@ -42,7 +44,7 @@ func LoadRecipe(path string) (*Recipe, error) {
 	}
 
 	recipe := NewRecipe()
-	err = yaml.Unmarshal(dat, recipe)
+	err = yaml.Unmarshal(dat, &recipe)
 	if err != nil {
 		return nil, err
 	}
@@ -61,7 +63,7 @@ func LoadRecipe(path string) (*Recipe, error) {
 		return nil, fmt.Errorf("loaded recipe was invalid: %w", err)
 	}
 
-	return recipe, nil
+	return &recipe, nil
 }
 
 func loadTemplates(recipePath string) (map[string]File, error) {
@@ -257,4 +259,23 @@ func LoadSauceByID(projectDir string, id uuid.UUID) (*Sauce, error) {
 	}
 
 	return nil, ErrSauceNotFound
+}
+
+func LoadManifest(path string) (*Manifest, error) {
+	dat, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+
+	manifest := &Manifest{}
+	err = yaml.Unmarshal(dat, manifest)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := manifest.Validate(); err != nil {
+		return nil, err
+	}
+
+	return manifest, nil
 }

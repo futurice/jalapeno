@@ -104,9 +104,9 @@ func checkErr(err error) {
 }
 
 func mapCommandInfos(cmds []*cobra.Command) []CommandInfo {
-	infos := make([]CommandInfo, len(cmds))
+	infos := make([]CommandInfo, 0, len(cmds))
 
-	for i, c := range cmds {
+	for _, c := range cmds {
 		description := replaceAdmonition(c.Long)
 
 		info := CommandInfo{
@@ -128,7 +128,19 @@ func mapCommandInfos(cmds []*cobra.Command) []CommandInfo {
 			})
 		})
 
-		infos[i] = info
+		if c.Short != "" {
+			infos = append(infos, info)
+		}
+
+		if c.HasSubCommands() {
+			subInfos := mapCommandInfos(c.Commands())
+			for i := range subInfos {
+				subInfos[i].Name = fmt.Sprintf("%s %s", c.Name(), subInfos[i].Name)
+				subInfos[i].Usage = fmt.Sprintf("%s %s", info.Name, subInfos[i].Usage)
+			}
+
+			infos = append(infos, subInfos...)
+		}
 	}
 
 	return infos

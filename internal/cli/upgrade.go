@@ -31,6 +31,7 @@ type upgradeOptions struct {
 	option.OCIRepository
 	option.Values
 	option.WorkingDirectory
+	option.Timeout
 }
 
 func NewUpgradeCmd() *cobra.Command {
@@ -86,9 +87,10 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 	)
 
 	if strings.HasPrefix(opts.RecipeURL, "oci://") {
-		ctx := context.Background()
-		re, err = recipe.PullRecipe(ctx, opts.Repository(opts.RecipeURL))
+		ctx, cancel := context.WithTimeout(cmd.Context(), opts.Timeout.Duration)
+		defer cancel()
 
+		re, err = recipe.PullRecipe(ctx, opts.Repository(opts.RecipeURL))
 	} else {
 		re, err = recipe.LoadRecipe(opts.RecipeURL)
 	}

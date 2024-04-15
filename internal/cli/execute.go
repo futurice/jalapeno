@@ -7,7 +7,6 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
-	"strings"
 
 	"github.com/futurice/jalapeno/internal/cli/option"
 	"github.com/futurice/jalapeno/internal/cliutil"
@@ -28,6 +27,7 @@ type executeOptions struct {
 	option.OCIRepository
 	option.Values
 	option.WorkingDirectory
+	option.Timeout
 }
 
 func NewExecuteCmd() *cobra.Command {
@@ -92,24 +92,41 @@ func runExecute(cmd *cobra.Command, opts executeOptions) error {
 	}
 
 	var (
-		re              *recipe.Recipe
-		err             error
-		wasRemoteRecipe bool
+		re  *recipe.Recipe
+		err error
 	)
 
-	if strings.HasPrefix(opts.RecipeURL, "oci://") {
-		wasRemoteRecipe = true
-		ctx := context.Background()
+	switch recipe.DetermineRecipeURLType(opts.RecipeURL) {
+	case recipe.OCIType:
+		ctx, cancel := context.WithTimeout(cmd.Context(), opts.Timeout.Duration)
+		defer cancel()
+
 		re, err = recipe.PullRecipe(ctx, opts.Repository(opts.RecipeURL))
+		if err != nil {
+			return fmt.Errorf("can not load the remote recipe: %s", err)
+		}
+		return executeRecipe(cmd, opts, re)
 
-	} else {
+	case recipe.LocalType:
 		re, err = recipe.LoadRecipe(opts.RecipeURL)
-	}
+		if err != nil {
+			return fmt.Errorf("can not load the recipe: %s", err)
+		}
+		return executeRecipe(cmd, opts, re)
 
-	if err != nil {
-		return fmt.Errorf("can not load the recipe: %s", err)
-	}
+	case recipe.ManifestType:
+		manifest, err := recipe.LoadManifest(opts.RecipeURL)
+		if err != nil {
+			return fmt.Errorf("can not load the manifest: %s", err)
+		}
+		return executeManifest(cmd, opts, manifest)
 
+	default:
+		return fmt.Errorf("unsupported recipe URL: %s", opts.RecipeURL)
+	}
+}
+
+func executeRecipe(cmd *cobra.Command, opts executeOptions, re *recipe.Recipe) error {
 	cmd.Printf("%s: %s\n", opts.Colors.Red.Render("Recipe name"), re.Metadata.Name)
 
 	if re.Metadata.Description != "" {
@@ -202,7 +219,8 @@ func runExecute(cmd *cobra.Command, opts executeOptions) error {
 	sauce.SubPath = opts.Subpath
 
 	// Automatically add recipe origin if the recipe was remote
-	if wasRemoteRecipe {
+	if recipe.DetermineRecipeURLType(opts.RecipeURL) == recipe.OCIType {
+		// strip the tag from the URL
 		re := regexp.MustCompile(`(.+)(:[^\/\/].+)$`)
 		sauce.CheckFrom = re.ReplaceAllString(opts.RecipeURL, "$1")
 	}
@@ -246,5 +264,53 @@ func runExecute(cmd *cobra.Command, opts executeOptions) error {
 		cmd.Printf("\nNext up: %s\n", help)
 	}
 
+	return nil
+}
+
+func executeManifest(cmd *cobra.Command, opts executeOptions, manifest *recipe.Manifest) error {
+	cmd.Printf("Executing manifest with %d recipes...\n\n", len(manifest.Recipes))
+
+	if len(opts.Values.Flags) > 0 {
+		return errors.New("values can not be provided when executing a manifest. Use values in the manifest file instead")
+	}
+
+	for i, manifestRecipe := range manifest.Recipes {
+		var re *recipe.Recipe
+		var err error
+		ctx, cancel := context.WithTimeout(cmd.Context(), opts.Timeout.Duration)
+		defer cancel()
+
+		switch recipe.DetermineRecipeURLType(manifestRecipe.Repository) {
+		case recipe.OCIType:
+			re, err = recipe.PullRecipe(
+				ctx,
+				opts.Repository(fmt.Sprintf("%s:%s", manifestRecipe.Repository, manifestRecipe.Version)),
+			)
+
+		case recipe.LocalType:
+			re, err = recipe.LoadRecipe(manifestRecipe.Repository)
+		}
+
+		if err != nil {
+			return fmt.Errorf("can not load the recipe '%s': %s", manifestRecipe.Name, err)
+		}
+
+		// Apply values provided by the manifest
+		valueFlags := make([]string, 0, len(manifestRecipe.Values))
+		for name, value := range manifestRecipe.Values {
+			valueFlags = append(valueFlags, fmt.Sprintf("%s=%s", name, value))
+		}
+
+		opts.Values.Flags = valueFlags
+
+		err = executeRecipe(cmd, opts, re)
+		if err != nil {
+			return err
+		}
+
+		if i < len(manifest.Recipes)-1 {
+			cmd.Print("\n- - - - - - - - - -\n\n")
+		}
+	}
 	return nil
 }

@@ -38,6 +38,7 @@ type (
 	certDirectoryPathCtxKey         struct{}
 	htpasswdDirectoryPathCtxKey     struct{}
 	dockerConfigDirectoryPathCtxKey struct{}
+	manifestDirectoryPathCtxKey     struct{}
 	ociRegistryCtxKey               struct{}
 	cmdStdOutCtxKey                 struct{}
 	cmdStdInCtxKey                  struct{}
@@ -66,10 +67,18 @@ const (
 
 func TestFeatures(t *testing.T) {
 	suite := godog.TestSuite{
+		Options: &godog.Options{
+			Format:      "pretty",
+			Strict:      true,
+			Concurrency: 8,
+			Paths:       []string{"features"},
+			TestingT:    t,
+		},
 		ScenarioInitializer: func(s *godog.ScenarioContext) {
 			// Setup steps
 			s.Step(`^a project directory$`, aProjectDirectory)
 			s.Step(`^a recipes directory$`, aRecipesDirectory)
+			s.Step(`^a manifest directory$`, aManifestDirectory)
 			s.Step(`^a recipe "([^"]*)"$`, aRecipe)
 			s.Step(`^recipe "([^"]*)" generates file "([^"]*)" with content "([^"]*)"$`, recipeGeneratesFileWithContent)
 			s.Step(`^recipe "([^"]*)" ignores pattern "([^"]*)"$`, recipeIgnoresPattern)
@@ -80,9 +89,11 @@ func TestFeatures(t *testing.T) {
 			s.Step(`^registry credentials are not provided by the command$`, credentialsAreNotProvidedByTheCommand)
 			s.Step(`^registry credentials are provided by config file$`, generateDockerConfigFile)
 			s.Step(`^I buffer key presses "([^"]*)"$`, bufferKeysToInput)
+			s.Step(`^I clear the output$`, iClearTheOutput)
 
 			// Assert steps
 			s.Step(`^the recipes directory should contain recipe "([^"]*)"$`, theRecipesDirectoryShouldContainRecipe)
+			s.Step(`^the manifest directory should contain manifest named "([^"]*)"$`, theManifestDirectoryShouldContainManifest)
 			s.Step(`^no errors were printed$`, noErrorsWerePrinted)
 			s.Step(`^CLI produced an output "([^"]*)"$`, expectGivenOutput)
 			s.Step(`^CLI produced an error "(.*)"$`, expectGivenError)
@@ -125,13 +136,6 @@ func TestFeatures(t *testing.T) {
 
 			s.After(cleanDockerResources)
 			s.After(cleanTempDirs)
-		},
-		Options: &godog.Options{
-			Strict:      true,
-			Concurrency: 8,
-			Format:      "pretty",
-			Paths:       []string{"./features"},
-			TestingT:    t,
 		},
 	}
 
@@ -176,6 +180,7 @@ func cleanTempDirs(ctx context.Context, sc *godog.Scenario, lastStepErr error) (
 		certDirectoryPathCtxKey{},
 		htpasswdDirectoryPathCtxKey{},
 		dockerConfigDirectoryPathCtxKey{},
+		manifestDirectoryPathCtxKey{},
 	}
 
 	for _, key := range directoryCtxKeys {
@@ -246,6 +251,15 @@ func aRecipesDirectory(ctx context.Context) (context.Context, error) {
 	}
 
 	return context.WithValue(ctx, recipesDirectoryPathCtxKey{}, dir), nil
+}
+
+func aManifestDirectory(ctx context.Context) (context.Context, error) {
+	dir, err := os.MkdirTemp("", "jalapeno-test-manifest")
+	if err != nil {
+		return ctx, err
+	}
+
+	return context.WithValue(ctx, manifestDirectoryPathCtxKey{}, dir), nil
 }
 
 func bufferKeysToInput(ctx context.Context, keys string) (context.Context, error) {
@@ -398,6 +412,16 @@ func theRecipesDirectoryShouldContainRecipe(ctx context.Context, recipeName stri
 	return nil
 }
 
+func theManifestDirectoryShouldContainManifest(ctx context.Context, manifestName string) error {
+	manifestDir := ctx.Value(manifestDirectoryPathCtxKey{}).(string)
+	info, err := os.Stat(filepath.Join(manifestDir, manifestName))
+	if err == nil && !info.Mode().IsRegular() {
+		return fmt.Errorf("%s is not a regular file", manifestName)
+	}
+
+	return err
+}
+
 func theProjectDirectoryShouldNotContainFile(ctx context.Context, filename string) error {
 	err := theProjectDirectoryShouldContainFile(ctx, filename)
 	if errors.Is(err, os.ErrNotExist) {
@@ -405,6 +429,10 @@ func theProjectDirectoryShouldNotContainFile(ctx context.Context, filename strin
 	}
 
 	return err
+}
+
+func iClearTheOutput(ctx context.Context) (context.Context, error) {
+	return context.WithValue(ctx, cmdStdOutCtxKey{}, new(bytes.Buffer)), nil
 }
 
 func theProjectDirectoryShouldContainFile(ctx context.Context, filename string) error {
@@ -444,10 +472,6 @@ func theSauceFileShouldHasAValidID(ctx context.Context, index int) error {
 
 	if sauces[index].ID == uuid.Nil {
 		return errors.New("recipe file does not have 'id' property")
-	}
-
-	if err != nil {
-		return err
 	}
 
 	return nil
@@ -705,6 +729,30 @@ func theFileExistInTheRecipe(ctx context.Context, file, recipe string) (context.
 	}
 
 	return ctx, nil
+}
+
+func addRegistryRelatedFlags(ctx context.Context) context.Context {
+	ociRegistry := ctx.Value(ociRegistryCtxKey{}).(OCIRegistry)
+	configDir, configFileExists := ctx.Value(dockerConfigDirectoryPathCtxKey{}).(string)
+	additionalFlags := ctx.Value(cmdAdditionalFlagsCtxKey{}).(map[string]string)
+
+	if ociRegistry.TLSEnabled {
+		// Allow self-signed certificates
+		additionalFlags["insecure"] = "true"
+	} else {
+		additionalFlags["plain-http"] = "true"
+	}
+
+	if ociRegistry.AuthEnabled {
+		additionalFlags["username"] = "foo"
+		additionalFlags["password"] = "bar"
+	}
+
+	if configFileExists && os.Getenv("DOCKER_CONFIG") == "" {
+		additionalFlags["registry-config"] = filepath.Join(configDir, DOCKER_CONFIG_FILENAME)
+	}
+
+	return ctx
 }
 
 func getDeepPropertyFromStruct(v any, key string) reflect.Value {
