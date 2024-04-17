@@ -432,7 +432,9 @@ func theProjectDirectoryShouldNotContainFile(ctx context.Context, filename strin
 }
 
 func iClearTheOutput(ctx context.Context) (context.Context, error) {
-	return context.WithValue(ctx, cmdStdOutCtxKey{}, new(bytes.Buffer)), nil
+	ctx = context.WithValue(ctx, cmdStdOutCtxKey{}, new(bytes.Buffer))
+	ctx = context.WithValue(ctx, cmdStdErrCtxKey{}, new(bytes.Buffer))
+	return ctx, nil
 }
 
 func theProjectDirectoryShouldContainFile(ctx context.Context, filename string) error {

@@ -39,6 +39,13 @@ Feature: Execute manifests
 		And CLI produced an output "Recipe name: bar"
 		And the project directory should contain file "foo.md"
 		And the project directory should contain file "bar.md"
+	
+	Scenario: Execute a manifest with no recipes
+		Given a project directory
+		And a recipes directory
+		And a manifest file
+		When I execute the manifest file
+		Then CLI produced an error "^Error: can not load the manifest: manifest must contain at least one recipe"
 
 	Scenario: Conflicting recipes in manifest results in an error
 		Given a project directory
@@ -52,3 +59,25 @@ Feature: Execute manifests
 		| conflicts-with-foo |
 		When I execute the manifest file
 		Then CLI produced an error "^Error: conflict in recipe 'conflicts-with-foo': file 'foo\.md' was already created by recipe 'foo'\."
+
+	Scenario: Already executed recipes are skipped when executing a manifest
+		Given a project directory
+		And a recipes directory
+		And a recipe "foo"
+		And recipe "foo" generates file "foo.md" with content "initial"
+		And a recipe "bar"
+		And recipe "bar" generates file "bar.md" with content "initial"
+		And a manifest file that includes recipes
+		| foo |
+		When I execute the manifest file
+		Then no errors were printed
+		
+		Given I clear the output
+		And a manifest file that includes recipes
+		| foo |
+		| bar |
+		When I execute the manifest file
+		Then no errors were printed
+		And CLI produced an output "Recipe 'foo@v0.0.1' has already been executed, skipping"
+		And the project directory should contain file "foo.md"
+		And the project directory should contain file "bar.md"

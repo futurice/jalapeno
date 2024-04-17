@@ -16,6 +16,7 @@ func AddExecuteSteps(s *godog.ScenarioContext) {
 	s.Step(`^I execute the recipe from the local OCI repository "([^"]*)"$`, iExecuteRemoteRecipe)
 	s.Step(`^recipes will be executed to the subpath "([^"]*)"$`, recipesWillBeExecutedToTheSubPath)
 	s.Step(`^execution of the recipe has succeeded$`, executionOfTheRecipeHasSucceeded)
+	s.Step(`^a manifest file$`, aManifestFile)
 	s.Step(`^a manifest file that includes recipes$`, aManifestFileThatIncludesRecipes)
 	s.Step(`^a manifest file that includes remote recipes$`, aManifestFileThatIncludesRemoteRecipes)
 	s.Step(`^I execute the manifest file$`, iExecuteTheManifestFile)
@@ -70,6 +71,24 @@ func recipesWillBeExecutedToTheSubPath(ctx context.Context, path string) (contex
 
 func executionOfTheRecipeHasSucceeded(ctx context.Context) (context.Context, error) {
 	return ctx, expectGivenOutput(ctx, "Recipe executed successfully")
+}
+
+func aManifestFile(ctx context.Context) (context.Context, error) {
+	dir, err := os.MkdirTemp("", "jalapeno-test-manifest")
+	if err != nil {
+		return ctx, err
+	}
+
+	manifest := recipe.NewManifest()
+
+	err = manifest.Save(filepath.Join(dir, TestManifestFileName))
+	if err != nil {
+		return ctx, err
+	}
+
+	ctx = context.WithValue(ctx, manifestDirectoryPathCtxKey{}, dir)
+
+	return ctx, nil
 }
 
 func aManifestFileThatIncludesRecipes(ctx context.Context, recipeNames *godog.Table) (context.Context, error) {

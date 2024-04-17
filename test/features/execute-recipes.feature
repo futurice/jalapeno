@@ -69,7 +69,7 @@ Feature: Execute recipes
 		And no errors were printed
 		Then execution of the recipe has succeeded
 		When I execute recipe "foo"
-		Then CLI produced an error "recipe 'foo' with version 'v0.0.1' has been already executed"
+		Then CLI produced an error "recipe 'foo@v0\.0\.1': recipe has been already executed"
 
 	Scenario: Execute single recipe to a subpath
 		Given a project directory

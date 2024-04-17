@@ -30,13 +30,17 @@ type executeOptions struct {
 	option.Timeout
 }
 
+var (
+	ErrAlreadyExecuted = errors.New("recipe has been already executed")
+)
+
 func NewExecuteCmd() *cobra.Command {
 	var opts executeOptions
 	var cmd = &cobra.Command{
 		Use:     "execute RECIPE_URL",
 		Aliases: []string{"exec", "e", "run"},
-		Short:   "Execute a recipe",
-		Long:    "Executes (renders) a recipe and outputs the files to the directory. Recipe URL can be a local path or a remote URL (ex. 'oci://docker.io/my-recipe').",
+		Short:   "Execute a recipe or manifest",
+		Long:    "Executes (renders) a recipe or manifest and outputs the files to the directory. Recipe URL can be a local path or a remote URL (ex. 'oci://docker.io/my-recipe').",
 		Args:    cobra.ExactArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			opts.RecipeURL = args[0]
@@ -58,6 +62,9 @@ jalapeno execute oci://ghcr.io/user/my-recipe:latest --username user --password 
 # Execute recipe from OCI repository with Docker authentication
 docker login ghcr.io
 jalapeno execute oci://ghcr.io/user/my-recipe:latest
+
+# Execute a manifest which contains multiple recipes
+jalapeno execute path/to/manifest.yml
 
 # Execute recipe to different directory
 jalapeno execute path/to/recipe --dir other/dir
@@ -128,6 +135,7 @@ func runExecute(cmd *cobra.Command, opts executeOptions) error {
 
 func executeRecipe(cmd *cobra.Command, opts executeOptions, re *recipe.Recipe) error {
 	cmd.Printf("%s: %s\n", opts.Colors.Red.Render("Recipe name"), re.Metadata.Name)
+	cmd.Printf("%s: %s\n", opts.Colors.Red.Render("Version"), re.Metadata.Version)
 
 	if re.Metadata.Description != "" {
 		cmd.Printf("%s: %s\n", opts.Colors.Red.Render("Description"), re.Metadata.Description)
@@ -145,7 +153,7 @@ func executeRecipe(cmd *cobra.Command, opts executeOptions, re *recipe.Recipe) e
 		if sauce.Recipe.Name == re.Name &&
 			semver.Compare(sauce.Recipe.Metadata.Version, re.Metadata.Version) == 0 &&
 			sauce.SubPath == opts.Subpath {
-			return fmt.Errorf("recipe '%s' with version '%s' has been already executed. If you want to re-execute the recipe with different values, use `upgrade` command with `--reuse-old-values=false` flag", re.Name, re.Metadata.Version)
+			return fmt.Errorf("recipe '%s@%s': %w. If you want to re-execute the recipe with different values, use `upgrade` command with `--reuse-old-values=false` flag", re.Name, re.Metadata.Version, ErrAlreadyExecuted)
 		}
 	}
 
@@ -268,7 +276,9 @@ func executeRecipe(cmd *cobra.Command, opts executeOptions, re *recipe.Recipe) e
 }
 
 func executeManifest(cmd *cobra.Command, opts executeOptions, manifest *recipe.Manifest) error {
-	cmd.Printf("Executing manifest with %d recipes...\n\n", len(manifest.Recipes))
+	if len(manifest.Recipes) > 1 {
+		cmd.Printf("Executing manifest with %d recipes...\n\n", len(manifest.Recipes))
+	}
 
 	if len(opts.Values.Flags) > 0 {
 		return errors.New("values can not be provided when executing a manifest. Use values in the manifest file instead")
@@ -305,7 +315,11 @@ func executeManifest(cmd *cobra.Command, opts executeOptions, manifest *recipe.M
 
 		err = executeRecipe(cmd, opts, re)
 		if err != nil {
-			return err
+			if errors.Is(err, ErrAlreadyExecuted) {
+				cmd.Printf("Recipe '%s@%s' has already been executed, skipping...\n", re.Name, re.Version)
+			} else {
+				return err
+			}
 		}
 
 		if i < len(manifest.Recipes)-1 {

@@ -29,6 +29,10 @@ func (m *Manifest) Validate() error {
 		return fmt.Errorf("unreconized manifest API version \"%s\"", m.APIVersion)
 	}
 
+	if len(m.Recipes) == 0 {
+		return fmt.Errorf("manifest must contain at least one recipe")
+	}
+
 	for _, r := range m.Recipes {
 		if r.Name == "" {
 			return fmt.Errorf("recipe name is required")
