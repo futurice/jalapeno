@@ -3,7 +3,6 @@ package cli_test
 import (
 	"context"
 	"fmt"
-	"os"
 	"path/filepath"
 	"strings"
 
@@ -74,29 +73,20 @@ func executionOfTheRecipeHasSucceeded(ctx context.Context) (context.Context, err
 }
 
 func aManifestFile(ctx context.Context) (context.Context, error) {
-	dir, err := os.MkdirTemp("", "jalapeno-test-manifest")
-	if err != nil {
-		return ctx, err
-	}
-
+	manifestDir := ctx.Value(manifestDirectoryPathCtxKey{}).(string)
 	manifest := recipe.NewManifest()
 
-	err = manifest.Save(filepath.Join(dir, TestManifestFileName))
+	err := manifest.Save(filepath.Join(manifestDir, TestManifestFileName))
 	if err != nil {
 		return ctx, err
 	}
-
-	ctx = context.WithValue(ctx, manifestDirectoryPathCtxKey{}, dir)
 
 	return ctx, nil
 }
 
 func aManifestFileThatIncludesRecipes(ctx context.Context, recipeNames *godog.Table) (context.Context, error) {
 	recipeDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
-	dir, err := os.MkdirTemp("", "jalapeno-test-manifest")
-	if err != nil {
-		return ctx, err
-	}
+	manifestDir := ctx.Value(manifestDirectoryPathCtxKey{}).(string)
 
 	recipes := make([]recipe.ManifestRecipe, len(recipeNames.Rows))
 	for i, row := range recipeNames.Rows {
@@ -116,22 +106,17 @@ func aManifestFileThatIncludesRecipes(ctx context.Context, recipeNames *godog.Ta
 	manifest := recipe.NewManifest()
 	manifest.Recipes = recipes
 
-	err = manifest.Save(filepath.Join(dir, TestManifestFileName))
+	err := manifest.Save(filepath.Join(manifestDir, TestManifestFileName))
 	if err != nil {
 		return ctx, err
 	}
-
-	ctx = context.WithValue(ctx, manifestDirectoryPathCtxKey{}, dir)
 
 	return ctx, nil
 }
 
 func aManifestFileThatIncludesRemoteRecipes(ctx context.Context, recipeNames *godog.Table) (context.Context, error) {
 	ociRegistry := ctx.Value(ociRegistryCtxKey{}).(OCIRegistry)
-	dir, err := os.MkdirTemp("", "jalapeno-test-manifest")
-	if err != nil {
-		return ctx, err
-	}
+	manifestDir := ctx.Value(manifestDirectoryPathCtxKey{}).(string)
 
 	recipes := make([]recipe.ManifestRecipe, len(recipeNames.Rows))
 	for i, row := range recipeNames.Rows {
@@ -148,12 +133,10 @@ func aManifestFileThatIncludesRemoteRecipes(ctx context.Context, recipeNames *go
 	manifest := recipe.NewManifest()
 	manifest.Recipes = recipes
 
-	err = manifest.Save(filepath.Join(dir, TestManifestFileName))
+	err := manifest.Save(filepath.Join(manifestDir, TestManifestFileName))
 	if err != nil {
 		return ctx, err
 	}
-
-	ctx = context.WithValue(ctx, manifestDirectoryPathCtxKey{}, dir)
 
 	return ctx, nil
 }

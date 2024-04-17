@@ -1,8 +1,7 @@
 Feature: Check for new recipe versions
+
 	Scenario: Find newer version for a recipe
-		Given a project directory
-		And a recipes directory
-		And a recipe "foo"
+		Given a recipe "foo"
 		And recipe "foo" generates file "README.md" with content "initial"
 		And a local OCI registry
 		When I execute recipe "foo"
@@ -17,9 +16,7 @@ Feature: Check for new recipe versions
 		Then CLI produced an output "To upgrade recipes to the latest version run:\n  (.*) upgrade oci://localhost:\d+/foo:v0.0.2\n"
 
 	Scenario: Find multiple newer version for a recipe
-		Given a project directory
-		And a recipes directory
-		And a recipe "foo"
+		Given a recipe "foo"
 		And recipe "foo" generates file "README.md" with content "initial"
 		And a local OCI registry
 		When I execute recipe "foo"
@@ -36,9 +33,7 @@ Feature: Check for new recipe versions
 		Then CLI produced an output "To upgrade recipes to the latest version run:\n  (.*) upgrade oci://localhost:\d+/foo:v0\.0\.3\n"
 
 	Scenario: Find newer version for multiple recipes
-		Given a project directory
-		And a recipes directory
-		And a recipe "foo"
+		Given a recipe "foo"
 		And recipe "foo" generates file "foo.md" with content "initial"
 		And a recipe "bar"
 		And recipe "bar" generates file "bar.md" with content "initial"
@@ -63,9 +58,7 @@ Feature: Check for new recipe versions
 		And CLI produced an output "bar: new versions found: v0\.0\.2"
 
 	Scenario: Unable to find newer recipe versions
-		Given a project directory
-		And a recipes directory
-		And a recipe "foo"
+		Given a recipe "foo"
 		And recipe "foo" generates file "README.md" with content "initial"
 		And a local OCI registry
 		When I push the recipe "foo" to the local OCI repository
@@ -79,9 +72,7 @@ Feature: Check for new recipe versions
 		Then CLI produced an output "no new versions found"
 	
 	Scenario: Unable to find newer recipe versions for all recipes
-		Given a project directory
-		And a recipes directory
-		And a recipe "foo"
+		Given a recipe "foo"
 		And recipe "foo" generates file "foo.md" with content "initial"
 		And a recipe "bar"
 		And recipe "bar" generates file "bar.md" with content "initial"
@@ -103,9 +94,7 @@ Feature: Check for new recipe versions
 		And CLI produced an output "bar: no new versions found"
 
 	Scenario: Executing remote recipe automatically adds the repo as source for the sauce
-		Given a project directory
-		And a recipes directory
-		And a recipe "foo"
+		Given a recipe "foo"
 		And recipe "foo" generates file "README.md" with content "initial"
 		And a local OCI registry
 		And the recipe "foo" is pushed to the local OCI repository "foo:v0.0.1"
@@ -118,9 +107,7 @@ Feature: Check for new recipe versions
 		Then CLI produced an output "new versions found: v0\.0\.2"
 
 	Scenario: Manually override the check from URL for locally executed recipe
-		Given a project directory
-		And a recipes directory
-		And a recipe "foo"
+		Given a recipe "foo"
 		And recipe "foo" generates file "README.md" with content "initial"
 		And a local OCI registry
 		When I execute recipe "foo"
@@ -133,9 +120,7 @@ Feature: Check for new recipe versions
 		And the sauce in index 0 which should have property "CheckFrom" with value "^oci://localhost:\d+/foo$"
 
 	Scenario: Find and upgrade newer version for recipes
-		Given a project directory
-		And a recipes directory
-		And a recipe "foo"
+		Given a recipe "foo"
 		And recipe "foo" generates file "README.md" with content "initial"
 		And a local OCI registry
 		When I execute recipe "foo"
@@ -150,9 +135,7 @@ Feature: Check for new recipe versions
 		Then CLI produced an output "Upgrade completed"
 
 	Scenario: Find and upgrade newer version for a specific recipe
-		Given a project directory
-		And a recipes directory
-		And a recipe "foo"
+		Given a recipe "foo"
 		And recipe "foo" generates file "README.md" with content "initial"
 		And a recipe "bar"
 		And recipe "bar" generates file "bar.md" with content "initial"
@@ -173,9 +156,7 @@ Feature: Check for new recipe versions
 		Then CLI produced an output "Upgrade completed"
 
 	Scenario: Find and upgrade newer versions for multiple recipes
-		Given a project directory
-		And a recipes directory
-		And a recipe "foo"
+		Given a recipe "foo"
 		And recipe "foo" generates file "foo.md" with content "initial"
 		And a recipe "bar"
 		And recipe "bar" generates file "bar.md" with content "initial"

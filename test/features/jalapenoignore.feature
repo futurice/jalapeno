@@ -2,9 +2,7 @@ Feature: Jalapenoignore
 	Ignore files from upgrades either by the recipe author in the recipe metadata, or by the user in a jalapenoignore file
 
 	Scenario: Ignore in recipe metadata
-		Given a project directory
-		And a recipes directory
-		And a recipe "foo"
+		Given a recipe "foo"
 		And recipe "foo" generates file "README.md" with content "initial"
 		And recipe "foo" ignores pattern "README.md"
 		When I execute recipe "foo"
@@ -17,9 +15,7 @@ Feature: Jalapenoignore
 		And the project directory should contain file "README.md" with "modified"
 
 	Scenario: Ignore with jalapenoignore file
-		Given a project directory
-		And a recipes directory
-		And a recipe "foo"
+		Given a recipe "foo"
 		And recipe "foo" generates file "README.md" with content "initial"
 		When I execute recipe "foo"
 		And I change project file "README.md" to contain "modified"
@@ -31,9 +27,7 @@ Feature: Jalapenoignore
 		And the project directory should contain file "README.md" with "modified"
 
 	Scenario: Ignored file will not be removed even if new recipe version deprecates it
-		Given a project directory
-		And a recipes directory
-		And a recipe "foo"
+		Given a recipe "foo"
 		And recipe "foo" generates file "README.md" with content "initial"
 		And recipe "foo" generates file "will-be-removed-in-next-version" with content "initial"
 		And recipe "foo" ignores pattern "will-be-removed-in-next-version"

@@ -76,9 +76,6 @@ func TestFeatures(t *testing.T) {
 		},
 		ScenarioInitializer: func(s *godog.ScenarioContext) {
 			// Setup steps
-			s.Step(`^a project directory$`, aProjectDirectory)
-			s.Step(`^a recipes directory$`, aRecipesDirectory)
-			s.Step(`^a manifest directory$`, aManifestDirectory)
 			s.Step(`^a recipe "([^"]*)"$`, aRecipe)
 			s.Step(`^recipe "([^"]*)" generates file "([^"]*)" with content "([^"]*)"$`, recipeGeneratesFileWithContent)
 			s.Step(`^recipe "([^"]*)" ignores pattern "([^"]*)"$`, recipeIgnoresPattern)
@@ -130,6 +127,20 @@ func TestFeatures(t *testing.T) {
 				ctx = context.WithValue(ctx, dockerResourcesCtxKey{}, []*dockertest.Resource{})
 				ctx = context.WithValue(ctx, cmdStdInCtxKey{}, NewBlockBuffer())
 				ctx = context.WithValue(ctx, scenarioNameCtxKey{}, sc.Name)
+
+				dirs := map[interface{}]string{
+					projectDirectoryPathCtxKey{}:  "jalapeno-test-project",
+					recipesDirectoryPathCtxKey{}:  "jalapeno-test-recipes",
+					manifestDirectoryPathCtxKey{}: "jalapeno-test-manifest",
+				}
+
+				for key, dirPrefix := range dirs {
+					dir, err := os.MkdirTemp("", dirPrefix)
+					if err != nil {
+						return ctx, err
+					}
+					ctx = context.WithValue(ctx, key, dir)
+				}
 
 				return ctx, nil
 			})
@@ -233,33 +244,6 @@ func cleanDockerResources(ctx context.Context, sc *godog.Scenario, lastStepErr e
 		}
 	}
 	return ctx, nil
-}
-
-func aProjectDirectory(ctx context.Context) (context.Context, error) {
-	dir, err := os.MkdirTemp("", "jalapeno-test-project")
-	if err != nil {
-		return ctx, err
-	}
-
-	return context.WithValue(ctx, projectDirectoryPathCtxKey{}, dir), nil
-}
-
-func aRecipesDirectory(ctx context.Context) (context.Context, error) {
-	dir, err := os.MkdirTemp("", "jalapeno-test-recipes")
-	if err != nil {
-		return ctx, err
-	}
-
-	return context.WithValue(ctx, recipesDirectoryPathCtxKey{}, dir), nil
-}
-
-func aManifestDirectory(ctx context.Context) (context.Context, error) {
-	dir, err := os.MkdirTemp("", "jalapeno-test-manifest")
-	if err != nil {
-		return ctx, err
-	}
-
-	return context.WithValue(ctx, manifestDirectoryPathCtxKey{}, dir), nil
 }
 
 func bufferKeysToInput(ctx context.Context, keys string) (context.Context, error) {

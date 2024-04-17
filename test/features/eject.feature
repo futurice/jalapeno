@@ -2,9 +2,7 @@ Feature: Eject
 	Ejecting removes all traces of Jalapeno from a project
 
 	Scenario: Eject from project
-		Given a project directory
-		And a recipes directory
-		And a recipe "foo"
+		Given a recipe "foo"
 		And recipe "foo" generates file "README.md" with content "initial"
 		When I execute recipe "foo"
 		And I eject Jalapeno from the project

@@ -2,9 +2,7 @@ Feature: Execute manifests
 	Execute a collection of recipes from a manifest file
 
 	Scenario: Execute a manifest
-		Given a project directory
-		And a recipes directory
-		And a recipe "foo"
+		Given a recipe "foo"
 		And recipe "foo" generates file "foo.md" with content "initial"
 		And a recipe "bar"
 		And recipe "bar" generates file "bar.md" with content "initial"
@@ -20,9 +18,7 @@ Feature: Execute manifests
 		And the project directory should contain file "bar.md"
 
 	Scenario: Execute a manifest with remote recipes
-		Given a project directory
-		And a recipes directory
-		And a local OCI registry
+		Given a local OCI registry
 		And a recipe "foo"
 		And recipe "foo" generates file "foo.md" with content "initial"
 		And the recipe "foo" is pushed to the local OCI repository "foo:v0.0.1"
@@ -41,16 +37,12 @@ Feature: Execute manifests
 		And the project directory should contain file "bar.md"
 	
 	Scenario: Execute a manifest with no recipes
-		Given a project directory
-		And a recipes directory
-		And a manifest file
+		Given a manifest file
 		When I execute the manifest file
 		Then CLI produced an error "^Error: can not load the manifest: manifest must contain at least one recipe"
 
 	Scenario: Conflicting recipes in manifest results in an error
-		Given a project directory
-		And a recipes directory
-		And a recipe "foo"
+		Given a recipe "foo"
 		And recipe "foo" generates file "foo.md" with content "initial"
 		And a recipe "conflicts-with-foo"
 		And recipe "conflicts-with-foo" generates file "foo.md" with content "conflict"
@@ -61,9 +53,7 @@ Feature: Execute manifests
 		Then CLI produced an error "^Error: conflict in recipe 'conflicts-with-foo': file 'foo\.md' was already created by recipe 'foo'\."
 
 	Scenario: Already executed recipes are skipped when executing a manifest
-		Given a project directory
-		And a recipes directory
-		And a recipe "foo"
+		Given a recipe "foo"
 		And recipe "foo" generates file "foo.md" with content "initial"
 		And a recipe "bar"
 		And recipe "bar" generates file "bar.md" with content "initial"

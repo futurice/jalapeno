@@ -1,10 +1,8 @@
 Feature: Execute recipes
-	Executing Jalapeno recipes to template out projects
+	Executing Jalapeno recipes to render templates
 
 	Scenario: Execute single recipe
-		Given a project directory
-		And a recipes directory
-		And a recipe "foo"
+		Given a recipe "foo"
 		And recipe "foo" generates file "README.md" with content "initial"
 		When I execute recipe "foo"
 		Then execution of the recipe has succeeded
@@ -13,9 +11,7 @@ Feature: Execute recipes
 		And the sauce in index 0 which has a valid ID
 
 	Scenario: Execute single recipe from remote registry
-		Given a project directory
-		And a recipes directory
-		And a recipe "foo"
+		Given a recipe "foo"
 		And recipe "foo" generates file "README.md" with content "initial"
 		And a local OCI registry
 		And the recipe "foo" is pushed to the local OCI repository "foo:v0.0.1"
@@ -26,9 +22,7 @@ Feature: Execute recipes
 		And the sauce in index 0 which should have property "CheckFrom" with value "^oci://.+/foo$"
 
 	Scenario: Execute multiple recipes
-		Given a project directory
-		And a recipes directory
-		And a recipe "foo"
+		Given a recipe "foo"
 		And recipe "foo" generates file "README.md" with content "initial"
 		And a recipe "bar"
 		And recipe "bar" generates file "Taskfile.yml" with content "initial"
@@ -43,9 +37,7 @@ Feature: Execute recipes
 		And the sauce in index 1 which should have property "Recipe.Name" with value "^bar$"
 
 	Scenario: New recipe conflicts with the previous recipe
-		Given a project directory
-		And a recipes directory
-		And a recipe "foo"
+		Given a recipe "foo"
 		And recipe "foo" generates file "README.md" with content "initial"
 		And a recipe "bar"
 		And recipe "bar" generates file "Taskfile.yml" with content "initial"
@@ -61,9 +53,7 @@ Feature: Execute recipes
 		Then CLI produced an error "file 'Taskfile.yml' was already created by recipe 'bar'"
 
 	Scenario: Same recipe is executed twice
-		Given a project directory
-		And a recipes directory
-		And a recipe "foo"
+		Given a recipe "foo"
 		And recipe "foo" generates file "README.md" with content "initial"
 		When I execute recipe "foo"
 		And no errors were printed
@@ -72,9 +62,7 @@ Feature: Execute recipes
 		Then CLI produced an error "recipe 'foo@v0\.0\.1': recipe has been already executed"
 
 	Scenario: Execute single recipe to a subpath
-		Given a project directory
-		And a recipes directory
-		And a recipe "foo"
+		Given a recipe "foo"
 		And recipe "foo" generates file "README" with content "initial"
 		And recipes will be executed to the subpath "docs"
 		When I execute recipe "foo"
@@ -86,9 +74,7 @@ Feature: Execute recipes
 		And the sauce in index 0 which should have property "SubPath" with value "^docs$"
 
 	Scenario: Execute multiple recipes to different subpaths
-		Given a project directory
-		And a recipes directory
-		And a recipe "foo"
+		Given a recipe "foo"
 		And recipe "foo" generates file "README" with content "initial"
 		And recipes will be executed to the subpath "foo"
 		When I execute recipe "foo"
@@ -106,18 +92,14 @@ Feature: Execute recipes
 		And the sauce in index 1 which should have property "SubPath" with value "^bar$"
 
 	Scenario: Try to execute recipe which escapes the project root
-		Given a project directory
-		And a recipes directory
-		And a recipe "foo"
+		Given a recipe "foo"
 		And recipe "foo" generates file "README.md" with content "initial"
 		And recipes will be executed to the subpath "foo/../.."
 		When I execute recipe "foo"
 		Then CLI produced an error "must point to a directory inside the project root"
 
 	Scenario: Try to execute recipe which uses absolute sub path
-		Given a project directory
-		And a recipes directory
-		And a recipe "foo"
+		Given a recipe "foo"
 		And recipe "foo" generates file "README.md" with content "initial"
 		And recipes will be executed to the subpath "/root/foo"
 		When I execute recipe "foo"
