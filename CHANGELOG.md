@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.8.1](https://github.com/futurice/jalapeno/compare/v1.8.0...v1.8.1) (2024-04-17)
+
+
+### Bug Fixes
+
+* skip already executed recipes when executing a manifest ([9463a4f](https://github.com/futurice/jalapeno/commit/9463a4fe3eae89955df7a0e04957ffcc26b88bec))
+
 ## [1.8.0](https://github.com/futurice/jalapeno/compare/v1.7.2...v1.8.0) (2024-04-15)
 
 
