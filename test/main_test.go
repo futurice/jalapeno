@@ -75,33 +75,7 @@ func TestFeatures(t *testing.T) {
 			TestingT:    t,
 		},
 		ScenarioInitializer: func(s *godog.ScenarioContext) {
-			// Setup steps
-			s.Step(`^a recipe "([^"]*)"$`, aRecipe)
-			s.Step(`^recipe "([^"]*)" generates file "([^"]*)" with content "([^"]*)"$`, recipeGeneratesFileWithContent)
-			s.Step(`^recipe "([^"]*)" ignores pattern "([^"]*)"$`, recipeIgnoresPattern)
-			s.Step(`^I remove file "([^"]*)" from the recipe "([^"]*)"$`, iRemoveFileFromTheRecipe)
-			s.Step(`^I create a file "([^"]*)" with contents "([^"]*)" to the project directory$`, iCreateAFileWithContentsToTheProjectDir)
-			s.Step(`^a local OCI registry$`, aLocalOCIRegistry)
-			s.Step(`^a local OCI registry with authentication$`, aLocalOCIRegistryWithAuth)
-			s.Step(`^registry credentials are not provided by the command$`, credentialsAreNotProvidedByTheCommand)
-			s.Step(`^registry credentials are provided by config file$`, generateDockerConfigFile)
-			s.Step(`^I buffer key presses "([^"]*)"$`, bufferKeysToInput)
-			s.Step(`^I clear the output$`, iClearTheOutput)
-
-			// Assert steps
-			s.Step(`^the recipes directory should contain recipe "([^"]*)"$`, theRecipesDirectoryShouldContainRecipe)
-			s.Step(`^the manifest directory should contain manifest named "([^"]*)"$`, theManifestDirectoryShouldContainManifest)
-			s.Step(`^no errors were printed$`, noErrorsWerePrinted)
-			s.Step(`^CLI produced an output "([^"]*)"$`, expectGivenOutput)
-			s.Step(`^CLI produced an error "(.*)"$`, expectGivenError)
-			s.Step(`^the sauce in index (\d) which should have property "([^"]*)"$`, theSauceShouldHaveProperty)
-			s.Step(`^the sauce in index (\d) which should not have property "([^"]*)"$`, theSauceFileShouldNotHaveProperty)
-			s.Step(`^the sauce in index (\d) which should have property "([^"]*)" with value "([^"]*)"$`, theSauceFileShouldHavePropertyWithValue)
-			s.Step(`^the sauce in index (\d) which has a valid ID$`, theSauceFileShouldHasAValidID)
-			s.Step(`^the project directory should contain file "([^"]*)"$`, theProjectDirectoryShouldContainFile)
-			s.Step(`^the project directory should contain file "([^"]*)" with "([^"]*)"$`, theProjectDirectoryShouldContainFileWith)
-			s.Step(`^the project directory should not contain file "([^"]*)"$`, theProjectDirectoryShouldNotContainFile)
-			s.Step(`^the file "([^"]*)" exist in the recipe "([^"]*)"$`, theFileExistInTheRecipe)
+			AddCommonSteps(s)
 
 			// Command specific steps
 			AddCheckSteps(s)
@@ -153,6 +127,36 @@ func TestFeatures(t *testing.T) {
 	if suite.Run() != 0 {
 		t.Fatal("non-zero status returned, failed to run feature tests")
 	}
+}
+
+func AddCommonSteps(s *godog.ScenarioContext) {
+	// Setup steps
+	s.Step(`^a recipe "([^"]*)"$`, aRecipe)
+	s.Step(`^recipe "([^"]*)" generates file "([^"]*)" with content "([^"]*)"$`, recipeGeneratesFileWithContent)
+	s.Step(`^recipe "([^"]*)" ignores pattern "([^"]*)"$`, recipeIgnoresPattern)
+	s.Step(`^I remove file "([^"]*)" from the recipe "([^"]*)"$`, iRemoveFileFromTheRecipe)
+	s.Step(`^I create a file "([^"]*)" with contents "([^"]*)" to the project directory$`, iCreateAFileWithContentsToTheProjectDir)
+	s.Step(`^a local OCI registry$`, aLocalOCIRegistry)
+	s.Step(`^a local OCI registry with authentication$`, aLocalOCIRegistryWithAuth)
+	s.Step(`^registry credentials are not provided by the command$`, credentialsAreNotProvidedByTheCommand)
+	s.Step(`^registry credentials are provided by config file$`, generateDockerConfigFile)
+	s.Step(`^I buffer key presses "([^"]*)"$`, bufferKeysToInput)
+	s.Step(`^I clear the output$`, iClearTheOutput)
+
+	// Assert steps
+	s.Step(`^the recipes directory should contain recipe "([^"]*)"$`, theRecipesDirectoryShouldContainRecipe)
+	s.Step(`^the manifest directory should contain manifest named "([^"]*)"$`, theManifestDirectoryShouldContainManifest)
+	s.Step(`^no errors were printed$`, noErrorsWerePrinted)
+	s.Step(`^CLI produced an output "([^"]*)"$`, expectGivenOutput)
+	s.Step(`^CLI produced an error "(.*)"$`, expectGivenError)
+	s.Step(`^the sauce in index (\d) which should have property "([^"]*)"$`, theSauceShouldHaveProperty)
+	s.Step(`^the sauce in index (\d) which should not have property "([^"]*)"$`, theSauceFileShouldNotHaveProperty)
+	s.Step(`^the sauce in index (\d) which should have property "([^"]*)" with value "([^"]*)"$`, theSauceFileShouldHavePropertyWithValue)
+	s.Step(`^the sauce in index (\d) which has a valid ID$`, theSauceFileShouldHasAValidID)
+	s.Step(`^the project directory should contain file "([^"]*)"$`, theProjectDirectoryShouldContainFile)
+	s.Step(`^the project directory should contain file "([^"]*)" with "([^"]*)"$`, theProjectDirectoryShouldContainFileWith)
+	s.Step(`^the project directory should not contain file "([^"]*)"$`, theProjectDirectoryShouldNotContainFile)
+	s.Step(`^the file "([^"]*)" exist in the recipe "([^"]*)"$`, theFileExistInTheRecipe)
 }
 
 /*
