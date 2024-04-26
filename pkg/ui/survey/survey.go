@@ -182,15 +182,17 @@ func (m SurveyModel) createPrompt(v recipe.Variable) (prompt.Model, error) {
 	}
 
 	var p prompt.Model
-	switch {
-	case len(v.Options) != 0:
-		p = prompt.NewSelectModel(v, m.styles)
-	case v.Confirm:
+	switch vType := v.DetermineType(); vType {
+	case recipe.VariableTypeString:
+		p = prompt.NewStringModel(v, m.styles)
+	case recipe.VariableTypeBoolean:
 		p = prompt.NewConfirmModel(v, m.styles)
-	case len(v.Columns) > 0:
+	case recipe.VariableTypeSelect:
+		p = prompt.NewSelectModel(v, m.styles)
+	case recipe.VariableTypeTable:
 		p = prompt.NewTableModel(v, m.styles)
 	default:
-		p = prompt.NewStringModel(v, m.styles)
+		return nil, fmt.Errorf("unsupported variable type: %+v", vType)
 	}
 
 	return p, nil
