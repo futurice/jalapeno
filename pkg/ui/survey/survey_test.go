@@ -64,6 +64,16 @@ func TestPromptUserForValues(t *testing.T) {
 			input: "↓↓\r",
 		},
 		{
+			name: "multi_select_variable",
+			variables: []recipe.Variable{
+				{Name: "VAR_1", Options: []string{"a", "b", "c"}, Multi: true},
+			},
+			expectedValues: recipe.VariableValues{
+				"VAR_1": "b,c",
+			},
+			input: "↓ ↓ \r",
+		},
+		{
 			name: "table_variable_with_arrows",
 			variables: []recipe.Variable{
 				{Name: "VAR_1", Columns: []string{"column_1", "column_2"}},

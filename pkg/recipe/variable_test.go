@@ -50,6 +50,14 @@ func TestVariableValidation(t *testing.T) {
 			},
 			"`options` and `columns` properties can not be defined",
 		},
+		{
+			"only multi is defined",
+			Variable{
+				Name:  "foo",
+				Multi: true,
+			},
+			"multiselect variables need to have options defined",
+		},
 	}
 
 	for _, scenario := range scenarios {

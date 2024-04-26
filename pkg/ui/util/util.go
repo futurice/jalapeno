@@ -22,6 +22,10 @@ func MapUTFRuneToKey(r rune) tea.KeyMsg {
 		return tea.KeyMsg{
 			Type: tea.KeyTab,
 		}
+	case ' ':
+		return tea.KeyMsg{
+			Type: tea.KeySpace,
+		}
 	case '↑':
 		return tea.KeyMsg{
 			Type: tea.KeyUp,

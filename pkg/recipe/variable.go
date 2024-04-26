@@ -28,6 +28,9 @@ type Variable struct {
 	// The user selects the value from a list of options
 	Options []string `yaml:"options,omitempty"`
 
+	// If set to true, the user can select multiple values from the list of options
+	Multi bool `yaml:"multi,omitempty"`
+
 	// Validators for the variable
 	Validators []VariableValidator `yaml:"validators,omitempty"`
 
@@ -41,11 +44,12 @@ type Variable struct {
 type VariableType uint8
 
 const (
-	VariableTypeUndefined VariableType = iota
+	VariableTypeUnknown VariableType = iota
 	VariableTypeString
-	VariableTypeTable
-	VariableTypeSelect
 	VariableTypeBoolean
+	VariableTypeSelect
+	VariableTypeMultiSelect
+	VariableTypeTable
 )
 
 type VariableValidator struct {
@@ -65,6 +69,8 @@ type VariableValidator struct {
 // VariableValues stores values for each variable
 type VariableValues map[string]interface{}
 
+type MultiSelectValue []string
+
 type TableValue struct {
 	Columns []string   `yaml:"columns"`
 	Rows    [][]string `yaml:"rows,flow"`
@@ -81,7 +87,7 @@ func (v *Variable) Validate() error {
 		return errors.New("variable name can not start with a number")
 	}
 
-	if v.DetermineType() == VariableTypeUndefined {
+	if v.DetermineType() == VariableTypeUnknown {
 		return errors.New("internal error: variable type could not be determined")
 	}
 
@@ -101,6 +107,10 @@ func (v *Variable) Validate() error {
 		} else if v.Optional {
 			return errors.New("select variables can not be optional")
 		}
+	}
+
+	if v.Multi && len(v.Options) == 0 {
+		return errors.New("multiselect variables need to have options defined")
 	}
 
 	for i, validator := range v.Validators {
@@ -162,6 +172,8 @@ func (v *Variable) Validate() error {
 	return nil
 }
 
+// NOTE: This function does note validate the values against the variable definitions.
+// It only checks if the name of the values are not empty and the values are of supported types.
 func (val VariableValues) Validate() error {
 	for name, v := range val {
 		if name == "" {
@@ -169,8 +181,7 @@ func (val VariableValues) Validate() error {
 		}
 
 		switch v.(type) {
-		// List allowed types
-		case string, bool, TableValue:
+		case string, bool, MultiSelectValue, TableValue:
 			break
 		default:
 			return fmt.Errorf("unsupported variable value type")
@@ -352,7 +363,11 @@ func (v Variable) DetermineType() VariableType {
 	case v.Confirm:
 		return VariableTypeBoolean
 	case len(v.Options) > 0:
-		return VariableTypeSelect
+		if v.Multi {
+			return VariableTypeMultiSelect
+		} else {
+			return VariableTypeSelect
+		}
 	case len(v.Columns) > 0:
 		return VariableTypeTable
 	default:
@@ -366,6 +381,8 @@ func (v Variable) ParseDefaultValue() (interface{}, error) {
 		return v.Default == "true", nil
 	case VariableTypeSelect:
 		return v.Default, nil
+	case VariableTypeMultiSelect:
+		return strings.Split(v.Default, ","), nil
 	case VariableTypeTable:
 		t := TableValue{}
 		err := t.FromCSV(v.Columns, v.Default, ',')
