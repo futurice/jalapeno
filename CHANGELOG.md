@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.8.2](https://github.com/futurice/jalapeno/compare/v1.8.1...v1.8.2) (2024-05-07)
+
+
+### Bug Fixes
+
+* add helper texts for create command ([0e8653f](https://github.com/futurice/jalapeno/commit/0e8653ff74ef193a9b4b92d594990eddb7d22352))
+
 ## [1.8.1](https://github.com/futurice/jalapeno/compare/v1.8.0...v1.8.1) (2024-04-17)
 
 
