@@ -6,7 +6,9 @@ import (
 
 func NewCreateCmd() *cobra.Command {
 	var cmd = &cobra.Command{
-		Use: "create",
+		Use:   "create",
+		Short: "Create a new recipe, manifest or test",
+		Long:  "Create a new recipe, manifest or test.",
 	}
 
 	cmd.AddCommand(

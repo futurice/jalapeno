@@ -128,10 +128,6 @@ func mapCommandInfos(cmds []*cobra.Command) []CommandInfo {
 			})
 		})
 
-		if c.Short != "" {
-			infos = append(infos, info)
-		}
-
 		if c.HasSubCommands() {
 			subInfos := mapCommandInfos(c.Commands())
 			for i := range subInfos {
@@ -140,6 +136,8 @@ func mapCommandInfos(cmds []*cobra.Command) []CommandInfo {
 			}
 
 			infos = append(infos, subInfos...)
+		} else {
+			infos = append(infos, info)
 		}
 	}
 
