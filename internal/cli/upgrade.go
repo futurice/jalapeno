@@ -25,7 +25,7 @@ import (
 type upgradeOptions struct {
 	RecipeURL      string
 	ReuseOldValues bool
-	SauceID        string
+	TargetSauceID  string
 
 	option.Common
 	option.OCIRepository
@@ -69,7 +69,7 @@ jalapeno upgrade path/to/recipe --dir other/dir
 jalapeno upgrade path/to/recipe --set NEW_VAR=foo`,
 	}
 
-	cmd.Flags().StringVar(&opts.SauceID, "sauce-id", "", "If the project contains multiple sauces with the same recipe, specify the ID of the sauce to be upgraded")
+	cmd.Flags().StringVar(&opts.TargetSauceID, "sauce-id", "", "If the project contains multiple sauces with the same recipe, specify the ID of the sauce to be upgraded")
 	cmd.Flags().BoolVar(&opts.ReuseOldValues, "reuse-old-values", true, "Automatically set values for variables which already have a value in the existing sauce")
 
 	if err := option.ApplyFlags(&opts, cmd.Flags()); err != nil {
@@ -99,8 +99,8 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 		return err
 	}
 
-	if opts.SauceID != "" {
-		id, uuidErr := uuid.FromString(opts.SauceID)
+	if opts.TargetSauceID != "" {
+		id, uuidErr := uuid.FromString(opts.TargetSauceID)
 		if uuidErr != nil {
 			return fmt.Errorf("invalid sauce ID: %w", err)
 		}
@@ -127,7 +127,7 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 	}
 
 	if versionComparison > 0 {
-		if opts.SauceID == "" {
+		if opts.TargetSauceID == "" {
 			cmd.Printf("Upgrading sauce with recipe '%s' from version %s to %s\n",
 				oldSauce.Recipe.Name,
 				oldSauce.Recipe.Metadata.Version,

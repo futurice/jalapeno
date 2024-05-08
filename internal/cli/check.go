@@ -173,7 +173,7 @@ func runCheck(cmd *cobra.Command, opts checkOptions) error {
 	for _, sauce := range upgradeableSauces {
 		err := runUpgrade(cmd, upgradeOptions{
 			RecipeURL:        fmt.Sprintf("%s:%s", sauce.CheckFrom, latestSauceVersions[sauce]),
-			SauceID:          sauce.ID.String(),
+			TargetSauceID:    sauce.ID.String(),
 			ReuseOldValues:   true,
 			Common:           opts.Common,
 			OCIRepository:    opts.OCIRepository,
