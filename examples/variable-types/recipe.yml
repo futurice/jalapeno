@@ -75,9 +75,16 @@ vars:
 
   - name: TABLE_VAR_WITH_VALIDATOR
     description: |
-      Regular expression validators can be set for a table variable by defining `validators` and `column` property
-    columns: [NOT_EMPTY_COL, CAN_BE_EMPTY_COL]
+      Validators can be set for a table variable by defining `validators` and `column` property.
+
+      Regular expression validator checks that the value entered in a cell matches the defined expression.
+
+      Unique validator ensures all values within a column are unique.
+    columns: [NOT_EMPTY_UNIQUE_COL, CAN_BE_EMPTY_COL]
     validators:
       - pattern: ".+"
-        column: NOT_EMPTY_COL
+        column: NOT_EMPTY_UNIQUE_COL
         help: "If the cell is empty, this help message will be shown"
+      - unique: true
+        column: NOT_EMPTY_UNIQUE_COL
+        help: "If the values in the defined column are not unique this help message will be shown"

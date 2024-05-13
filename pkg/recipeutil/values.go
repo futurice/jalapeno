@@ -71,10 +71,24 @@ func ParseProvidedValues(variables []recipe.Variable, flags []string, delimiter 
 
 			for i := range targetedVariable.Validators {
 				validator := targetedVariable.Validators[i]
-				validatorFunc := validator.CreateValidatorFunc()
+
+				var validatorFunc func([]string, [][]string, string) error
+
+				if validator.Pattern != "" {
+					regexValidator, _ := validator.CreateValidatorFunc()
+					validatorFunc = func(cols []string, rows [][]string, input string) error {
+						return regexValidator(input)
+					}
+				} else {
+					validatorFunc, err = validator.CreateTableValidatorFunc()
+					if err != nil {
+						return nil, fmt.Errorf("validator create failed for variable %s in column %s, row %d: %w", varName, validator.Column, i, err)
+					}
+				}
+
 				for _, row := range table.Rows {
 					columnIndex := slices.Index(table.Columns, validator.Column)
-					if err := validatorFunc(row[columnIndex]); err != nil {
+					if err := validatorFunc(table.Columns, table.Rows, row[columnIndex]); err != nil {
 						return nil, fmt.Errorf("validator failed for variable %s in column %s, row %d: %w", varName, validator.Column, i, err)
 					}
 
@@ -84,7 +98,10 @@ func ParseProvidedValues(variables []recipe.Variable, flags []string, delimiter 
 
 		default:
 			for i := range targetedVariable.Validators {
-				validatorFunc := targetedVariable.Validators[i].CreateValidatorFunc()
+				validatorFunc, err := targetedVariable.Validators[i].CreateValidatorFunc()
+				if err != nil {
+					return nil, fmt.Errorf("validator create failed for value '%s=%s': %w", varName, varValue, err)
+				}
 				if err := validatorFunc(varValue); err != nil {
 					return nil, fmt.Errorf("validator failed for value '%s=%s': %w", varName, varValue, err)
 				}

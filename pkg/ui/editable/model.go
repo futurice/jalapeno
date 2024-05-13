@@ -41,7 +41,7 @@ type Cell struct {
 type Column struct {
 	Title      string
 	Width      int
-	Validators []func(string) error
+	Validators []func([]string, [][]string, string) error
 }
 
 type KeyMap struct {
@@ -375,6 +375,15 @@ func (m *Model) Move(y, x int) tea.Cmd {
 	return m.rows[m.cursorY][m.cursorX].input.Focus()
 }
 
+func (m Model) Titles() []string {
+	titles := make([]string, len(m.cols))
+	for i, col := range m.cols {
+		titles[i] = col.Title
+	}
+
+	return titles
+}
+
 func (m Model) Values() [][]string {
 	// If the table has only empty cells, return an empty slice
 	if m.isEmpty() {
@@ -428,7 +437,7 @@ func (m *Model) validateCell(y, x int) {
 
 	errs := make([]error, 0, len(m.cols[x].Validators))
 	for i := range m.cols[x].Validators {
-		err := m.cols[x].Validators[i](cell.input.Value())
+		err := m.cols[x].Validators[i](m.Titles(), m.Values(), cell.input.Value())
 		if err != nil {
 			errs = append(errs, err)
 		}

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+	"slices"
 	"strings"
 
 	"github.com/expr-lang/expr"
@@ -179,19 +180,48 @@ func (val VariableValues) Validate() error {
 	return nil
 }
 
-func (r *VariableValidator) CreateValidatorFunc() func(input string) error {
-	reg := regexp.MustCompile(r.Pattern)
-
-	return func(input string) error {
-		if match := reg.MatchString(input); !match {
-			if r.Help != "" {
-				return errors.New(r.Help)
-			} else {
-				return errors.New("the input did not match the regexp pattern")
+func (r *VariableValidator) CreateTableValidatorFunc() (func(cols []string, rows [][]string, input string) error, error) {
+	if r.Unique {
+		return func(cols []string, rows [][]string, input string) error {
+			colIndex := slices.Index(cols, r.Column)
+			colValues := make([]string, len(rows))
+			for i, row := range rows {
+				colValues[i] = row[colIndex]
 			}
-		}
-		return nil
+			slices.Sort(colValues)
+
+			if uniqValues := len(slices.Compact(colValues)); uniqValues != len(colValues) {
+				if r.Help != "" {
+					return errors.New(r.Help)
+				} else {
+					return errors.New("value not unique within column")
+				}
+			}
+
+			return nil
+		}, nil
 	}
+
+	return nil, fmt.Errorf("unsupported table validator on column %q", r.Column)
+}
+
+func (r *VariableValidator) CreateValidatorFunc() (func(input string) error, error) {
+	if r.Pattern != "" {
+		reg := regexp.MustCompile(r.Pattern)
+
+		return func(input string) error {
+			if match := reg.MatchString(input); !match {
+				if r.Help != "" {
+					return errors.New(r.Help)
+				} else {
+					return errors.New("the input did not match the regexp pattern")
+				}
+			}
+			return nil
+		}, nil
+	}
+
+	return nil, fmt.Errorf("unsupported validator on column %q", r.Column)
 }
 
 func (t *TableValue) FromCSV(columns []string, input string, delimiter rune) error {
