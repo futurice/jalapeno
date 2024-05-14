@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.9.0](https://github.com/futurice/jalapeno/compare/v1.8.2...v1.9.0) (2024-05-14)
+
+
+### Features
+
+* unique table column validator ([#99](https://github.com/futurice/jalapeno/issues/99)) ([d187ae9](https://github.com/futurice/jalapeno/commit/d187ae90a8a66cfcd9c7043c485695808cc7f077))
+
 ## [1.8.2](https://github.com/futurice/jalapeno/compare/v1.8.1...v1.8.2) (2024-05-07)
 
 
