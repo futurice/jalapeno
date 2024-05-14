@@ -50,6 +50,17 @@ func TestVariableValidation(t *testing.T) {
 			},
 			"`options` and `columns` properties can not be defined",
 		},
+		{
+			"validator defined for undefined column",
+			Variable{
+				Name:    "foo",
+				Columns: []string{"foo", "bar"},
+				Validators: []VariableValidator{
+					{Column: "cat", Pattern: ".*"},
+				},
+			},
+			"validator defined for undefined column \"cat\"",
+		},
 	}
 
 	for _, scenario := range scenarios {

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+	"slices"
 	"strings"
 
 	"github.com/expr-lang/expr"
@@ -120,6 +121,10 @@ func (v *Variable) Validate() error {
 		if validator.Column != "" {
 			if len(v.Columns) == 0 {
 				return fmt.Errorf("%s: validator is defined for column while the variable has not defined any", validatorIndex)
+			}
+
+			if slices.Index(v.Columns, validator.Column) == -1 {
+				return fmt.Errorf("%s: validator defined for undefined column %q", validatorIndex, validator.Column)
 			}
 
 			found := false
