@@ -79,9 +79,12 @@ func TestVariableRegExpValidation(t *testing.T) {
 		},
 	}
 
-	validatorFunc := variable.Validators[0].CreateValidatorFunc()
+	validatorFunc, err := variable.Validators[0].CreateValidatorFunc()
+	if err != nil {
+		t.Error("Validator function creation failed")
+	}
 
-	err := validatorFunc("")
+	err = validatorFunc("")
 	if err == nil {
 		t.Error("Incorrectly validated empty string")
 	}
@@ -109,5 +112,61 @@ func TestVariableRegExpValidation(t *testing.T) {
 	err = validatorFunc("valid-all-the-way-to-11")
 	if err != nil {
 		t.Error("Incorrectly invalidated valid string")
+	}
+}
+
+func TestUniqueColumnValidation(t *testing.T) {
+	variable := &Variable{
+		Name:        "foo",
+		Description: "foo description",
+		Validators: []VariableValidator{
+			{
+				Unique: true,
+				Column: "COL_1",
+			},
+		},
+	}
+
+	validatorFunc, err := variable.Validators[0].CreateTableValidatorFunc()
+	if err != nil {
+		t.Error("Validator function creation failed")
+	}
+
+	cols := []string{"COL_1", "COL_2"}
+
+	err = validatorFunc(
+		cols,
+		[][]string{
+			{"0_0", "0_1"},
+			{"1_0", "1_1"},
+			{"2_0", "2_1"},
+		},
+		"")
+	if err != nil {
+		t.Error("Incorrectly invalidated valid data")
+	}
+
+	err = validatorFunc(
+		cols,
+		[][]string{
+			{"0_0", "0_1"},
+			{"0_0", "1_1"},
+			{"2_0", "2_1"},
+		},
+		"")
+	if err == nil {
+		t.Error("Incorrectly validated invalid data")
+	}
+
+	err = validatorFunc(
+		cols,
+		[][]string{
+			{"0_0", "0_1"},
+			{"1_0", "0_1"},
+			{"2_0", "0_1"},
+		},
+		"")
+	if err != nil {
+		t.Error("Incorrectly invalidated valid data")
 	}
 }

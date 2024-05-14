@@ -31,17 +31,29 @@ var _ Model = TableModel{}
 func NewTableModel(v recipe.Variable, styles style.Styles) TableModel {
 	cols := make([]editable.Column, len(v.Columns))
 
-	validators := make(map[string][]func(string) error)
+	validators := make(map[string][]func([]string, [][]string, string) error)
 	for i, validator := range v.Validators {
 		if validator.Column != "" {
 			if validators[validator.Column] == nil {
-				validators[validator.Column] = make([]func(string) error, 0)
+				validators[validator.Column] = make([]func([]string, [][]string, string) error, 0)
 			}
 
-			validators[validator.Column] = append(validators[validator.Column], v.Validators[i].CreateValidatorFunc())
+			if validator.Pattern != "" {
+				regexValidator, err := v.Validators[i].CreateValidatorFunc()
+				if err == nil {
+					validators[validator.Column] = append(validators[validator.Column],
+						func(cols []string, rows [][]string, input string) error {
+							return regexValidator(input)
+						})
+				}
+			} else {
+				validatorFn, err := validator.CreateTableValidatorFunc()
+				if err == nil {
+					validators[validator.Column] = append(validators[validator.Column], validatorFn)
+				}
+			}
 		}
 	}
-
 	for i, c := range v.Columns {
 		cols[i] = editable.Column{
 			Title:      c,

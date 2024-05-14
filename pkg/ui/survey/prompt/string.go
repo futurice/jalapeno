@@ -137,7 +137,10 @@ func (m StringModel) Validate() error {
 
 	for _, v := range m.variable.Validators {
 		if v.Pattern != "" {
-			validatorFunc := v.CreateValidatorFunc()
+			validatorFunc, err := v.CreateValidatorFunc()
+			if err != nil {
+				return fmt.Errorf("validator function create failed: %s", err)
+			}
 			if err := validatorFunc(m.textInput.Value()); err != nil {
 				return fmt.Errorf("%w: %s", util.ErrRegExFailed, err)
 			}
