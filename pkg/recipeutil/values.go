@@ -114,6 +114,74 @@ func ParseProvidedValues(variables []recipe.Variable, flags []string, delimiter 
 	return values, nil
 }
 
+func ValidateValues(variables []recipe.Variable, values recipe.VariableValues) error {
+	for _, variable := range variables {
+		if len(variable.Validators) == 0 {
+			continue
+		}
+
+		if _, exists := values[variable.Name]; !exists {
+			continue
+		}
+
+		for _, validator := range variable.Validators {
+			if err := ValidateValue(validator, values[variable.Name]); err != nil {
+				return fmt.Errorf("failed to validate variable '%s': %w", variable.Name, err)
+			}
+		}
+	}
+
+	return nil
+}
+
+func ValidateValue(validator recipe.VariableValidator, value interface{}) error {
+	switch v := value.(type) {
+	case string:
+		validatorFunc, err := validator.CreateValidatorFunc()
+		if err != nil {
+			return fmt.Errorf("validator creation failed: %w", err)
+		}
+
+		if err := validatorFunc(v); err != nil {
+			return err
+		}
+
+	case recipe.TableValue:
+		var validatorFunc func(string) error
+
+		if validator.RequiresTableContext() {
+			tableValidatorFunc, err := validator.CreateTableValidatorFunc()
+			if err != nil {
+				return fmt.Errorf("validator creation failed: %w", err)
+			}
+
+			validatorFunc = func(input string) error {
+				return tableValidatorFunc(v.Columns, v.Rows, input)
+			}
+
+		} else {
+			staticValidatorFunc, err := validator.CreateValidatorFunc()
+			if err != nil {
+				return fmt.Errorf("validator creation failed: %w", err)
+			}
+
+			validatorFunc = staticValidatorFunc
+		}
+
+		for _, row := range v.Rows {
+			for _, cell := range row {
+				if err := validatorFunc(cell); err != nil {
+					return err
+				}
+			}
+		}
+	default:
+		return fmt.Errorf("unsupported value type: %T", value)
+	}
+
+	return nil
+}
+
 // MergeValues merges multiple VariableValues into one. If a key exists in multiple VariableValues, the value from the
 // last VariableValues will be used.
 func MergeValues(valuesSlice ...recipe.VariableValues) recipe.VariableValues {

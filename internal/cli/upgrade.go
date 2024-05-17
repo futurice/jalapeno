@@ -208,6 +208,11 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 	values = recipeutil.MergeValues(reusedValues, providedValues)
 
 	if opts.ReuseOldValues {
+		// TODO: Remove the invalid value instead of throwing an error
+		if err := recipeutil.ValidateValues(re.Variables, values); err != nil {
+			return fmt.Errorf("failed to validate previous values with new validators: %w", err)
+		}
+
 		values = recipeutil.MergeValues(oldSauce.Values, values)
 	}
 

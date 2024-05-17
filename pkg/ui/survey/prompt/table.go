@@ -38,7 +38,12 @@ func NewTableModel(v recipe.Variable, styles style.Styles) TableModel {
 				validators[validator.Column] = make([]func([]string, [][]string, string) error, 0)
 			}
 
-			if validator.Pattern != "" {
+			if validator.RequiresTableContext() {
+				validatorFn, err := validator.CreateTableValidatorFunc()
+				if err == nil {
+					validators[validator.Column] = append(validators[validator.Column], validatorFn)
+				}
+			} else {
 				regexValidator, err := v.Validators[i].CreateValidatorFunc()
 				if err == nil {
 					validators[validator.Column] = append(validators[validator.Column],
@@ -46,14 +51,10 @@ func NewTableModel(v recipe.Variable, styles style.Styles) TableModel {
 							return regexValidator(input)
 						})
 				}
-			} else {
-				validatorFn, err := validator.CreateTableValidatorFunc()
-				if err == nil {
-					validators[validator.Column] = append(validators[validator.Column], validatorFn)
-				}
 			}
 		}
 	}
+
 	for i, c := range v.Columns {
 		cols[i] = editable.Column{
 			Title:      c,

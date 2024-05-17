@@ -180,6 +180,11 @@ func (val VariableValues) Validate() error {
 	return nil
 }
 
+// RequiresTableContext returns true if the validator function should be created with CreateTableValidatorFunc
+func (r *VariableValidator) RequiresTableContext() bool {
+	return r.Unique
+}
+
 func (r *VariableValidator) CreateTableValidatorFunc() (func(cols []string, rows [][]string, input string) error, error) {
 	if r.Unique {
 		return func(cols []string, rows [][]string, input string) error {
