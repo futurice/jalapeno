@@ -15,7 +15,8 @@ func TestRender(t *testing.T) {
 		{
 			"values_and_functions",
 			map[string][]byte{
-				"templates/test1": []byte("{{.var1 | title }} {{.var2 | title}}"),
+				"templates/test1":     []byte("{{.var1 | title }} {{.var2 | title}}"),
+				"templates/{{.var1}}": []byte("{{.var1}}"),
 			},
 			map[string]interface{}{
 				"var1": "first",
@@ -23,6 +24,7 @@ func TestRender(t *testing.T) {
 			},
 			map[string][]byte{
 				"templates/test1": []byte("First Second"),
+				"templates/first": []byte("first"),
 			},
 		},
 		{

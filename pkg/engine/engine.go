@@ -47,7 +47,25 @@ func (e Engine) Render(templates map[string][]byte, values map[string]interface{
 
 		// TODO: Could we detect unused variables, and give warning about those?
 
-		rendered[name] = []byte(output)
+		// File names can be templates to, render them here as well
+
+		buf.Reset()
+
+		template, err := t.New("__template_file_filename").Parse(name)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse file name template: %w", err)
+		}
+
+		if err := template.Execute(&buf, values); err != nil {
+			return nil, fmt.Errorf("failed to execute file name template: %w", err)
+		}
+
+		filename := buf.String()
+		if strings.Contains(filename, "<no value>") {
+			return nil, fmt.Errorf("variable for file name %q was undefined", name)
+		}
+
+		rendered[filename] = []byte(output)
 	}
 
 	return rendered, nil
