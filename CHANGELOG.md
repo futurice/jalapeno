@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.9.1](https://github.com/futurice/jalapeno/compare/v1.9.0...v1.9.1) (2024-06-05)
+
+
+### Bug Fixes
+
+* move no-input flag as a common flag ([ff94f72](https://github.com/futurice/jalapeno/commit/ff94f72b8ed29769cd135664ed83f11b8743f72a))
+
 ## [1.9.0](https://github.com/futurice/jalapeno/compare/v1.8.2...v1.9.0) (2024-05-14)
 
 
