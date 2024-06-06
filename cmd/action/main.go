@@ -37,6 +37,7 @@ func main() {
 
 	rootCmd := cli.NewRootCmd()
 	rootCmd.SetOut(out)
+	rootCmd.SetErr(out)
 	rootCmd.SetArgs(args)
 
 	exitCode := cli.Execute(rootCmd)
