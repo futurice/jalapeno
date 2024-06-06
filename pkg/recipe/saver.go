@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"gopkg.in/yaml.v3"
 )
@@ -12,6 +13,24 @@ const (
 	defaultFileMode os.FileMode = 0700
 	yamlIndent      int         = 2
 )
+
+func ValidatePath(basePath, filePath string) error {
+	absBasePath, err := filepath.Abs(basePath)
+	if err != nil {
+		return fmt.Errorf("invalid base path %q: %v", basePath, err)
+	}
+
+	absFilePath, err := filepath.Abs(filePath)
+	if err != nil {
+		return fmt.Errorf("invalid file path %q: %v", basePath, err)
+	}
+
+	if !strings.HasPrefix(absFilePath, absBasePath) {
+		return fmt.Errorf("file path escapes destination: %q outside %q", absFilePath, absBasePath)
+	}
+
+	return nil
+}
 
 // Save saves recipe to given destination
 func (re *Recipe) Save(dest string) error {
@@ -197,8 +216,13 @@ func saveFileMap(files map[string]File, dest string) error {
 	for path, file := range files {
 		destPath := filepath.Join(dest, path)
 
+		err := ValidatePath(dest, destPath)
+		if err != nil {
+			return err
+		}
+
 		// Create file's parent directories (if not already exist)
-		err := os.MkdirAll(filepath.Dir(destPath), 0700)
+		err = os.MkdirAll(filepath.Dir(destPath), 0700)
 		if err != nil {
 			return err
 		}

@@ -3,6 +3,7 @@ package recipe
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/futurice/jalapeno/pkg/engine"
@@ -115,5 +116,39 @@ func TestSaveSauce(t *testing.T) {
 		if _, err := os.Stat(expectedFile); os.IsNotExist(err) {
 			t.Fatalf("expected file '%s' did not exist", expectedFile)
 		}
+	}
+}
+
+func TestSaveSauceDoesNotWriteOutsideDest(t *testing.T) {
+	dir, err := os.MkdirTemp("", "jalapeno-test-saver")
+	if err != nil {
+		t.Fatalf("cannot create temp dir: %s", err)
+	}
+	defer os.RemoveAll(dir)
+
+	re := NewRecipe()
+	re.Name = "Test"
+	re.Version = "v0.0.1"
+	re.Templates = map[string]File{
+		"../foo.md": NewFile([]byte("foo")),
+	}
+
+	err = re.Validate()
+	if err != nil {
+		t.Fatalf("test recipe was not valid: %s", err)
+	}
+
+	sauce, err := re.Execute(engine.New(), nil, uuid.Must(uuid.NewV4()))
+	if err != nil {
+		t.Fatalf("recipe execution failed: %s", err)
+	}
+
+	err = sauce.Save(dir)
+	if err == nil {
+		t.Fatalf("should not have saved sauce")
+	}
+
+	if !strings.Contains(err.Error(), "file path escapes destination") {
+		t.Fatalf("error received was not expected: %s", err)
 	}
 }
