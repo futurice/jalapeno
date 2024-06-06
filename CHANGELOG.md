@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.9.2](https://github.com/futurice/jalapeno/compare/v1.9.1...v1.9.2) (2024-06-06)
+
+
+### Bug Fixes
+
+* forward stderr to GH Action results output ([c79148e](https://github.com/futurice/jalapeno/commit/c79148e307c97d1246f055c3b978bb5e2384be7b))
+
 ## [1.9.1](https://github.com/futurice/jalapeno/compare/v1.9.0...v1.9.1) (2024-06-05)
 
 
