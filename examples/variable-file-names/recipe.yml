@@ -1,0 +1,8 @@
+apiVersion: v1
+name: variable-filename
+version: v0.0.0
+description: Minimal recipe which just creates a file named from a variable
+vars:
+  - name: README_FILE_NAME
+    description: |
+      The base name for the rendered file
