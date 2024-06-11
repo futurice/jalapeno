@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.10.0](https://github.com/futurice/jalapeno/compare/v1.9.2...v1.10.0) (2024-06-11)
+
+
+### Features
+
+* variables in template file names ([#105](https://github.com/futurice/jalapeno/issues/105)) ([1f45505](https://github.com/futurice/jalapeno/commit/1f4550509485a300f989e3228d5d9a0a0a5cdb34))
+
 ## [1.9.2](https://github.com/futurice/jalapeno/compare/v1.9.1...v1.9.2) (2024-06-06)
 
 
