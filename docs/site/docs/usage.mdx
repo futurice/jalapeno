@@ -101,6 +101,12 @@ The following context is available on the templates:
 - `.ID`: An UUID which is generated after the first execution of the recipe. It can be used to generate unique pseudo-random values which stays the same over the upgrades, for example `my-resource-{{ sha1sum .ID | trunc 5 }}`
 - `.Variables`: Object which contains the values of the variables defined for the recipe. Example: `{{ .Variables.FOO }}`
 
+:::tip
+
+You can use templates in the filenames as well. For example, if you want to create a file with a name defined by a variable, you can use `{{ .Variables.MY_FILE_NAME }}.md`. See the [example recipe](https://github.com/futurice/jalapeno/tree/main/examples/variable-file-names/templates). The same context is available for the filenames as for normal templates.
+
+:::
+
 :::note
 
 Template files starting with `_` are not rendered to the output. This is useful when you have a file which contains helper templates for other files, like `_helpers.yml`.
