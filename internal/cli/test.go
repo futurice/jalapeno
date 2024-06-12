@@ -21,12 +21,16 @@ type testOptions struct {
 func NewTestCmd() *cobra.Command {
 	var opts testOptions
 	var cmd = &cobra.Command{
-		Use:   "test RECIPE_PATH",
+		Use:   "test [RECIPE_PATH]",
 		Short: "Run tests for the recipe",
 		Long:  "Run tests for the recipe.",
-		Args:  cobra.ExactArgs(1),
+		Args:  cobra.MaximumNArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			opts.RecipePath = args[0]
+			if len(args) == 1 {
+				opts.RecipePath = args[0]
+			} else {
+				opts.RecipePath = "."
+			}
 			return option.Parse(&opts)
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
