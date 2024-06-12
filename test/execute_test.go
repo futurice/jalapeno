@@ -99,7 +99,7 @@ func aManifestFileThatIncludesRecipes(ctx context.Context, recipeNames *godog.Ta
 		recipes[i] = recipe.ManifestRecipe{
 			Name:       re.Name,
 			Version:    re.Version,
-			Repository: fmt.Sprintf("file://%s/%s", recipeDir, name),
+			Repository: fmt.Sprintf("%s/%s", recipeDir, name),
 		}
 	}
 

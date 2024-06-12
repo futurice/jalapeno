@@ -31,8 +31,7 @@ var (
 
 // LoadRecipe reads a recipe from a given path
 func LoadRecipe(path string) (*Recipe, error) {
-	// TODO: is there a better way to handle this?
-	rootDir, err := filepath.Abs(strings.TrimPrefix(path, "file://"))
+	rootDir, err := filepath.Abs(path)
 	if err != nil {
 		return nil, err
 	}

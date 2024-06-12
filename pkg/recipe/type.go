@@ -2,7 +2,6 @@ package recipe
 
 import (
 	"os"
-	"path/filepath"
 	"strings"
 )
 
@@ -20,17 +19,13 @@ func DetermineRecipeURLType(url string) URLType {
 		return OCIType
 	}
 
-	if strings.HasPrefix(url, "file://") || filepath.IsAbs(url) || filepath.IsLocal(url) {
-		fileinfo, _ := os.Stat(url)
+	fileinfo, _ := os.Stat(url)
 
-		// If the file exists and it is not a directory, assume manifest
-		if fileinfo != nil && !fileinfo.IsDir() {
-			return ManifestType
-		}
-
-		// Else assume that the URL points to a recipe
-		return LocalType
+	// If the file exists and it is not a directory, assume manifest
+	if fileinfo != nil && !fileinfo.IsDir() {
+		return ManifestType
 	}
 
-	return UnknownType
+	// Else assume that the URL points to a local recipe
+	return LocalType
 }
