@@ -114,24 +114,25 @@ func ParseProvidedValues(variables []recipe.Variable, flags []string, delimiter 
 	return values, nil
 }
 
-func ValidateValues(variables []recipe.Variable, values recipe.VariableValues) error {
+func CleanValues(variables []recipe.Variable, values recipe.VariableValues) (recipe.VariableValues, []error) {
+	validatedValues := make(recipe.VariableValues, len(values))
+	errs := make([]error, 0, len(values))
 	for _, variable := range variables {
-		if len(variable.Validators) == 0 {
-			continue
-		}
-
 		if _, exists := values[variable.Name]; !exists {
 			continue
 		}
 
 		for _, validator := range variable.Validators {
 			if err := ValidateValue(validator, values[variable.Name]); err != nil {
-				return fmt.Errorf("failed to validate variable '%s': %w", variable.Name, err)
+				errs = append(errs, fmt.Errorf("'%s': %w", variable.Name, err))
+				continue
 			}
 		}
+
+		validatedValues[variable.Name] = values[variable.Name]
 	}
 
-	return nil
+	return validatedValues, errs
 }
 
 func ValidateValue(validator recipe.VariableValidator, value interface{}) error {
