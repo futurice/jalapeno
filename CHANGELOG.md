@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.10.1](https://github.com/futurice/jalapeno/compare/v1.10.0...v1.10.1) (2024-06-12)
+
+
+### Bug Fixes
+
+* relative recipe paths starting with ".." did not work ([e8618a4](https://github.com/futurice/jalapeno/commit/e8618a46541193dca6ec61ad0ad717e3295cb6b6))
+* validate old sauce values when upgrading a recipe ([#110](https://github.com/futurice/jalapeno/issues/110)) ([3a9590b](https://github.com/futurice/jalapeno/commit/3a9590b209b48ac48a6ab05ead8a3f47dfb50864))
+
 ## [1.10.0](https://github.com/futurice/jalapeno/compare/v1.9.2...v1.10.0) (2024-06-11)
 
 
