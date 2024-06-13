@@ -170,3 +170,26 @@ Feature: Upgrade sauce
 		And I change recipe "foo" template "new.txt" to render "new"
 		When I upgrade recipe "foo"
 		Then CLI produced an error "file conflicts"
+
+	Scenario: Attempt force upgrade
+		Given a recipe "foo"
+		And recipe "foo" generates file "README.md" with content "initial"
+		And I execute recipe "foo"
+		And I change recipe "foo" to version "v0.0.2"
+		And I change recipe "foo" template "README.md" to render "New version"
+		And I change recipe "foo" template "ANOTHER.md" to render "New version"
+		When I upgrade recipe "foo" forcefully
+		Then CLI produced an output "README\.md \(modified\)"
+		Then CLI produced an output "ANOTHER\.md \(added\)"
+		And the project directory should contain file "README.md" with "New version"
+
+	Scenario: Attempt force upgrade when there is a locally modified file
+		Given a recipe "foo"
+		And recipe "foo" generates file "README.md" with content "initial"
+		And I execute recipe "foo"
+		And I change recipe "foo" to version "v0.0.2"
+		And I change recipe "foo" template "README.md" to render "New version"
+		And I change project file "README.md" to contain "Locally modified"
+		When I upgrade recipe "foo" forcefully
+		Then CLI produced an output "README\.md \(modified\)"
+		And the project directory should contain file "README.md" with "New version"

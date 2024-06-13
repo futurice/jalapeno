@@ -16,6 +16,7 @@ import (
 
 func AddUpgradeSteps(s *godog.ScenarioContext) {
 	s.Step(`^I upgrade recipe "([^"]*)"$`, iRunUpgrade)
+	s.Step(`^I upgrade recipe "([^"]*)" forcefully$`, iRunUpgradeWithForce)
 	s.Step(`^I upgrade recipe from the local OCI repository "([^"]*)"$`, iRunUpgradeFromRemoteRecipe)
 	s.Step(`^no conflicts were reported$`, noConflictsWereReported)
 	s.Step(`^conflicts are reported$`, conflictsAreReported)
@@ -48,6 +49,13 @@ func iRunUpgrade(ctx context.Context, recipe string) (context.Context, error) {
 	}
 
 	return executeCLI(ctx, args...)
+}
+
+func iRunUpgradeWithForce(ctx context.Context, recipe string) (context.Context, error) {
+	additionalFlags := ctx.Value(cmdAdditionalFlagsCtxKey{}).(map[string]string)
+	additionalFlags["force"] = "true"
+
+	return iRunUpgrade(ctx, recipe)
 }
 
 func iRunUpgradeFromRemoteRecipe(ctx context.Context, repository string) (context.Context, error) {
