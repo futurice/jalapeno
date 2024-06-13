@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.10.2](https://github.com/futurice/jalapeno/compare/v1.10.1...v1.10.2) (2024-06-13)
+
+
+### Features
+
+* allow forcing upgrade ([1492cb1](https://github.com/futurice/jalapeno/commit/1492cb105b5249c4c1e5b556e536bade2352a4be))
+
 ## [1.10.1](https://github.com/futurice/jalapeno/compare/v1.10.0...v1.10.1) (2024-06-12)
 
 
