@@ -26,6 +26,7 @@ type upgradeOptions struct {
 	RecipeURL      string
 	ReuseOldValues bool
 	TargetSauceID  string
+	Force          bool
 
 	option.Common
 	option.OCIRepository
@@ -71,6 +72,7 @@ jalapeno upgrade path/to/recipe --set NEW_VAR=foo`,
 
 	cmd.Flags().StringVar(&opts.TargetSauceID, "sauce-id", "", "If the project contains multiple sauces with the same recipe, specify the ID of the sauce to be upgraded")
 	cmd.Flags().BoolVar(&opts.ReuseOldValues, "reuse-old-values", true, "Automatically set values for variables which already have a value in the existing sauce")
+	cmd.Flags().BoolVarP(&opts.Force, "force", "f", false, "Overwrite manual changes in the files with the new versions without prompting")
 
 	if err := option.ApplyFlags(&opts, cmd.Flags()); err != nil {
 		return nil
@@ -308,7 +310,7 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 		// Check if the file from previous recipe version has been modified manually
 		prevFile, exists := oldSauce.Files[path]
 		if exists {
-			if !prevFile.HasBeenModifiedByUser() {
+			if !prevFile.HasBeenModifiedByUser() || opts.Force {
 				if prevFile.Checksum == newSauce.Files[path].Checksum {
 					fileStatuses[path] = recipeutil.FileUnchanged
 				} else {
@@ -325,6 +327,11 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 				continue
 			} else if err != nil {
 				return err
+			}
+
+			if opts.Force {
+				fileStatuses[path] = recipeutil.FileModified
+				continue
 			}
 
 			prevFile = recipe.NewFile(existingFileContent)

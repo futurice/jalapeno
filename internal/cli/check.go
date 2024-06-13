@@ -17,6 +17,7 @@ type checkOptions struct {
 	RecipeName          string
 	UseDetailedExitCode bool
 	Upgrade             bool
+	ForceUpgrade        bool
 
 	option.Common
 	option.OCIRepository
@@ -63,6 +64,7 @@ jalapeno check --recipe my-recipe --from oci://my-registry.com/my-recipe`,
 	cmd.Flags().StringVarP(&opts.RecipeName, "recipe", "r", "", "Name of the recipe to check for new versions")
 	cmd.Flags().StringVar(&opts.CheckFrom, "from", "", "Add or override the URL used for checking updates for the recipe. Works only with --recipe flag")
 	cmd.Flags().BoolVar(&opts.Upgrade, "upgrade", false, "Upgrade recipes to the latest version if new versions are found")
+	cmd.Flags().BoolVar(&opts.ForceUpgrade, "force-upgrade", false, "If upgrading, overwrite manual changes in the files with the new versions without prompting")
 	cmd.Flags().BoolVar(
 		&opts.UseDetailedExitCode,
 		"detailed-exitcode",
@@ -175,6 +177,7 @@ func runCheck(cmd *cobra.Command, opts checkOptions) error {
 			RecipeURL:        fmt.Sprintf("%s:%s", sauce.CheckFrom, latestSauceVersions[sauce]),
 			TargetSauceID:    sauce.ID.String(),
 			ReuseOldValues:   true,
+			Force:            opts.ForceUpgrade,
 			Common:           opts.Common,
 			OCIRepository:    opts.OCIRepository,
 			WorkingDirectory: opts.WorkingDirectory,
