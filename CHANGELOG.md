@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.10.3](https://github.com/futurice/jalapeno/compare/v1.10.2...v1.10.3) (2024-06-18)
+
+
+### Bug Fixes
+
+* set text input width dynamically ([41b1e75](https://github.com/futurice/jalapeno/commit/41b1e750b401702381002fc25f8356e6bdf5b5ed))
+
 ## [1.10.2](https://github.com/futurice/jalapeno/compare/v1.10.1...v1.10.2) (2024-06-13)
 
 
