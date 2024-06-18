@@ -8,6 +8,8 @@ import (
 
 	"github.com/carlmjohnson/versioninfo"
 	uiutil "github.com/futurice/jalapeno/pkg/ui/util"
+
+	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"
 )
 
@@ -82,5 +84,8 @@ func errorHandler(cmd *cobra.Command, err error) error {
 		return nil
 	}
 
-	return err
+	// Color the error message
+	color := lipgloss.NewStyle().Foreground(lipgloss.Color("#EF4136"))
+	cmd.SetErrPrefix(color.Render("Error:"))
+	return errors.New(color.Render(err.Error()))
 }
