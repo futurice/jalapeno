@@ -211,7 +211,7 @@ func executeRecipe(cmd *cobra.Command, opts executeOptions, re *recipe.Recipe) e
 
 		promptedValues, err := survey.PromptUserForValues(cmd.InOrStdin(), cmd.OutOrStdout(), varsWithoutValues, values)
 		if err != nil {
-			return fmt.Errorf("error when prompting for values: %s", err)
+			return fmt.Errorf("error when prompting for values: %w", err)
 		}
 		values = recipeutil.MergeValues(values, promptedValues)
 	} else {
