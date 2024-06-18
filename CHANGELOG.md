@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.10.4](https://github.com/futurice/jalapeno/compare/v1.10.3...v1.10.4) (2024-06-18)
+
+
+### Bug Fixes
+
+* show "user aborted" correctly when executing a recipe ([74b9e25](https://github.com/futurice/jalapeno/commit/74b9e254e9b6c44a47c3585a8fcc9f21198f0d68))
+
 ## [1.10.3](https://github.com/futurice/jalapeno/compare/v1.10.2...v1.10.3) (2024-06-18)
 
 
