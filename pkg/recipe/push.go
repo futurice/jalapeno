@@ -47,7 +47,7 @@ func PushRecipe(ctx context.Context, path string, opts oci.Repository, replaceLa
 	root, err := oras.PackManifest(
 		ctx,
 		store,
-		oras.PackManifestVersion1_1_RC4,
+		oras.PackManifestVersion1_1,
 		"application/x.futurice.jalapeno.recipe.v1",
 		oras.PackManifestOptions{
 			Layers: fileDescriptors,
