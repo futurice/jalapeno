@@ -28,7 +28,7 @@ func NewStringModel(v recipe.Variable, styles style.Styles) StringModel {
 	ti := textinput.New()
 	ti.Focus()
 	ti.CharLimit = 156
-	ti.Width = 20
+	ti.Width = 30
 
 	if v.Default != "" {
 		ti.SetValue(v.Default)
@@ -70,6 +70,7 @@ func (m StringModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
+		m.textInput.Width = msg.Width - 3
 	}
 
 	m.textInput, cmd = m.textInput.Update(msg)
