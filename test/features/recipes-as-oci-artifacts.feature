@@ -73,7 +73,7 @@ Feature: Recipes as OCI artifacts
 		And a local OCI registry with authentication
 		And registry credentials are not provided by the command
 		When I push the recipe "foo" to the local OCI repository
-		Then CLI produced an error "unauthorized"
+		Then CLI produced an error "basic credential not found"
 
 	Scenario: Try to pull a recipe from OCI repository which not exist
 		Given a local OCI registry with authentication
