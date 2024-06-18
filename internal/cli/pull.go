@@ -69,6 +69,6 @@ func runPull(cmd *cobra.Command, opts pullOptions) error {
 		return err
 	}
 
-	cmd.Printf("Recipe pulled %s\n", opts.Colors.Green.Render("successfully!"))
+	cmd.Printf("Recipe pulled %s\n", ColorGreen.Render("successfully!"))
 	return nil
 }

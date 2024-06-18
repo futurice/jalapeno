@@ -406,7 +406,7 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 	for _, status := range fileStatuses {
 		if status != recipeutil.FileUnchanged {
 			changesFound = true
-			cmd.Printf("Recipe upgraded %s\n", opts.Colors.Green.Render("successfully!"))
+			cmd.Printf("Recipe upgraded %s\n", ColorGreen.Render("successfully!"))
 			tree := recipeutil.CreateFileTree(opts.Dir, fileStatuses)
 			cmd.Printf("The following files have been processed by the recipe:\n\n%s", tree)
 			break

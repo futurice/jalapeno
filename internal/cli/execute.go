@@ -134,11 +134,11 @@ func runExecute(cmd *cobra.Command, opts executeOptions) error {
 }
 
 func executeRecipe(cmd *cobra.Command, opts executeOptions, re *recipe.Recipe) error {
-	cmd.Printf("%s: %s\n", opts.Colors.Red.Render("Recipe name"), re.Metadata.Name)
-	cmd.Printf("%s: %s\n", opts.Colors.Red.Render("Version"), re.Metadata.Version)
+	cmd.Printf("%s: %s\n", ColorRed.Render("Recipe name"), re.Metadata.Name)
+	cmd.Printf("%s: %s\n", ColorRed.Render("Version"), re.Metadata.Version)
 
 	if re.Metadata.Description != "" {
-		cmd.Printf("%s: %s\n", opts.Colors.Red.Render("Description"), re.Metadata.Description)
+		cmd.Printf("%s: %s\n", ColorRed.Render("Description"), re.Metadata.Description)
 	}
 
 	cmd.Println()
@@ -246,7 +246,7 @@ func executeRecipe(cmd *cobra.Command, opts executeOptions, re *recipe.Recipe) e
 		return err
 	}
 
-	cmd.Printf("Recipe executed %s\n", opts.Colors.Green.Render("successfully!"))
+	cmd.Printf("Recipe executed %s\n", ColorGreen.Render("successfully!"))
 
 	files := sauce.Files
 	if opts.Subpath != "" {

@@ -59,7 +59,7 @@ func runValidate(cmd *cobra.Command, opts validateOptions) error {
 
 	cmd.Printf(
 		"%s The recipe is valid.\n",
-		opts.Colors.Green.Render("Success!"),
+		ColorGreen.Render("Success!"),
 	)
 
 	return nil

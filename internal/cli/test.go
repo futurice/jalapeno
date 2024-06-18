@@ -162,6 +162,6 @@ func updateSnapshots(cmd *cobra.Command, opts testOptions, re *recipe.Recipe) er
 		return fmt.Errorf("failed to save recipe: %w", err)
 	}
 
-	cmd.Printf("Recipe test snapshots updated %s\n", opts.Colors.Green.Render("successfully!"))
+	cmd.Printf("Recipe test snapshots updated %s\n", ColorGreen.Render("successfully!"))
 	return nil
 }

@@ -16,6 +16,9 @@ import (
 var (
 	// https://goreleaser.com/cookbooks/using-main.version/
 	version string
+
+	ColorRed   = lipgloss.NewStyle().Foreground(lipgloss.Color("#EF4136"))
+	ColorGreen = lipgloss.NewStyle().Foreground(lipgloss.Color("#26A568"))
 )
 
 type ExitCodeContextKey struct{}
@@ -85,7 +88,6 @@ func errorHandler(cmd *cobra.Command, err error) error {
 	}
 
 	// Color the error message
-	color := lipgloss.NewStyle().Foreground(lipgloss.Color("#EF4136"))
-	cmd.SetErrPrefix(color.Render("Error:"))
-	return errors.New(color.Render(err.Error()))
+	cmd.SetErrPrefix(ColorRed.Render("Error:"))
+	return errors.New(ColorRed.Render(err.Error()))
 }

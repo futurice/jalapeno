@@ -10,12 +10,6 @@ type Common struct {
 	Debug    bool
 	NoColors bool
 	NoInput  bool
-	Colors
-}
-
-type Colors struct {
-	Green lipgloss.Style
-	Red   lipgloss.Style
 }
 
 func (opts *Common) ApplyFlags(fs *pflag.FlagSet) {
@@ -28,11 +22,6 @@ func (opts *Common) Parse() error {
 	if opts.NoColors {
 		lipgloss.SetColorProfile(termenv.Ascii)
 		return nil
-	}
-
-	opts.Colors = Colors{
-		Red:   lipgloss.NewStyle().Foreground(lipgloss.Color("#EF4136")),
-		Green: lipgloss.NewStyle().Foreground(lipgloss.Color("#26A568")),
 	}
 
 	return nil

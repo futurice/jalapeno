@@ -60,7 +60,7 @@ func runCreateTest(cmd *cobra.Command, opts createTestOptions) error {
 	cmd.Printf(
 		"Test '%s' created %s\n\n",
 		test.Name,
-		opts.Colors.Green.Render("successfully!"),
+		ColorGreen.Render("successfully!"),
 	)
 
 	fmt.Printf("Following files were created: \n%s", recipeutil.CreateFileTree(opts.Dir, map[string]recipeutil.FileStatus{

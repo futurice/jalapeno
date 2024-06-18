@@ -48,7 +48,7 @@ func runCreateManifest(cmd *cobra.Command, opts createManifestOptions) error {
 
 	cmd.Printf(
 		"Manifest created %s\n",
-		opts.Colors.Green.Render("successfully!"),
+		ColorGreen.Render("successfully!"),
 	)
 
 	return nil

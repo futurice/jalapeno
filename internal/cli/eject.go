@@ -56,6 +56,6 @@ func runEject(cmd *cobra.Command, opts ejectOptions) error {
 		return err
 	}
 
-	cmd.Printf("Ejected %s\n", opts.Colors.Green.Render("successfully!"))
+	cmd.Printf("Ejected %s\n", ColorGreen.Render("successfully!"))
 	return nil
 }

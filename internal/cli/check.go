@@ -193,6 +193,6 @@ func runCheck(cmd *cobra.Command, opts checkOptions) error {
 		}
 	}
 
-	cmd.Printf("All recipes with newer versions upgraded %s\n", opts.Colors.Green.Render("successfully!"))
+	cmd.Printf("All recipes with newer versions upgraded %s\n", ColorGreen.Render("successfully!"))
 	return nil
 }

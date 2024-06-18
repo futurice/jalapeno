@@ -73,7 +73,7 @@ func runCreateRecipe(cmd *cobra.Command, opts createRecipeOptions) error {
 	cmd.Printf(
 		"Recipe '%s' created %s\n",
 		opts.RecipeName,
-		opts.Colors.Green.Render("successfully!"),
+		ColorGreen.Render("successfully!"),
 	)
 
 	return nil
