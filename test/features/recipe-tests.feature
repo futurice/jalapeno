@@ -21,3 +21,17 @@ Feature: Running tests for a recipe
 		And CLI produced an output "README\.md \(modified\)"
 		Then I run tests for recipe "foo"
 		And CLI produced an output "✅: defaults"
+
+	Scenario: Expect specific initHelp
+		When I create a recipe with name "foo"
+		And I expect recipe "foo" initHelp to match "The recipe user will see this message after the recipe execution. Templating is supported, for example: The recipe name is foo."
+		And I run tests for recipe "foo"
+		Then no errors were printed
+		And CLI produced an output "✅: defaults"
+
+	Scenario: Expected initHelp did not match
+		When I create a recipe with name "foo"
+		And I expect recipe "foo" initHelp to match "Not found"
+		And I run tests for recipe "foo"
+		And CLI produced an output "❌: defaults"
+		Then CLI produced an error "expected init help did not match"

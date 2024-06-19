@@ -49,6 +49,7 @@
 | Attribute | Type | Default | Description |
 | --- | --- | --- | --- |
 | `values` | `map[string]any` | | Values to use to render the recipe templates. Map key is the name of the variable and value is the variable value. |
+| `expectedInitHelp` | `string` | | Expected initHelp of the recipe when rendered with the values specified in the test |
 | `ignoreExtraFiles` | `bool` | | If true, test will pass even though templates generated more files than the test specifies. This is useful when creating specific test cases for large recipes. |
 
 ## Sauce schema (`sauces.yml`)

@@ -17,11 +17,14 @@ type Test struct {
 	// Values to use to render the recipe templates
 	Values VariableValues `yaml:"values"`
 
-	// Snapshots of the rendered templates which were rendered with the values specified in the test
-	Files map[string]File `yaml:"-"`
+	// Expected initHelp of the recipe when rendered with the values specified in the test
+	ExpectedInitHelp string `yaml:"expectedInitHelp,omitempty"`
 
 	// If true, test will not fail if the templates generates more files than the test specifies
-	IgnoreExtraFiles bool `yaml:"ignoreExtraFiles"`
+	IgnoreExtraFiles bool `yaml:"ignoreExtraFiles,omitempty"`
+
+	// Snapshots of the rendered templates which were rendered with the values specified in the test
+	Files map[string]File `yaml:"-"`
 }
 
 // Random hardcoded UUID
@@ -59,6 +62,15 @@ func (re *Recipe) RunTests() []error {
 			// TODO: show which files were missing/extra
 			errors[i] = ErrTestWrongFileAmount
 			continue
+		}
+
+		if t.ExpectedInitHelp != "" {
+			actualInitHelp, err := sauce.RenderInitHelp()
+			if err != nil {
+				errors[i] = fmt.Errorf("could not render init help: %w", err)
+			} else if actualInitHelp != t.ExpectedInitHelp {
+				errors[i] = fmt.Errorf("expected init help did not match the actual init help. Expected: %s, Actual: %s", t.ExpectedInitHelp, actualInitHelp)
+			}
 		}
 
 		for key, tFile := range t.Files {
