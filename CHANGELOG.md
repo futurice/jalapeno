@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.11.0](https://github.com/futurice/jalapeno/compare/v1.10.4...v1.11.0) (2024-06-19)
+
+
+### Features
+
+* create test for initHelp ([f3839d6](https://github.com/futurice/jalapeno/commit/f3839d6ef9fecb2e30c02165fcc4a69050a269a7))
+
 ## [1.10.4](https://github.com/futurice/jalapeno/compare/v1.10.3...v1.10.4) (2024-06-18)
 
 
