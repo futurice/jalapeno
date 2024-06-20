@@ -12,6 +12,7 @@ func AddTestSteps(s *godog.ScenarioContext) {
 	s.Step(`^I run tests for recipe "([^"]*)"$`, iRunTest)
 	s.Step(`^I update tests snapshosts for recipe "([^"]*)"$`, iUpdateTestSnapshot)
 	s.Step(`^I expect recipe "([^"]*)" initHelp to match "([^"]*)"$`, iExpectRecipesInitHelpToMatch)
+	s.Step(`^extra files in the test are ignored for recipe "([^"]*)"$`, extraFilesInTheTestAreIgnoredForRecipe)
 }
 
 func iRunTest(ctx context.Context, recipe string) (context.Context, error) {
@@ -28,6 +29,21 @@ func iUpdateTestSnapshot(ctx context.Context, recipe string) (context.Context, e
 	additionalFlags["update-snapshots"] = "true"
 
 	return iRunTest(ctx, recipe)
+}
+
+func extraFilesInTheTestAreIgnoredForRecipe(ctx context.Context, recipeName string) (context.Context, error) {
+	recipeDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
+	re, err := recipe.LoadRecipe(filepath.Join(recipeDir, recipeName))
+	if err != nil {
+		return ctx, err
+	}
+
+	re.Tests[0].IgnoreExtraFiles = true
+	if err := re.Save(filepath.Join(recipeDir, recipeName)); err != nil {
+		return ctx, err
+	}
+
+	return ctx, nil
 }
 
 func iExpectRecipesInitHelpToMatch(ctx context.Context, recipeName, expectedInitHelp string) (context.Context, error) {

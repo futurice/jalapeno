@@ -13,6 +13,28 @@ Feature: Running tests for a recipe
 		Then CLI produced an output "❌: defaults"
 		And CLI produced an error "did not match for file 'README.md'"
 
+	Scenario: Tests fail if extra files rendered
+		When I create a recipe with name "foo"
+		And recipe "foo" generates file "new.md" with content "new file"
+		And I run tests for recipe "foo"
+		Then CLI produced an output "❌: defaults"
+		And CLI produced an error "following files were extra: \[new.md\]"
+
+	Scenario: Tests pass if extra files are ignored
+		When I create a recipe with name "foo"
+		And recipe "foo" generates file "new.md" with content "new file"
+		And extra files in the test are ignored for recipe "foo"
+		And I run tests for recipe "foo"
+		Then CLI produced an output "✅: defaults"
+		And no errors were printed
+
+	Scenario: Tests fail if too few files rendered
+		When I create a recipe with name "foo"
+		And I remove file "README.md" from the recipe "foo"
+		And I run tests for recipe "foo"
+		Then CLI produced an output "❌: defaults"
+		And CLI produced an error "following files were missing: \[README.md\]"
+
 	Scenario: Update test file snapshots
 		When I create a recipe with name "foo"
 		And I change recipe "foo" template "README.md" to render "New version"

@@ -58,12 +58,6 @@ func (re *Recipe) RunTests() []error {
 			continue
 		}
 
-		if (t.IgnoreExtraFiles && len(t.Files) > len(sauce.Files)) || (!t.IgnoreExtraFiles && len(t.Files) != len(sauce.Files)) {
-			// TODO: show which files were missing/extra
-			errors[i] = ErrTestWrongFileAmount
-			continue
-		}
-
 		if t.ExpectedInitHelp != "" {
 			actualInitHelp, err := sauce.RenderInitHelp()
 			if err != nil {
@@ -71,6 +65,26 @@ func (re *Recipe) RunTests() []error {
 			} else if actualInitHelp != t.ExpectedInitHelp {
 				errors[i] = fmt.Errorf("expected init help did not match the actual init help. Expected: %s, Actual: %s", t.ExpectedInitHelp, actualInitHelp)
 			}
+			continue
+		}
+
+		if (t.IgnoreExtraFiles && len(t.Files) > len(sauce.Files)) || (!t.IgnoreExtraFiles && len(t.Files) != len(sauce.Files)) {
+			leftOuterJoin := func(a, b map[string]File) (diff []string) {
+				for key := range a {
+					if _, found := b[key]; !found {
+						diff = append(diff, key)
+					}
+				}
+				return
+			}
+
+			if len(t.Files) > len(sauce.Files) {
+				errors[i] = fmt.Errorf("%w: following files were missing: %s", ErrTestWrongFileAmount, leftOuterJoin(t.Files, sauce.Files))
+			} else {
+				errors[i] = fmt.Errorf("%w: following files were extra: %s", ErrTestWrongFileAmount, leftOuterJoin(sauce.Files, t.Files))
+			}
+
+			continue
 		}
 
 		for key, tFile := range t.Files {
