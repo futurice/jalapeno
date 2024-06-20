@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.11.1](https://github.com/futurice/jalapeno/compare/v1.11.0...v1.11.1) (2024-06-20)
+
+
+### Features
+
+* show which files were extra or missing when testing ([c5a4ddd](https://github.com/futurice/jalapeno/commit/c5a4ddd29a78d3077dce2fb5dd766b74ebaf2bb0))
+
 ## [1.11.0](https://github.com/futurice/jalapeno/compare/v1.10.4...v1.11.0) (2024-06-19)
 
 
