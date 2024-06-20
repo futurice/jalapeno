@@ -27,7 +27,7 @@ jobs:
       prs: ${{ steps.release.outputs.prs }}
     runs-on: ubuntu-latest
     steps:
-      - uses: google-github-actions/release-please-action@v4
+      - uses: googleapis/release-please-action@v4
         id: release
         with:
           release-type: go
@@ -67,7 +67,7 @@ jobs:
           WINGET_PKGS_PRIVATE_KEY: ${{ secrets.WINGET_PKGS_PRIVATE_KEY }}
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
 
-      # Pending for https://github.com/google-github-actions/release-please-action/issues/776
+      # Pending for https://github.com/googleapis/release-please-action/issues/776
       # - uses: actions/github-script@v6
       #   with:
       #     script: |
