@@ -12,6 +12,7 @@ Feature: Check for new recipe versions
 		When I change recipe "foo" to version "v0.0.2"
 		And I push the recipe "foo" to the local OCI repository
 		And I check new versions for recipe "foo"
+		Then CLI produced an output "Checking new versions for the recipe"
 		Then CLI produced an output "new versions found: v0\.0\.2"
 		Then CLI produced an output "To upgrade recipes to the latest version run:\n  (.*) upgrade oci://localhost:\d+/foo:v0.0.2\n"
 
@@ -54,6 +55,7 @@ Feature: Check for new recipe versions
 		And I push the recipe "bar" to the local OCI repository
 		Then no errors were printed
 		Then I check new versions for recipes
+		Then CLI produced an output "Checking new versions for 2 recipes"
 		Then CLI produced an output "foo: new versions found: v0\.0\.2"
 		And CLI produced an output "bar: new versions found: v0\.0\.2"
 

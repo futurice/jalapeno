@@ -117,7 +117,11 @@ func runCheck(cmd *cobra.Command, opts checkOptions) error {
 		return fmt.Errorf("can not use --from flag without --recipe flag")
 	}
 
-	cmd.Println("Checking for new versions...")
+	if n := len(sauces); n > 1 {
+		cmd.Printf("Checking new versions for %d recipes...", n)
+	} else {
+		cmd.Printf("Checking new versions for the recipe \"%s\"...", sauces[0].Recipe.Name)
+	}
 
 	errorsFound := false
 	latestSauceVersions := make(map[*recipe.Sauce]string)
