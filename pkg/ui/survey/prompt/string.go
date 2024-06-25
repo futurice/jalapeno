@@ -31,6 +31,7 @@ func NewStringModel(v recipe.Variable, styles style.Styles) StringModel {
 	ti.Width = 30
 
 	if v.Default != "" {
+		ti.Width = len(v.Default) - 3
 		ti.SetValue(v.Default)
 	}
 
