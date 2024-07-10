@@ -62,10 +62,11 @@ func (re *Recipe) RunTests() []error {
 			actualInitHelp, err := sauce.RenderInitHelp()
 			if err != nil {
 				errors[i] = fmt.Errorf("could not render init help: %w", err)
+				continue
 			} else if actualInitHelp != t.ExpectedInitHelp {
 				errors[i] = fmt.Errorf("expected init help did not match the actual init help. Expected: %s, Actual: %s", t.ExpectedInitHelp, actualInitHelp)
+				continue
 			}
-			continue
 		}
 
 		if (t.IgnoreExtraFiles && len(t.Files) > len(sauce.Files)) || (!t.IgnoreExtraFiles && len(t.Files) != len(sauce.Files)) {
@@ -90,11 +91,11 @@ func (re *Recipe) RunTests() []error {
 		for key, tFile := range t.Files {
 			if file, ok := sauce.Files[key]; !ok {
 				errors[i] = fmt.Errorf("%w: file '%s'", ErrTestMissingFile, key)
-				continue
+				break
 			} else {
 				if !bytes.Equal(tFile.Content, file.Content) {
 					errors[i] = fmt.Errorf("%w for file '%s':\n%s", ErrTestContentMismatch, key, diff.Diff(string(tFile.Content), string(file.Content)))
-					continue
+					break
 				}
 			}
 		}

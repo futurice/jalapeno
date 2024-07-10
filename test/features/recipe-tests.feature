@@ -35,6 +35,14 @@ Feature: Running tests for a recipe
 		Then CLI produced an output "❌: defaults"
 		And CLI produced an error "following files were missing: \[README.md\]"
 
+	Scenario: Tests fail if wrong file rendered
+		When I create a recipe with name "foo"
+		And I remove file "README.md" from the recipe "foo"
+		And recipe "foo" generates file "new.md" with content "Hello World!"
+		And I run tests for recipe "foo"
+		Then CLI produced an output "❌: defaults"
+		And CLI produced an error "recipe did not render file which was expected: file 'README\.md'"
+
 	Scenario: Update test file snapshots
 		When I create a recipe with name "foo"
 		And I change recipe "foo" template "README.md" to render "New version"
