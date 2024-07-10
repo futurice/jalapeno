@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.11.2](https://github.com/futurice/jalapeno/compare/v1.11.1...v1.11.2) (2024-07-10)
+
+
+### Bug Fixes
+
+* run rest of the tests when expectInitHelp is defined ([aab6c53](https://github.com/futurice/jalapeno/commit/aab6c53a04f2636bdd6cf07cdcd17c68e8e6f5ef))
+
 ## [1.11.1](https://github.com/futurice/jalapeno/compare/v1.11.0...v1.11.1) (2024-06-20)
 
 
