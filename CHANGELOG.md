@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.11.3](https://github.com/futurice/jalapeno/compare/v1.11.2...v1.11.3) (2024-07-11)
+
+
+### Bug Fixes
+
+* allow same recipe to be executed twice ([330e6d0](https://github.com/futurice/jalapeno/commit/330e6d02a6195820abc248d930b5ed88490da592))
+
 ## [1.11.2](https://github.com/futurice/jalapeno/compare/v1.11.1...v1.11.2) (2024-07-10)
 
 
