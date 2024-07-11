@@ -16,7 +16,6 @@ import (
 	"github.com/futurice/jalapeno/pkg/ui/survey"
 	"github.com/gofrs/uuid"
 	"github.com/spf13/cobra"
-	"golang.org/x/mod/semver"
 )
 
 type executeOptions struct {
@@ -29,10 +28,6 @@ type executeOptions struct {
 	option.WorkingDirectory
 	option.Timeout
 }
-
-var (
-	ErrAlreadyExecuted = errors.New("recipe has been already executed")
-)
 
 func NewExecuteCmd() *cobra.Command {
 	var opts executeOptions
@@ -149,14 +144,6 @@ func executeRecipe(cmd *cobra.Command, opts executeOptions, re *recipe.Recipe) e
 		return err
 	}
 
-	for _, sauce := range existingSauces {
-		if sauce.Recipe.Name == re.Name &&
-			semver.Compare(sauce.Recipe.Metadata.Version, re.Metadata.Version) == 0 &&
-			sauce.SubPath == opts.Subpath {
-			return fmt.Errorf("recipe '%s@%s': %w. If you want to re-execute the recipe with different values, use `upgrade` command with `--reuse-old-values=false` flag", re.Name, re.Metadata.Version, ErrAlreadyExecuted)
-		}
-	}
-
 	reusedValues := make(recipe.VariableValues)
 	if opts.ReuseOtherSauceValues && len(existingSauces) > 0 {
 		for _, sauce := range existingSauces {
@@ -237,7 +224,7 @@ func executeRecipe(cmd *cobra.Command, opts executeOptions, re *recipe.Recipe) e
 	for _, s := range existingSauces {
 		if conflicts := s.Conflicts(sauce); conflicts != nil {
 			retryMessage := cliutil.MakeRetryMessage(os.Args, values)
-			return fmt.Errorf("conflict in recipe '%s': file '%s' was already created by recipe '%s'.\n\n%s", re.Name, conflicts[0].Path, s.Recipe.Name, retryMessage)
+			return fmt.Errorf("conflict in recipe '%s': file '%s' was already created by other recipe '%s' (sauce ID: %s).\n\n%s", re.Name, conflicts[0].Path, s.Recipe.Name, s.ID, retryMessage)
 		}
 	}
 
@@ -313,18 +300,14 @@ func executeManifest(cmd *cobra.Command, opts executeOptions, manifest *recipe.M
 
 		opts.Values.Flags = valueFlags
 
-		err = executeRecipe(cmd, opts, re)
-		if err != nil {
-			if errors.Is(err, ErrAlreadyExecuted) {
-				cmd.Printf("Recipe '%s@%s' has already been executed, skipping...\n", re.Name, re.Version)
-			} else {
-				return err
-			}
+		if err := executeRecipe(cmd, opts, re); err != nil {
+			return err
 		}
 
 		if i < len(manifest.Recipes)-1 {
 			cmd.Print("\n- - - - - - - - - -\n\n")
 		}
 	}
+
 	return nil
 }

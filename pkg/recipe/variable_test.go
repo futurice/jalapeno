@@ -70,8 +70,6 @@ func TestVariableValidation(t *testing.T) {
 
 func TestVariableRegExpValidation(t *testing.T) {
 	variable := &Variable{
-		Name:        "foo",
-		Description: "foo description",
 		Validators: []VariableValidator{
 			{
 				Pattern: "^[a-zA-Z0-9_.()-]{0,89}[a-zA-Z0-9_()-]$",
@@ -117,8 +115,6 @@ func TestVariableRegExpValidation(t *testing.T) {
 
 func TestUniqueColumnValidation(t *testing.T) {
 	variable := &Variable{
-		Name:        "foo",
-		Description: "foo description",
 		Validators: []VariableValidator{
 			{
 				Unique: true,
