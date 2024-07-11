@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.11.4](https://github.com/futurice/jalapeno/compare/v1.11.3...v1.11.4) (2024-07-11)
+
+
+### Miscellaneous Chores
+
+* try out publish workflow changes ([e1835a6](https://github.com/futurice/jalapeno/commit/e1835a6adb4a11d91475950e1da534487ea329a3))
+
 ## [1.11.3](https://github.com/futurice/jalapeno/compare/v1.11.2...v1.11.3) (2024-07-11)
 
 
