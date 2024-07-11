@@ -79,6 +79,6 @@ jobs:
               issue_number: pr_number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              name: "autorelease: tagged"
-              new_name: "autorelease: published"
+              name: "autorelease: tagged",
+              new_name: "autorelease: published",
             })
