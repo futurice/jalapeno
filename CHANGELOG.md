@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.11.6](https://github.com/futurice/jalapeno/compare/v1.11.5...v1.11.6) (2024-07-11)
+
+
+### Miscellaneous Chores
+
+* **ci:** try out PR labeling ([2bc6734](https://github.com/futurice/jalapeno/commit/2bc673411806a3d48786023a9db6953d02208745))
+
 ## [1.11.5](https://github.com/futurice/jalapeno/compare/v1.11.4...v1.11.5) (2024-07-11)
 
 
