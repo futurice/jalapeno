@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.11.5](https://github.com/futurice/jalapeno/compare/v1.11.4...v1.11.5) (2024-07-11)
+
+
+### Miscellaneous Chores
+
+* **ci:** try out labeling ([ac6e2d7](https://github.com/futurice/jalapeno/commit/ac6e2d70258b30b898b60bb6fb26fac8bcdee355))
+
 ## [1.11.4](https://github.com/futurice/jalapeno/compare/v1.11.3...v1.11.4) (2024-07-11)
 
 
