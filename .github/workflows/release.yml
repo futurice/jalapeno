@@ -73,20 +73,19 @@ jobs:
             const { data: { items } } = await github.rest.search.issuesAndPullRequests({
               q: `${context.sha} type:pr is:merged`
             });
-            const pr_number = items[0].number;
 
             const issue = {
-              issue_number: pr_number,
+              issue_number: items[0].number,
               owner: context.repo.owner,
               repo: context.repo.repo,
             };
 
-            github.rest.issues.createLabel({
+            github.rest.issues.addLabels({
               ...issue,
-              name: "autorelease: published"
+              labels: ["autorelease: published"],
             });
 
             github.rest.issues.removeLabel({
               ...issue,
-              name: "autorelease: tagged"
+              name: "autorelease: tagged",
             });
