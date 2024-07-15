@@ -2,6 +2,7 @@ package recipe
 
 import (
 	"errors"
+	"fmt"
 	"testing"
 )
 
@@ -183,7 +184,7 @@ func TestRecipeTests(t *testing.T) {
 			tests := make([]Test, len(scenario.tests))
 			for i, t := range scenario.tests {
 				tests[i] = t.Test
-				tests[i].Name = scenario.name
+				tests[i].Name = fmt.Sprintf("%s_%d", scenario.name, i+1)
 			}
 			recipe := NewRecipe()
 			recipe.Name = "foo"

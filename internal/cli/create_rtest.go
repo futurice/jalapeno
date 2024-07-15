@@ -43,14 +43,9 @@ func runCreateTest(cmd *cobra.Command, opts createTestOptions) error {
 		return fmt.Errorf("can not load the recipe: %w", err)
 	}
 
-	// TODO: What if there already exists a test called "example"?
-	test := recipeutil.CreateExampleTest("example")
-
-	if len(re.Tests) > 0 {
-		re.Tests = append(re.Tests, test)
-	} else {
-		re.Tests = []recipe.Test{test}
-	}
+	testCaseName := generateTestCaseName(re.Tests)
+	test := recipeutil.CreateExampleTest(testCaseName)
+	re.Tests = append(re.Tests, test)
 
 	err = re.Save(opts.Dir)
 	if err != nil {
@@ -69,4 +64,28 @@ func runCreateTest(cmd *cobra.Command, opts createTestOptions) error {
 	}))
 
 	return nil
+}
+
+func generateTestCaseName(tests []recipe.Test) string {
+	defaultName := "example"
+
+	testNameExists := func(name string, tests []recipe.Test) bool {
+		for _, t := range tests {
+			if t.Name == name {
+				return true
+			}
+		}
+		return false
+	}
+
+	if !testNameExists(defaultName, tests) {
+		return defaultName
+	}
+
+	for i := 1; ; i++ {
+		name := fmt.Sprintf("%s_%d", defaultName, i)
+		if !testNameExists(name, tests) {
+			return name
+		}
+	}
 }

@@ -35,7 +35,13 @@ func (re *Recipe) Validate() error {
 		checkDuplicates[v.Name] = true
 	}
 
+	duplicateCheck := make(map[string]struct{})
 	for _, t := range re.Tests {
+		if _, exists := duplicateCheck[t.Name]; exists {
+			return fmt.Errorf("test case %s has been declared multiple times", t.Name)
+		}
+
+		duplicateCheck[t.Name] = struct{}{}
 		if err := t.Validate(); err != nil {
 			return fmt.Errorf("error when validating recipe test case %s: %w", t.Name, err)
 		}
