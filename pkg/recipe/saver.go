@@ -34,6 +34,10 @@ func ValidatePath(basePath, filePath string) error {
 
 // Save saves recipe to given destination
 func (re *Recipe) Save(dest string) error {
+	if err := re.Validate(); err != nil {
+		return fmt.Errorf("can not save the recipe since it is not valid: %w", err)
+	}
+
 	err := os.MkdirAll(dest, defaultFileMode)
 	if err != nil {
 		return fmt.Errorf("can not create directory %s: %v", dest, err)
