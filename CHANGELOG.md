@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.11.5](https://github.com/futurice/jalapeno/compare/v1.11.4...v1.11.5) (2024-07-15)
+
+
+### Miscellaneous Chores
+
+* allow "create test" to be run multiple times ([641c7cc](https://github.com/futurice/jalapeno/commit/641c7cc3f69579456aca68fb8bc417dd89130f6f))
+
 ## [1.11.4](https://github.com/futurice/jalapeno/compare/v1.11.3...v1.11.4) (2024-07-11)
 
 
