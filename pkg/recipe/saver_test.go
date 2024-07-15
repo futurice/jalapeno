@@ -47,22 +47,17 @@ func TestSaveRecipe(t *testing.T) {
 	}
 
 	expectedFiles := []string{
-		filepath.Join(dir, RecipeFileName+YAMLExtension),
-		filepath.Join(dir, "templates", "foo.md"),
-		filepath.Join(dir, "templates", "foo", "bar.md"),
-		filepath.Join(dir, "templates", "foo", "bar", "baz.md"),
-		filepath.Join(dir, "tests", re.Tests[0].Name, RecipeTestMetaFileName+YAMLExtension),
-		filepath.Join(dir, "tests", re.Tests[0].Name, RecipeTestFilesDirName, "foo.md"),
-		filepath.Join(dir, "tests", re.Tests[0].Name, RecipeTestFilesDirName, "foo", "bar.md"),
-		filepath.Join(dir, "tests", re.Tests[0].Name, RecipeTestFilesDirName, "foo", "bar", "baz.md"),
+		filepath.Join(RecipeFileName + YAMLExtension),
+		filepath.Join("templates", "foo.md"),
+		filepath.Join("templates", "foo", "bar.md"),
+		filepath.Join("templates", "foo", "bar", "baz.md"),
+		filepath.Join("tests", re.Tests[0].Name, RecipeTestMetaFileName+YAMLExtension),
+		filepath.Join("tests", re.Tests[0].Name, RecipeTestFilesDirName, "foo.md"),
+		filepath.Join("tests", re.Tests[0].Name, RecipeTestFilesDirName, "foo", "bar.md"),
+		filepath.Join("tests", re.Tests[0].Name, RecipeTestFilesDirName, "foo", "bar", "baz.md"),
 	}
 
-	// TODO: check that these are _only_ files existing
-	for _, expectedFile := range expectedFiles {
-		if _, err := os.Stat(expectedFile); os.IsNotExist(err) {
-			t.Fatalf("expected file '%s' did not exist", expectedFile)
-		}
-	}
+	checkFiles(t, dir, expectedFiles)
 }
 
 func TestSaveSauce(t *testing.T) {
@@ -105,18 +100,13 @@ func TestSaveSauce(t *testing.T) {
 	}
 
 	expectedFiles := []string{
-		filepath.Join(dir, SauceDirName, SaucesFileName+YAMLExtension),
-		filepath.Join(dir, "foo.md"),
-		filepath.Join(dir, "foo", "bar.md"),
-		filepath.Join(dir, "foo", "bar", "baz.md"),
+		filepath.Join(SauceDirName, SaucesFileName+YAMLExtension),
+		filepath.Join("foo.md"),
+		filepath.Join("foo", "bar.md"),
+		filepath.Join("foo", "bar", "baz.md"),
 	}
 
-	// TODO: check that these are _only_ files existing
-	for _, expectedFile := range expectedFiles {
-		if _, err := os.Stat(expectedFile); os.IsNotExist(err) {
-			t.Fatalf("expected file '%s' did not exist", expectedFile)
-		}
-	}
+	checkFiles(t, dir, expectedFiles)
 }
 
 func TestSaveSauceDoesNotWriteOutsideDest(t *testing.T) {
@@ -150,5 +140,40 @@ func TestSaveSauceDoesNotWriteOutsideDest(t *testing.T) {
 
 	if !strings.Contains(err.Error(), "file path escapes destination") {
 		t.Fatalf("error received was not expected: %s", err)
+	}
+}
+
+func checkFiles(t *testing.T, dir string, expectedFiles []string) {
+	files := make(map[string]bool, len(expectedFiles))
+	for _, file := range expectedFiles {
+		files[filepath.Join(dir, file)] = false
+	}
+
+	err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if info.IsDir() {
+			return nil
+		}
+
+		if _, found := files[path]; !found {
+			t.Fatalf("unexpected file '%s' found", path)
+		} else {
+			files[path] = true
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+
+	for file, found := range files {
+		if !found {
+			t.Fatalf("expected file '%s' not found", file)
+		}
 	}
 }
