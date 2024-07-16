@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.11.6](https://github.com/futurice/jalapeno/compare/v1.11.5...v1.11.6) (2024-07-16)
+
+
+### Bug Fixes
+
+* add new lines to check logs ([e412bf6](https://github.com/futurice/jalapeno/commit/e412bf60aee046d7870c1b300c1918a5b35eb6df))
+
 ## [1.11.5](https://github.com/futurice/jalapeno/compare/v1.11.4...v1.11.5) (2024-07-15)
 
 
