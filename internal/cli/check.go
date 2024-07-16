@@ -118,9 +118,9 @@ func runCheck(cmd *cobra.Command, opts checkOptions) error {
 	}
 
 	if n := len(sauces); n > 1 {
-		cmd.Printf("Checking new versions for %d recipes...", n)
+		cmd.Printf("Checking new versions for %d recipes...\n", n)
 	} else {
-		cmd.Printf("Checking new versions for the recipe \"%s\"...", sauces[0].Recipe.Name)
+		cmd.Printf("Checking new versions for the recipe \"%s\"...\n", sauces[0].Recipe.Name)
 	}
 
 	errorsFound := false
