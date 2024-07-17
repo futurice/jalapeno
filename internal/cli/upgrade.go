@@ -231,7 +231,7 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 	if len(varsWithoutValues) > 0 {
 		// If --no-input flag is set, try to use default values
 		if opts.NoInput {
-			varsWithoutDefaultValues := make([]recipe.Variable, 0, len(varsWithoutValues))
+			varsEvenWithoutDefaultValues := make([]recipe.Variable, 0, len(varsWithoutValues))
 			for _, v := range varsWithoutValues {
 				if v.Default != "" {
 					defaultValue, err := v.ParseDefaultValue()
@@ -240,29 +240,30 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 					}
 					values[v.Name] = defaultValue
 				} else {
-					varsWithoutDefaultValues = append(varsWithoutDefaultValues, v)
+					varsEvenWithoutDefaultValues = append(varsEvenWithoutDefaultValues, v)
 				}
 			}
 
 			// If there are still variables without values, return error
-			if len(varsWithoutDefaultValues) > 0 {
-				return recipeutil.NewNoInputError(varsWithoutDefaultValues)
+			if len(varsEvenWithoutDefaultValues) > 0 {
+				return recipeutil.NewNoInputError(varsEvenWithoutDefaultValues)
 			}
+
+		} else {
+			cmd.Println()
+			promptedValues, err := survey.PromptUserForValues(
+				cmd.InOrStdin(),
+				cmd.OutOrStdout(),
+				varsWithoutValues,
+				values,
+			)
+
+			if err != nil {
+				return fmt.Errorf("error when prompting for values: %w", err)
+			}
+
+			values = recipeutil.MergeValues(values, promptedValues)
 		}
-
-		cmd.Println()
-		promptedValues, err := survey.PromptUserForValues(
-			cmd.InOrStdin(),
-			cmd.OutOrStdout(),
-			varsWithoutValues,
-			values,
-		)
-
-		if err != nil {
-			return fmt.Errorf("error when prompting for values: %w", err)
-		}
-
-		values = recipeutil.MergeValues(values, promptedValues)
 	}
 
 	newSauce, err := re.Execute(engine.New(), values, oldSauce.ID)
