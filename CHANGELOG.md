@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.11.7](https://github.com/futurice/jalapeno/compare/v1.11.6...v1.11.7) (2024-07-17)
+
+
+### Bug Fixes
+
+* skip prompting when no-input is set ([99e778f](https://github.com/futurice/jalapeno/commit/99e778f04b237ab66ede027178c42648c75d335a))
+
 ## [1.11.6](https://github.com/futurice/jalapeno/compare/v1.11.5...v1.11.6) (2024-07-16)
 
 
