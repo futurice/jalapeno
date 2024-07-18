@@ -109,6 +109,13 @@ func updateSnapshots(cmd *cobra.Command, opts testOptions, re *recipe.Recipe) er
 			return fmt.Errorf("failed to render templates: %w", err)
 		}
 
+		if test.ExpectedInitHelp != "" {
+			test.ExpectedInitHelp, err = sauce.RenderInitHelp()
+			if err != nil {
+				return fmt.Errorf("failed to render init help: %w", err)
+			}
+		}
+
 		fileStatuses := make(map[string]recipeutil.FileStatus, len(sauce.Files))
 
 		for filename, file := range sauce.Files {
