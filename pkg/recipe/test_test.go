@@ -192,6 +192,14 @@ func TestRecipeTests(t *testing.T) {
 			recipe.Tests = tests
 			recipe.Templates = scenario.templates
 
+			for _, t := range recipe.Tests {
+				for vName := range t.Values {
+					recipe.Variables = append(recipe.Variables, Variable{
+						Name: vName,
+					})
+				}
+			}
+
 			errs := recipe.RunTests()
 			for i, err := range errs {
 				expectedErr := scenario.tests[i].ExpectedError
