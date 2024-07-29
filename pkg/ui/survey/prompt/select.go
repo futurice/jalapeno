@@ -70,7 +70,7 @@ func NewSelectModel(v recipe.Variable, styles style.Styles) SelectModel {
 		defaultHeight = 14
 	)
 
-	l := list.New(items, itemDelegate{}, defaultWidth, defaultHeight)
+	l := list.New(items, selectItemDelegate{}, defaultWidth, defaultHeight)
 	l.SetShowStatusBar(false)
 	l.SetFilteringEnabled(false)
 	l.SetShowHelp(false)

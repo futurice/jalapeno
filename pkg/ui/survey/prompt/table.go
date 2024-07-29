@@ -149,6 +149,8 @@ func (m TableModel) View() string {
 		s.WriteString(wordwrap.String(m.styles.HelpText.Render(`Table controls:
 - arrow keys: to move between cells
 - tab: to move to the next cells
+- home: to move to the first cell
+- end: to move to the last cell
 - ctrl+n or move past last row: create a new row 
 `), m.width))
 		s.WriteRune('\n')

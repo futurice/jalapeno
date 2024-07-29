@@ -69,7 +69,7 @@ func TestPromptUserForValues(t *testing.T) {
 				{Name: "VAR_1", Options: []string{"a", "b", "c"}, Multi: true},
 			},
 			expectedValues: recipe.VariableValues{
-				"VAR_1": "b,c",
+				"VAR_1": []string{"b", "c"},
 			},
 			input: "↓ ↓ \r",
 		},

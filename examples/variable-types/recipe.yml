@@ -26,6 +26,17 @@ vars:
       - option_1
       - option_2
 
+  - name: MULTI_SELECT_VAR
+    description: |
+      User chooses multiple values from the predefined values in `options` property.
+
+      Defined by: non-empty `options` property and `multi: true`.
+    multi: true
+    options:
+      - option_1
+      - option_2
+      - option_3
+
   - name: TABLE_VAR
     description: |
       On templates you can access the cells by getting the row by the index and column by the name, like: 
