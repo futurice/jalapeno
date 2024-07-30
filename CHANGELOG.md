@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.11.8](https://github.com/futurice/jalapeno/compare/v1.11.7...v1.11.8) (2024-07-18)
+
+
+### Bug Fixes
+
+* check for extra variables defined in tests ([f51a639](https://github.com/futurice/jalapeno/commit/f51a639f04a2d05d0e8863e3a4f5acfc81d87915))
+* update expectedInitHelp when updating snapshots ([01074df](https://github.com/futurice/jalapeno/commit/01074dfeb7e31d49b044ac37e898bcd75ed95a75))
+
 ## [1.11.7](https://github.com/futurice/jalapeno/compare/v1.11.6...v1.11.7) (2024-07-17)
 
 
