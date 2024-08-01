@@ -6,7 +6,7 @@
   <br>
 
   <p>
-    Jalapeno is a CLI for creating, managing and sharing spiced up project templates.
+    Jalapeno is a CLI for creating, managing and sharing spiced up templates.
   </p>
 
   <p>
