@@ -189,6 +189,8 @@ func (m SurveyModel) createPrompt(v recipe.Variable) (prompt.Model, error) {
 		p = prompt.NewConfirmModel(v, m.styles)
 	case recipe.VariableTypeSelect:
 		p = prompt.NewSelectModel(v, m.styles)
+	case recipe.VariableTypeMultiSelect:
+		p = prompt.NewMultiSelectModel(v, m.styles)
 	case recipe.VariableTypeTable:
 		p = prompt.NewTableModel(v, m.styles)
 	default:

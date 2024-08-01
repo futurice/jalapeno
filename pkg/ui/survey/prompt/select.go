@@ -13,8 +13,6 @@ import (
 	"github.com/muesli/reflow/wordwrap"
 )
 
-const listHeight = 14
-
 var (
 	itemStyle         = lipgloss.NewStyle().PaddingLeft(2)
 	selectedItemStyle = lipgloss.NewStyle().PaddingLeft(0).Foreground(lipgloss.Color("170"))
@@ -32,21 +30,21 @@ type SelectModel struct {
 
 var _ Model = SelectModel{}
 
-type item string
+type selectItem string
 
-var _ list.Item = item("")
+var _ list.Item = selectItem("")
 
-func (i item) FilterValue() string { return "" }
+func (i selectItem) FilterValue() string { return "" }
 
-type itemDelegate struct{}
+type selectItemDelegate struct{}
 
-var _ list.ItemDelegate = itemDelegate{}
+var _ list.ItemDelegate = selectItemDelegate{}
 
-func (d itemDelegate) Height() int                             { return 1 }
-func (d itemDelegate) Spacing() int                            { return 0 }
-func (d itemDelegate) Update(_ tea.Msg, _ *list.Model) tea.Cmd { return nil }
-func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list.Item) {
-	i, ok := listItem.(item)
+func (d selectItemDelegate) Height() int                             { return 1 }
+func (d selectItemDelegate) Spacing() int                            { return 0 }
+func (d selectItemDelegate) Update(_ tea.Msg, _ *list.Model) tea.Cmd { return nil }
+func (d selectItemDelegate) Render(w io.Writer, m list.Model, index int, listItem list.Item) {
+	i, ok := listItem.(selectItem)
 	if !ok {
 		return
 	}
@@ -64,12 +62,15 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 func NewSelectModel(v recipe.Variable, styles style.Styles) SelectModel {
 	items := make([]list.Item, len(v.Options))
 	for i := range v.Options {
-		items[i] = item(v.Options[i])
+		items[i] = selectItem(v.Options[i])
 	}
 
-	const defaultWidth = 20
+	const (
+		defaultWidth  = 20
+		defaultHeight = 14
+	)
 
-	l := list.New(items, itemDelegate{}, defaultWidth, listHeight)
+	l := list.New(items, selectItemDelegate{}, defaultWidth, defaultHeight)
 	l.SetShowStatusBar(false)
 	l.SetFilteringEnabled(false)
 	l.SetShowHelp(false)
@@ -92,7 +93,7 @@ func (m SelectModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.Type {
 		case tea.KeyEnter:
 			m.submitted = true
-			m.value = string(m.list.SelectedItem().(item))
+			m.value = string(m.list.SelectedItem().(selectItem))
 		case tea.KeyRunes:
 			switch string(msg.Runes) {
 			case "?":
