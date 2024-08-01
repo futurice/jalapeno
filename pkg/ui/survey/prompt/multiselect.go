@@ -8,13 +8,14 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/futurice/jalapeno/pkg/recipe"
 	"github.com/futurice/jalapeno/pkg/ui/survey/style"
+	"github.com/futurice/jalapeno/pkg/ui/util"
 	"github.com/muesli/reflow/wordwrap"
 )
 
 var (
-	cursorStyle                  = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
+	cursorStyle                  = lipgloss.NewStyle().Foreground(lipgloss.Color("170"))
 	multiSelectItemStyle         = lipgloss.NewStyle()
-	selectedMultiSelectItemStyle = lipgloss.NewStyle().Inherit(multiSelectItemStyle).Foreground(lipgloss.Color("205"))
+	selectedMultiSelectItemStyle = lipgloss.NewStyle().Inherit(multiSelectItemStyle).Foreground(lipgloss.Color("170"))
 )
 
 type MultiSelectModel struct {
@@ -25,6 +26,7 @@ type MultiSelectModel struct {
 	showDescription bool
 	submitted       bool
 	width           int
+	err             error
 }
 
 var _ Model = MultiSelectModel{}
@@ -61,6 +63,10 @@ func (m MultiSelectModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.Type {
 		case tea.KeyEnter:
+			if err := m.Validate(); err != nil {
+				m.err = err
+				return m, nil
+			}
 			m.submitted = true
 		case tea.KeySpace:
 			m.items[m.index].checked = !m.items[m.index].checked
@@ -103,7 +109,7 @@ func (m MultiSelectModel) View() string {
 		if values := m.getSelectedValues(); len(values) == 0 {
 			s.WriteString(m.styles.HelpText.Render("empty"))
 		} else {
-			s.WriteString(strings.Join(values, ", "))
+			s.WriteString(strings.Join(values, ","))
 		}
 
 		return s.String()
@@ -134,7 +140,7 @@ func (m MultiSelectModel) View() string {
 
 	for i, item := range m.items {
 		if i == m.index {
-			s.WriteString(fmt.Sprintf("%s ", cursorStyle.Render("❯")))
+			s.WriteString(fmt.Sprintf("%s ", cursorStyle.Render(">")))
 		} else {
 			s.WriteString("  ")
 		}
@@ -150,10 +156,25 @@ func (m MultiSelectModel) View() string {
 		}
 	}
 
+	if m.err != nil {
+		s.WriteRune('\n')
+		errMsg := m.err.Error()
+		errMsg = strings.ToUpper(errMsg[:1]) + errMsg[1:]
+		s.WriteString(wordwrap.String(m.styles.ErrorText.Render(errMsg), m.width))
+	}
+
 	return s.String()
 }
 
-func (m MultiSelectModel) getSelectedValues() []string {
+func (m MultiSelectModel) Validate() error {
+	if !m.variable.Optional && len(m.getSelectedValues()) == 0 {
+		return util.ErrRequired
+	}
+
+	return nil
+}
+
+func (m MultiSelectModel) getSelectedValues() recipe.MultiSelectValue {
 	selectedValues := make([]string, 0, len(m.items))
 	for _, item := range m.items {
 		if item.checked {

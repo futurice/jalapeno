@@ -396,3 +396,11 @@ func (v Variable) ParseDefaultValue() (interface{}, error) {
 		return nil, errors.New("unknown variable type")
 	}
 }
+
+func (v MultiSelectValue) ToString(delimiter rune) string {
+	return strings.Join(v, string(delimiter))
+}
+
+func (v *MultiSelectValue) FromString(s string, delimiter rune) {
+	*v = strings.Split(s, string(delimiter))
+}

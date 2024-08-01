@@ -4,6 +4,8 @@
 
 # Select variable: {{ .Variables.SELECT_VAR }}
 
+# Multi-select variable: {{ .Variables.MULTI_SELECT_VAR | join ", " }}
+
 # Table variable
 
 | COLUMN_1 | COLUMN_2 | COLUMN_3 |

@@ -52,6 +52,10 @@ func ParseProvidedValues(variables []recipe.Variable, flags []string, delimiter 
 			return nil, fmt.Errorf("%w: %s", ErrVarNotDefinedInRecipe, varName)
 		}
 
+		if !targetedVariable.Optional && varValue == "" {
+			return nil, fmt.Errorf("predefined value for variable '%s' can not be empty as it is not optional", varName)
+		}
+
 		switch {
 		case targetedVariable.Confirm:
 			if varValue == "true" {
@@ -61,6 +65,7 @@ func ParseProvidedValues(variables []recipe.Variable, flags []string, delimiter 
 			} else {
 				return nil, fmt.Errorf("value provided for variable '%s' was not a boolean", varName)
 			}
+
 		case len(targetedVariable.Columns) > 0:
 			varValue = strings.ReplaceAll(varValue, "\\n", "\n")
 			table := recipe.TableValue{}
@@ -95,6 +100,17 @@ func ParseProvidedValues(variables []recipe.Variable, flags []string, delimiter 
 				}
 			}
 			values[varName] = table
+
+		case targetedVariable.Multi:
+			vals := recipe.MultiSelectValue{}
+			vals.FromString(varValue, delimiter)
+
+			for _, val := range vals {
+				if !slices.Contains(targetedVariable.Options, val) {
+					return nil, fmt.Errorf("provided value '%s' is not in the list of options for variable '%s'", val, varName)
+				}
+			}
+			values[varName] = vals
 
 		default:
 			for i := range targetedVariable.Validators {
