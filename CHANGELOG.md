@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.12.0](https://github.com/futurice/jalapeno/compare/v1.11.8...v1.12.0) (2024-08-01)
+
+
+### Features
+
+* implement multi-select variable type ([#132](https://github.com/futurice/jalapeno/issues/132)) ([cd0cc02](https://github.com/futurice/jalapeno/commit/cd0cc023a6f9280bc7ccfe345f9b0e93901f85b6))
+
 ## [1.11.8](https://github.com/futurice/jalapeno/compare/v1.11.7...v1.11.8) (2024-07-18)
 
 
