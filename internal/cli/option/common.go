@@ -7,13 +7,11 @@ import (
 )
 
 type Common struct {
-	Debug    bool
 	NoColors bool
 	NoInput  bool
 }
 
 func (opts *Common) ApplyFlags(fs *pflag.FlagSet) {
-	fs.BoolVar(&opts.Debug, "debug", false, "Debug mode")
 	fs.BoolVar(&opts.NoColors, "no-color", false, "If specified, output won't contain any color")
 	fs.BoolVar(&opts.NoInput, "no-input", false, "If set to true, the program will exit with an error code if it needs to wait for any user input. This is useful when running the program in CI/CD environment")
 }
