@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.12.1](https://github.com/futurice/jalapeno/compare/v1.12.0...v1.12.1) (2024-08-09)
+
+
+### Bug Fixes
+
+* remove redundant debug flag ([2cd5553](https://github.com/futurice/jalapeno/commit/2cd55531602628706b001debe9c0bcd6c513b036))
+
 ## [1.12.0](https://github.com/futurice/jalapeno/compare/v1.11.8...v1.12.0) (2024-08-01)
 
 
