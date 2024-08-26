@@ -352,13 +352,13 @@ func (vv *VariableValues) UnmarshalYAML(unmarshal func(interface{}) error) error
 			}
 		// Multiselect values without a value are an empty []interface{} and we want to cast them into MultiSelectValues
 		case []interface{}:
-			multiV := make(MultiSelectValue, 0, len(v))
-			for _, interfaceV := range v {
+			multiV := make(MultiSelectValue, len(v))
+			for i, interfaceV := range v {
 				str, ok := interfaceV.(string)
 				if !ok {
-					return fmt.Errorf("failed to cast []interface{} value into a MultiSelectValue ([]string): %v", v)
+					return fmt.Errorf("failed to read value to multi select value: %v", v)
 				}
-				multiV = append(multiV, str)
+				multiV[i] = str
 			}
 			(*vv)[name] = multiV
 		default:
