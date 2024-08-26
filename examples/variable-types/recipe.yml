@@ -36,6 +36,18 @@ vars:
       - option_1
       - option_2
       - option_3
+      
+  - name: OPTIONAL_MULTI_SELECT_VAR
+    description: |
+      User chooses multiple values or no values at all from the predefined values in `options` property.
+
+      Defined by: non-empty `options` property, `optional: true` and `multi: true`.
+    multi: true
+    optional: true
+    options:
+      - option_1
+      - option_2
+      - option_3
 
   - name: TABLE_VAR
     description: |
