@@ -6,8 +6,6 @@
 
 # Multi-select variable: {{ .Variables.MULTI_SELECT_VAR | join ", " }}
 
-# Optional multi-select variable: {{ .Variables.OPTIONAL_MULTI_SELECT_VAR | join ", " }}
-
 # Table variable
 
 | COLUMN_1 | COLUMN_2 | COLUMN_3 |
