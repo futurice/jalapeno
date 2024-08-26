@@ -2,7 +2,7 @@ apiVersion: v1
 name: variable-types
 description: |
   This recipe demonstrates all different variable types and additional properties which can be set for a variable.
-version: v0.0.0
+version: v0.0.1
 vars:
   ### Variable types
   #
@@ -32,6 +32,18 @@ vars:
 
       Defined by: non-empty `options` property and `multi: true`.
     multi: true
+    options:
+      - option_1
+      - option_2
+      - option_3
+      
+  - name: OPTIONAL_MULTI_SELECT_VAR
+    description: |
+      User chooses multiple values or no values at all from the predefined values in `options` property.
+
+      Defined by: non-empty `options` property, `optional: true` and `multi: true`.
+    multi: true
+    optional: true
     options:
       - option_1
       - option_2

@@ -104,7 +104,7 @@ func (v *Variable) Validate() error {
 	if len(v.Options) > 0 {
 		if len(v.Columns) > 0 {
 			return errors.New("`options` and `columns` properties can not be defined at the same time")
-		} else if v.Optional {
+		} else if v.Optional && !v.Multi {
 			return errors.New("select variables can not be optional")
 		}
 	}
@@ -184,7 +184,7 @@ func (val VariableValues) Validate() error {
 		case string, bool, MultiSelectValue, TableValue:
 			break
 		default:
-			return fmt.Errorf("unsupported variable value type")
+			return fmt.Errorf("unsupported variable value type (%T)", v)
 		}
 	}
 
@@ -350,6 +350,17 @@ func (vv *VariableValues) UnmarshalYAML(unmarshal func(interface{}) error) error
 					Rows:    rows,
 				}
 			}
+		// Multiselect values without a value are an empty []interface{} and we want to cast them into MultiSelectValues
+		case []interface{}:
+			multiV := make(MultiSelectValue, 0, len(v))
+			for _, interfaceV := range v {
+				str, ok := interfaceV.(string)
+				if !ok {
+					return fmt.Errorf("failed to cast []interface{} value into a MultiSelectValue ([]string): %v", v)
+				}
+				multiV = append(multiV, str)
+			}
+			(*vv)[name] = multiV
 		default:
 			(*vv)[name] = v
 		}
