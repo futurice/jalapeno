@@ -94,7 +94,7 @@ func (re *Recipe) RunTests() []error {
 				break
 			} else {
 				if !bytes.Equal(tFile.Content, file.Content) {
-					errors[i] = fmt.Errorf("%w for file '%s':\n%s", ErrTestContentMismatch, key, diff.Diff(string(tFile.Content), string(file.Content)))
+					errors[i] = fmt.Errorf("%w for file '%s':\n%s", ErrTestContentMismatch, key, diff.Diff(string(file.Content), string(tFile.Content)))
 					break
 				}
 			}
