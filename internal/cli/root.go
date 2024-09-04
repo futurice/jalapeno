@@ -68,6 +68,7 @@ func NewRootCmd() *cobra.Command {
 		NewUpgradeCmd(),
 		NewValidateCmd(),
 		NewWhyCmd(),
+		NewBumpVerCmd(),
 	)
 
 	return cmd

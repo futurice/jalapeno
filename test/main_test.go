@@ -78,6 +78,7 @@ func TestFeatures(t *testing.T) {
 			AddCommonSteps(s)
 
 			// Command specific steps
+			AddBumpverSteps(s)
 			AddCheckSteps(s)
 			AddCreateSteps(s)
 			AddEjectSteps(s)

@@ -24,6 +24,9 @@ type Metadata struct {
 	// Description of what the recipe does
 	Description string `yaml:"description"`
 
+	// Changelog of recipe versions
+	Changelog map[string]string `yaml:"changelog,omitempty"`
+
 	// URL to source code for this recipe
 	Source string `yaml:"source,omitempty"`
 
@@ -71,4 +74,13 @@ func (m *Metadata) Validate() error {
 	}
 
 	return nil
+}
+
+func (m *Metadata) UpdateVersion(re *Recipe, newVer, msg string) {
+	if re.Changelog == nil {
+		re.Changelog = map[string]string{re.Metadata.Version: "Init version"}
+	}
+
+	re.Changelog[newVer] = msg
+	re.Version = newVer
 }

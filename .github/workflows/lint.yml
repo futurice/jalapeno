@@ -5,7 +5,7 @@ on:
   workflow_call:
 
 jobs:
-  lint:
+  code:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -13,9 +13,33 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: "1.22"
-          cache: false
+          cache: false # Disable cache since golangci-lint does its own caching
 
       - name: Lint source code
         uses: golangci/golangci-lint-action@v4
         with:
           version: latest
+
+  commits:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+
+      - name: Install commitlint
+        run: |
+          npm install @commitlint/config-conventional
+          npm install commitlint
+
+      - name: Validate current commit (last commit) with commitlint
+        if: github.event_name == 'push'
+        run: npx commitlint --last --verbose
+
+      - name: Validate PR title with commitlint
+        if: github.event_name == 'pull_request'
+        run: echo '${{ github.event.pull_request.title }}' | npx commitlint --verbose
