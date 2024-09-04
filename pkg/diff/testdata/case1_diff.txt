@@ -1,0 +1,48 @@
+-This is a test file for diff tests, version A.
++This is a test file for diff tests, version B.
+ 
+-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
+-ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation
++Lorem ipsum xxxxx sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
++ut labore et magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation
+ ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in
+ voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat
+ non proident, sunt in culpa qui officia deserunt mollit anim id est laborum...
+ 
+ This diff works on line-by-line basis currently, so the content is made of short lines.
+ 
+ Elementum bibendum curabitur praesent eget cras vitae inceptos natoque penatibus. Suspendisse
+ sociosqu aliquet ultricies nibh non hac. Commodo facilisis urna sem efficitur non venenatis
+ feugiat maximus. Leo dui lacinia habitant tristique lobortis rutrum. Praesent posuere
+ facilisi tempor interdum urna lacinia. Nec nam augue curabitur magnis praesent vel
+-aptent habitant sagittis. Habitant integer faucibus quis metus nascetur massa
++aptent habitant aaaaa. Habitant integer faucibus quis metus nascetur massa
+ nam. Scelerisque pretium ullamcorper sem massa ac senectus consequat.
+-Interdum ligula adipiscing faucibus; enim facilisi volutpat.
++Interdum ligula adipiscing bbbbbbb; enim facilisi volutpat.
+ 
+-Ipsum cursus convallis maximus turpis rutrum ante vestibulum. Hac curae semper venenatis
+-semper et. Feugiat eros ex luctus taciti velit sodales. Platea vulputate luctus
+-fringilla laoreet dignissim luctus. Quam dis erat efficitur risus, fermentum ornare sodales.
+-Congue malesuada aptent ornare scelerisque vehicula! Nam nec interdum auctor
+-suscipit mi. Fusce mollis felis nec maecenas ornare.
+-
+ Cubilia suscipit habitasse semper faucibus bibendum himenaeos quam eu.
+ Vitae iaculis metus per nostra viverra. Nulla facilisis quis convallis viverra; tempus justo
+-senectus vitae. Maximus eu massa; interdum himenaeos in sodales posuere dui nascetur. Per blandit
++senectus vitae. Maximus eu massa. Interdum himenaeos in sodales posuere dui nascetur. Per blandit
+ nascetur egestas cubilia fames dictumst ullamcorper parturient. Sociosqu vulputate porta
+ condimentum elit dolor fringilla cubilia placerat.
+ 
++This paragraph is added.
++It has two lines.
++
+ Potenti semper accumsan vitae justo sollicitudin diam sagittis habitasse. Mattis pulvinar
+ libero ligula; aptent gravida placerat sodales erat. Vel senectus at platea
+ integer rutrum est torquent pellentesque mi. Vulputate venenatis rhoncus
+-urna etiam lacus penatibus! Nunc fames viverra potenti quisque per. Est sed mauris quisque at conubia?
++urna etiam lacus penatibus! Nunc fames viverra potenti quisque per.
++Est sed mauris quisque at conubia?
+ 
++And then this B-file ends.
++

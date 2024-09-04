@@ -1,6 +1,8 @@
 package diff_test
 
 import (
+	"fmt"
+	"os"
 	"slices"
 	"strings"
 	"testing"
@@ -141,7 +143,7 @@ func TestGetUnifiedDiffLines(t *testing.T) {
 }
 
 func TestGetUnifiedDiff(t *testing.T) {
-	// not testing all the cases as we know this is just a simple concatenation
+	// not testing all the cases as we know this is just a simple concatenation of lines produced by GetUnifiedDiffLines
 	testCases := []struct {
 		name                string
 		a                   string
@@ -277,8 +279,65 @@ c
 			resolutionTemplate := d.GetConflictResolutionTemplate()
 
 			if resolutionTemplate != tc.expectedTemplate {
-				t.Errorf("Expected resolution template [%s]; got [%s]", tc.expectedTemplate, resolutionTemplate)
+				t.Errorf("Expected conflict resolution template [%s]; got [%s]", tc.expectedTemplate, resolutionTemplate)
 			}
 		})
 	}
+}
+
+func TestLargerTestCases(t *testing.T) {
+	testCases := []struct {
+		name string
+	}{
+		{
+			name: "case1",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			stringA, err := readStringFromFile(fmt.Sprintf("testdata/%s_a.txt", tc.name))
+			if err != nil {
+				t.Fatalf("Failed to read file a: %v", err)
+			}
+
+			stringB, err := readStringFromFile(fmt.Sprintf("testdata/%s_b.txt", tc.name))
+			if err != nil {
+				t.Fatalf("Failed to read file b: %v", err)
+			}
+
+			expectedDiff, err := readStringFromFile(fmt.Sprintf("testdata/%s_diff.txt", tc.name))
+			if err != nil {
+				t.Fatalf("Failed to read expected diff: %v", err)
+			}
+
+			expectedTemplate, err := readStringFromFile(fmt.Sprintf("testdata/%s_template.txt", tc.name))
+			if err != nil {
+				t.Fatalf("Failed to read expected template: %v", err)
+			}
+
+			d := diff.New(stringA, stringB)
+
+			// warning: the expected diff files has lines which consist of a single space; some editors / IDEs
+			// might be configured to strip trailing whitespace from lines, which might corrupt the file.
+			unifiedDiff := d.GetUnifiedDiff()
+			if unifiedDiff != expectedDiff {
+				t.Errorf("Expected unified diff [%s]; got [%s]", expectedDiff, unifiedDiff)
+			}
+
+			template := d.GetConflictResolutionTemplate()
+			if template != expectedTemplate {
+				t.Errorf("Expected conflict resolution template [%s]; got [%s]", expectedTemplate, template)
+			}
+		})
+	}
+}
+
+func readStringFromFile(name string) (string, error) {
+	fileBytes1, err := os.ReadFile(name)
+	if err != nil {
+		return "", fmt.Errorf("failed to read file: %w", err)
+	}
+
+	return string(fileBytes1), nil
 }
