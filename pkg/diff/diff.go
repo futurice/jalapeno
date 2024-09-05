@@ -13,6 +13,9 @@ type Diff struct {
 	b string
 
 	chunks []diff.Chunk
+
+	// lazily created cache, can only be created if there are some differences
+	unifiedDiffDigest *unifiedDiffDigest
 }
 
 // New creates a new Diff that might be queried further.
@@ -31,43 +34,34 @@ func New(a, b string) Diff {
 }
 
 // IsDifferent returns true if there were any differences between a and b.
-func (d Diff) IsDifferent() bool {
+func (d *Diff) IsDifferent() bool {
 	return d.chunks != nil
 }
 
 // GetUnifiedDiffLines returns the lines of the diff. The lines are not terminated with \n.
 // Returns nil if there were zero differences.
-func (d Diff) GetUnifiedDiffLines() []string {
+func (d *Diff) GetUnifiedDiffLines() []string {
 	if !d.IsDifferent() {
 		return nil
 	}
 
-	lineCount := d.computeUnifiedDiffLineCount()
+	return d.getUnifiedDiffDigest().lines
+}
 
-	lines := make([]string, lineCount)
-
-	linesIndex := 0
-	for _, chunk := range d.chunks {
-		for _, deleted := range chunk.Deleted {
-			lines[linesIndex] = fmt.Sprintf("-%s", deleted)
-			linesIndex++
-		}
-		for _, added := range chunk.Added {
-			lines[linesIndex] = fmt.Sprintf("+%s", added)
-			linesIndex++
-		}
-		for _, equal := range chunk.Equal {
-			lines[linesIndex] = fmt.Sprintf(" %s", equal)
-			linesIndex++
-		}
+// GetUnifiedDiffConflictIndices returns the indices of the lines of the diff returned by either GetUnifiedDiffLines
+// or GetUnifiedDiff. Indices are zero-based.
+// Returns nil if there were zero differences. Returns at least one index otherwise.
+func (d *Diff) GetUnifiedDiffConflictIndices() []int {
+	if !d.IsDifferent() {
+		return nil
 	}
 
-	return lines
+	return d.getUnifiedDiffDigest().conflictLineIndices
 }
 
 // GetUnifiedDiff returns the entire diff as a single string.
 // Returns an empty string if there are no differences.
-func (d Diff) GetUnifiedDiff() string {
+func (d *Diff) GetUnifiedDiff() string {
 	if !d.IsDifferent() {
 		return ""
 	}
@@ -80,7 +74,7 @@ func (d Diff) GetUnifiedDiff() string {
 // present in `a` but not `b`, followed by `=======`, followed by any lines present in `b` but not `a`, followed by
 // `>>>>>>> Added`. The lines in those blocks are not prefixed or otherwise altered. Any equal lines are included as is.
 // Returns an empty string if there are no differences.
-func (d Diff) GetConflictResolutionTemplate() string {
+func (d *Diff) GetConflictResolutionTemplate() string {
 	buf := new(bytes.Buffer)
 
 	// diff.Chunk is documented not to contain both Deleted and Added lines in the same Chunk
@@ -124,7 +118,7 @@ func (d Diff) GetConflictResolutionTemplate() string {
 	return buf.String()
 }
 
-func (d Diff) computeUnifiedDiffLineCount() int {
+func (d *Diff) computeUnifiedDiffLineCount() int {
 	lineCount := 0
 
 	for _, chunk := range d.chunks {
@@ -132,6 +126,64 @@ func (d Diff) computeUnifiedDiffLineCount() int {
 	}
 
 	return lineCount
+}
+
+func (d *Diff) getUnifiedDiffDigest() *unifiedDiffDigest {
+	if !d.IsDifferent() {
+		return nil
+	}
+
+	if d.unifiedDiffDigest != nil {
+		return d.unifiedDiffDigest
+	}
+
+	digest := d.createUnifiedDiffDigest()
+	d.unifiedDiffDigest = digest
+
+	return digest
+}
+
+func (d *Diff) createUnifiedDiffDigest() *unifiedDiffDigest {
+	lineCount := d.computeUnifiedDiffLineCount()
+
+	lines := make([]string, lineCount)
+	conflictLineIndices := make([]int, 0, 10)
+
+	lineIndex := 0
+	isInsideConflict := false
+	for _, chunk := range d.chunks {
+		for _, deleted := range chunk.Deleted {
+			lines[lineIndex] = fmt.Sprintf("-%s", deleted)
+			if !isInsideConflict {
+				conflictLineIndices = append(conflictLineIndices, lineIndex)
+				isInsideConflict = true
+			}
+			lineIndex++
+		}
+		for _, added := range chunk.Added {
+			lines[lineIndex] = fmt.Sprintf("+%s", added)
+			if !isInsideConflict {
+				conflictLineIndices = append(conflictLineIndices, lineIndex)
+				isInsideConflict = true
+			}
+			lineIndex++
+		}
+		for _, equal := range chunk.Equal {
+			lines[lineIndex] = fmt.Sprintf(" %s", equal)
+			isInsideConflict = false
+			lineIndex++
+		}
+	}
+
+	return &unifiedDiffDigest{
+		lines:               lines,
+		conflictLineIndices: conflictLineIndices,
+	}
+}
+
+type unifiedDiffDigest struct {
+	lines               []string
+	conflictLineIndices []int
 }
 
 const conflictHeader = "<<<<<<< Deleted\n"
