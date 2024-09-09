@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"slices"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -12,120 +13,135 @@ import (
 
 func TestGetUnifiedDiffLines(t *testing.T) {
 	testCases := []struct {
-		name                string
-		a                   string
-		b                   string
-		expectedIsDifferent bool
-		expectedLines       []string
+		name                    string
+		a                       string
+		b                       string
+		expectedIsDifferent     bool
+		expectedLines           []string
+		expectedConflictIndices []int
 	}{
 		{
 			name:                "both_empty",
 			a:                   "",
 			b:                   "",
 			expectedIsDifferent: false,
-			expectedLines:       nil,
 		},
 		{
 			name:                "both_empty_terminated",
 			a:                   "\n",
 			b:                   "\n",
 			expectedIsDifferent: false,
-			expectedLines:       nil,
 		},
 		{
 			name:                "equal_unterminated",
 			a:                   "1\n2\n3",
 			b:                   "1\n2\n3",
 			expectedIsDifferent: false,
-			expectedLines:       nil,
 		},
 		{
 			name:                "equal_terminated",
 			a:                   "1\n2\n3\n",
 			b:                   "1\n2\n3\n",
 			expectedIsDifferent: false,
-			expectedLines:       nil,
 		},
 		{
 			name:                "line_added_unterminated",
 			a:                   "",
 			b:                   "b",
 			expectedIsDifferent: true,
-			// FIXME []string{"+b"} would make more sense?
-			expectedLines: []string{"-", "+b"},
+			// []string{"+b"} would make more sense?
+			expectedLines:           []string{"-", "+b"},
+			expectedConflictIndices: []int{0},
 		},
 		{
-			name:                "line_added_terminated",
-			a:                   "",
-			b:                   "b\n",
-			expectedIsDifferent: true,
-			expectedLines:       []string{"+b", " "},
+			name:                    "line_added_terminated",
+			a:                       "",
+			b:                       "b\n",
+			expectedIsDifferent:     true,
+			expectedLines:           []string{"+b", " "},
+			expectedConflictIndices: []int{0},
 		},
 		{
 			name:                "text_added_to_line_terminated",
 			a:                   "\n",
 			b:                   "b\n",
 			expectedIsDifferent: true,
-			// FIXME totally bogus result? should be []string{"-", "+b"}
-			expectedLines: []string{"+b", " ", "-"},
+			// totally bogus result? should be []string{"-", "+b"}
+			expectedLines:           []string{"+b", " ", "-"},
+			expectedConflictIndices: []int{0, 2},
 		},
 		{
-			name:                "line_changed_unterminated",
-			a:                   "a",
-			b:                   "b",
-			expectedIsDifferent: true,
-			expectedLines:       []string{"-a", "+b"},
+			name:                    "line_changed_unterminated",
+			a:                       "a",
+			b:                       "b",
+			expectedIsDifferent:     true,
+			expectedLines:           []string{"-a", "+b"},
+			expectedConflictIndices: []int{0},
 		},
 		{
-			name:                "line_changed_terminated",
-			a:                   "a\n",
-			b:                   "b\n",
-			expectedIsDifferent: true,
-			expectedLines:       []string{"-a", "+b", " "},
+			name:                    "line_changed_terminated",
+			a:                       "a\n",
+			b:                       "b\n",
+			expectedIsDifferent:     true,
+			expectedLines:           []string{"-a", "+b", " "},
+			expectedConflictIndices: []int{0},
 		},
 		{
 			name:                "line_removed_unterminated",
 			a:                   "a",
 			b:                   "",
 			expectedIsDifferent: true,
-			// FIXME []string{"-a"} would make more sense?
-			expectedLines: []string{"-a", "+"},
+			// []string{"-a"} would make more sense?
+			expectedLines:           []string{"-a", "+"},
+			expectedConflictIndices: []int{0},
 		},
 		{
 			name:                "line_removed_terminated",
 			a:                   "a\n",
 			b:                   "",
 			expectedIsDifferent: true,
-			// FIXME []string{"-a"} would make more sense?
-			expectedLines: []string{"-a", " "},
+			// []string{"-a"} would make more sense?
+			expectedLines:           []string{"-a", " "},
+			expectedConflictIndices: []int{0},
 		},
 		{
-			name:                "one_line_changed_to_two",
-			a:                   "a\n",
-			b:                   "b\nb\n",
-			expectedIsDifferent: true,
-			expectedLines:       []string{"-a", "+b", "+b", " "},
+			name:                    "one_line_changed_to_two",
+			a:                       "a\n",
+			b:                       "b\nb\n",
+			expectedIsDifferent:     true,
+			expectedLines:           []string{"-a", "+b", "+b", " "},
+			expectedConflictIndices: []int{0},
 		},
 		{
-			name:                "two_lines_changed_to_one",
-			a:                   "a\na\n",
-			b:                   "b\n",
-			expectedIsDifferent: true,
-			expectedLines:       []string{"-a", "-a", "+b", " "},
+			name:                    "two_lines_changed_to_one",
+			a:                       "a\na\n",
+			b:                       "b\n",
+			expectedIsDifferent:     true,
+			expectedLines:           []string{"-a", "-a", "+b", " "},
+			expectedConflictIndices: []int{0},
 		},
 		{
-			name:                "two_lines_changed",
-			a:                   "a\na\n",
-			b:                   "b\nb\n",
+			name:                    "two_lines_changed",
+			a:                       "a\na\n",
+			b:                       "b\nb\n",
+			expectedIsDifferent:     true,
+			expectedLines:           []string{"-a", "-a", "+b", "+b", " "},
+			expectedConflictIndices: []int{0},
+		},
+		{
+			name:                "more_lines",
+			a:                   "a\na\nb\nb\nc\nc\nd\nd\ne\ne\n",
+			b:                   "a\na\nb\nx\nc\nc\ny\nd\ne\nz\n",
 			expectedIsDifferent: true,
-			expectedLines:       []string{"-a", "-a", "+b", "+b", " "},
+			// weird result for d -> y substitution
+			expectedLines:           []string{" a", " a", " b", "-b", "+x", " c", " c", "+y", " d", "-d", " e", "-e", "+z", " "},
+			expectedConflictIndices: []int{3, 7, 9, 11},
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			d := diff.New(tc.a, tc.b)
-			lines := d.GetUnifiedDiffLines()
 
 			if d.IsDifferent() != tc.expectedIsDifferent {
 				if tc.expectedIsDifferent {
@@ -135,8 +151,14 @@ func TestGetUnifiedDiffLines(t *testing.T) {
 				}
 			}
 
+			lines := d.GetUnifiedDiffLines()
 			if !slices.Equal(lines, tc.expectedLines) {
 				t.Errorf("Expected lines: [%v]; got lines: [%v]", strings.Join(tc.expectedLines, ","), strings.Join(lines, ","))
+			}
+
+			conflictIndices := d.GetUnifiedDiffConflictIndices()
+			if !slices.Equal(conflictIndices, tc.expectedConflictIndices) {
+				t.Errorf("Expected conflic indices: [%v]; got indices: [%v]", tc.expectedConflictIndices, conflictIndices)
 			}
 		})
 	}
@@ -311,6 +333,16 @@ func TestLargerTestCases(t *testing.T) {
 				t.Fatalf("Failed to read expected diff: %v", err)
 			}
 
+			expectedConflictLinesBlock, err := readStringFromFile(fmt.Sprintf("testdata/%s_diff_conflict_indices.txt", tc.name))
+			if err != nil {
+				t.Fatalf("Failed to read expected diff conflict indices: %v", err)
+			}
+
+			expectedConflictIndices, err := parseIntLines(expectedConflictLinesBlock)
+			if err != nil {
+				t.Fatalf("Failed to parse expected diff conflict indices: %v", err)
+			}
+
 			expectedTemplate, err := readStringFromFile(fmt.Sprintf("testdata/%s_template.txt", tc.name))
 			if err != nil {
 				t.Fatalf("Failed to read expected template: %v", err)
@@ -323,6 +355,11 @@ func TestLargerTestCases(t *testing.T) {
 			unifiedDiff := d.GetUnifiedDiff()
 			if unifiedDiff != expectedDiff {
 				t.Errorf("Expected unified diff [%s]; got [%s]", expectedDiff, unifiedDiff)
+			}
+
+			conflictIndices := d.GetUnifiedDiffConflictIndices()
+			if !slices.Equal(conflictIndices, expectedConflictIndices) {
+				t.Errorf("Expected conflict indices: [%v]; got indices: [%v]", expectedConflictIndices, conflictIndices)
 			}
 
 			template := d.GetConflictResolutionTemplate()
@@ -340,4 +377,23 @@ func readStringFromFile(name string) (string, error) {
 	}
 
 	return string(fileBytes1), nil
+}
+
+func parseIntLines(block string) ([]int, error) {
+	lines := strings.Split(block, "\n")
+
+	ints := make([]int, 0, len(lines))
+
+	for _, line := range lines {
+		if line != "" {
+			n, err := strconv.Atoi(line)
+			if err != nil {
+				return nil, fmt.Errorf("failed to parse [%s] as a number: %w", line, err)
+			}
+
+			ints = append(ints, n)
+		}
+	}
+
+	return ints, nil
 }
