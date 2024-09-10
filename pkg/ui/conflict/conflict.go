@@ -21,15 +21,16 @@ const (
 )
 
 type Model struct {
-	resolution int
-	filePath   string
-	fileA      []byte
-	fileB      []byte
-	diff       diff.Diff
-	ready      bool
-	err        error
-	submitted  bool
-	viewport   viewport.Model
+	resolution       int
+	filePath         string
+	fileA            []byte
+	fileB            []byte
+	diff             diff.Diff
+	ready            bool
+	err              error
+	submitted        bool
+	currentDiffIndex int
+	viewport         viewport.Model
 }
 
 var (
@@ -73,16 +74,14 @@ func NewModel(filePath string, fileA, fileB []byte) Model {
 	fileDiff := diff.New(string(fileA), string(fileB))
 
 	m := Model{
-		filePath:   filePath,
-		fileA:      fileA,
-		fileB:      fileB,
-		diff:       fileDiff,
-		ready:      false,
-		resolution: UseOld,
+		filePath:         filePath,
+		fileA:            fileA,
+		fileB:            fileB,
+		diff:             fileDiff,
+		ready:            false,
+		resolution:       UseOld,
+		currentDiffIndex: 0,
 	}
-
-	m.viewport = viewport.New(20, 20)
-	m.viewport.HighPerformanceRendering = false
 
 	return m
 }
@@ -100,7 +99,23 @@ func (m Model) headerView() string {
 func (m Model) footerView() string {
 	info := infoStyle.Render(fmt.Sprintf("%3.f%%", m.viewport.ScrollPercent()*100))
 	line := strings.Repeat("─", max(0, m.viewport.Width-lipgloss.Width(info)))
-	return lipgloss.JoinHorizontal(lipgloss.Center, line, info)
+	progressLine := lipgloss.JoinHorizontal(lipgloss.Center, line, info)
+
+	overwriteOpt := "Overwrite old"
+	keepOpt := "Keep old"
+	diffOpt := "Write the file with diffs"
+	var resolutionSelector string
+	if m.resolution == UseOld {
+		resolutionSelector = fmt.Sprintf("> %s / %s / %s", lipgloss.NewStyle().Bold(true).Render(keepOpt), overwriteOpt, diffOpt)
+	} else if m.resolution == UseNew {
+		resolutionSelector = fmt.Sprintf("%s / > %s / %s", keepOpt, lipgloss.NewStyle().Bold(true).Render(overwriteOpt), diffOpt)
+	} else {
+		resolutionSelector = fmt.Sprintf("%s / %s / > %s", keepOpt, overwriteOpt, lipgloss.NewStyle().Bold(true).Render(diffOpt))
+	}
+
+	instructions := "Use up and down arrows to move up and down the diff file.\nPage down to go the the next conflict and page up to go to the previous conflict."
+
+	return lipgloss.JoinVertical(0, progressLine, instructions, resolutionSelector)
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -111,20 +126,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		verticalMarginHeight := headerHeight + footerHeight
 
 		if !m.ready {
-			// Since this program is using the full size of the viewport we
-			// need to wait until we've received the window dimensions before
-			// we can initialize the viewport. The initial dimensions come in
-			// quickly, though asynchronously, which is why we wait for them
-			// here.
+			// We need to init the viewport here so we know it's size.
 			m.viewport = viewport.New(msg.Width, (msg.Height-verticalMarginHeight)/2)
 			m.viewport.YPosition = headerHeight
 			m.viewport.SetContent(m.diff.GetUnifiedDiff())
 			m.ready = true
-
-			// This is only necessary for high performance rendering, which in
-			// most cases you won't need.
-			//
-			// Render the viewport one line below the header.
 			m.viewport.YPosition = headerHeight + 1
 		} else {
 			m.viewport.Width = msg.Width
@@ -142,23 +148,17 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.resolution = min(m.resolution+1, 3)
 		case tea.KeyLeft:
 			m.resolution = max(m.resolution-1, 1)
+		case tea.KeyPgDown:
+			diffConflictCount := len(m.diff.GetUnifiedDiffConflictIndices())
+			m.currentDiffIndex = min(diffConflictCount-1, m.currentDiffIndex+1)
+			m.viewport.YOffset = m.diff.GetUnifiedDiffConflictIndices()[m.currentDiffIndex] - 1
+		case tea.KeyPgUp:
+			m.currentDiffIndex = max(0, m.currentDiffIndex-1)
+			m.viewport.YOffset = m.diff.GetUnifiedDiffConflictIndices()[m.currentDiffIndex] - 1
 		case tea.KeyDown:
-			m.viewport.YOffset += 1
-			if m.viewport.YOffset >= m.viewport.Height {
-				m.viewport.YOffset = m.viewport.Height - 1
-			}
+			m.viewport.YOffset = min(m.viewport.TotalLineCount()-1, m.viewport.YOffset+1)
 		case tea.KeyUp:
-			m.viewport.YOffset -= 1
-			if m.viewport.YOffset < 0 {
-				m.viewport.YOffset = 0
-			}
-			// case tea.KeyRunes:
-			// 	switch string(msg.Runes) {
-			// 	case "y", "Y":
-			// 		m.answer = true
-			// 	case "n", "N":
-			// 		m.answer = false
-			// 	}
+			m.viewport.YOffset = max(0, m.viewport.YOffset-1)
 		}
 	}
 	return m, nil
@@ -183,21 +183,9 @@ func (m Model) View() string {
 		return s.String()
 	}
 
-	overwriteOpt := "Overwrite old"
-	keepOpt := "Keep old"
-	diffOpt := "Write the file with diffs"
 	s.WriteString(m.headerView())
 	s.WriteString(m.viewport.View())
 	s.WriteString(m.footerView())
-	s.WriteString("Use up and down arrows to move up and down the diff file.\n Ctrl + down to go the the next conflict and Ctrl + up to go to the previous conflict.")
-	s.WriteString(fmt.Sprintf("What to do with file '%s':\n", m.filePath))
-	if m.resolution == UseOld {
-		s.WriteString(fmt.Sprintf("> %s / %s / %s", lipgloss.NewStyle().Bold(true).Render(keepOpt), overwriteOpt, diffOpt))
-	} else if m.resolution == UseNew {
-		s.WriteString(fmt.Sprintf("%s / > %s / %s", keepOpt, lipgloss.NewStyle().Bold(true).Render(overwriteOpt), diffOpt))
-	} else {
-		s.WriteString(fmt.Sprintf("%s / %s / > %s", keepOpt, overwriteOpt, lipgloss.NewStyle().Bold(true).Render(diffOpt)))
-	}
 
 	return s.String()
 }
