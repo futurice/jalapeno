@@ -16,8 +16,8 @@ import (
 
 const (
 	UseOld      int = 1
-	UseNew          = 2
-	UseDiffFile     = 3
+	UseNew      int = 2
+	UseDiffFile int = 3
 )
 
 type Model struct {
