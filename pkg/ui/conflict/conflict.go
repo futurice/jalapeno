@@ -164,7 +164,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-// TODO: Make merge conflict solving more advanced instead of just file override confirmation
 func (m Model) View() string {
 	var s strings.Builder
 
