@@ -183,7 +183,9 @@ func (m Model) View() string {
 	}
 
 	s.WriteString(m.headerView())
+	s.WriteString("\n")
 	s.WriteString(m.viewport.View())
+	s.WriteString("\n")
 	s.WriteString(m.footerView())
 
 	return s.String()
