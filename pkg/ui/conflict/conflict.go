@@ -14,14 +14,16 @@ import (
 	"github.com/muesli/termenv"
 )
 
+type ConflictResolution int
+
 const (
-	UseOld      int = 1
-	UseNew      int = 2
-	UseDiffFile int = 3
+	UseOld ConflictResolution = iota
+	UseNew
+	UseDiffFile
 )
 
 type Model struct {
-	resolution       int
+	resolution       ConflictResolution
 	filePath         string
 	fileA            []byte
 	fileB            []byte
@@ -151,10 +153,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case tea.KeyPgDown:
 			diffConflictCount := len(m.diff.GetUnifiedDiffConflictIndices())
 			m.currentDiffIndex = min(diffConflictCount-1, m.currentDiffIndex+1)
-			m.viewport.YOffset = m.diff.GetUnifiedDiffConflictIndices()[m.currentDiffIndex] - 1
+			m.viewport.YOffset = m.diff.GetUnifiedDiffConflictIndices()[m.currentDiffIndex]
 		case tea.KeyPgUp:
 			m.currentDiffIndex = max(0, m.currentDiffIndex-1)
-			m.viewport.YOffset = m.diff.GetUnifiedDiffConflictIndices()[m.currentDiffIndex] - 1
+			m.viewport.YOffset = m.diff.GetUnifiedDiffConflictIndices()[m.currentDiffIndex]
 		case tea.KeyDown:
 			m.viewport.YOffset = min(m.viewport.TotalLineCount()-1, m.viewport.YOffset+1)
 		case tea.KeyUp:
