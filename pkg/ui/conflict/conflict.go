@@ -176,7 +176,7 @@ func (m Model) View() string {
 		} else if m.resolution == UseNew {
 			s.WriteString("use new")
 		} else {
-			s.WriteString("diff file written")
+			s.WriteString("write diff file")
 		}
 
 		s.WriteRune('\n')
