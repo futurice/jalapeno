@@ -92,10 +92,17 @@ func (m Model) Init() tea.Cmd {
 	return nil
 }
 
+func calculateViewportHeight(windowHeight, verticalMarginal int) int {
+	viewportHeight := windowHeight - verticalMarginal
+	return viewportHeight
+}
+
 func (m Model) headerView() string {
 	title := titleStyle.Render(m.filePath)
 	line := strings.Repeat("─", max(0, m.viewport.Width-lipgloss.Width(title)))
-	return lipgloss.JoinHorizontal(lipgloss.Center, title, line)
+	viewPortHeader := lipgloss.JoinHorizontal(lipgloss.Center, title, line)
+	conflictPrompt := fmt.Sprintf("There are conflicts in the following file: %s, what do you want to do?", m.filePath)
+	return fmt.Sprintf("%s\n%s", conflictPrompt, viewPortHeader)
 }
 
 func (m Model) footerView() string {
@@ -129,14 +136,14 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		if !m.ready {
 			// We need to init the viewport here so we know it's size.
-			m.viewport = viewport.New(msg.Width, (msg.Height-verticalMarginHeight)/2)
+			m.viewport = viewport.New(msg.Width, calculateViewportHeight(msg.Height, verticalMarginHeight))
 			m.viewport.YPosition = headerHeight
 			m.viewport.SetContent(m.diff.GetUnifiedDiff())
 			m.ready = true
 			m.viewport.YPosition = headerHeight + 1
 		} else {
 			m.viewport.Width = msg.Width
-			m.viewport.Height = msg.Height - verticalMarginHeight
+			m.viewport.Height = calculateViewportHeight(msg.Height, verticalMarginHeight)
 		}
 	case tea.KeyMsg:
 		switch msg.Type {
@@ -147,9 +154,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.submitted = true
 			return m, tea.Quit
 		case tea.KeyRight:
-			m.resolution = min(m.resolution+1, 3)
+			m.resolution = min(m.resolution+1, UseDiffFile)
 		case tea.KeyLeft:
-			m.resolution = max(m.resolution-1, 1)
+			m.resolution = max(m.resolution-1, UseOld)
 		case tea.KeyPgDown:
 			diffConflictCount := len(m.diff.GetUnifiedDiffConflictIndices())
 			m.currentDiffIndex = min(diffConflictCount-1, m.currentDiffIndex+1)
