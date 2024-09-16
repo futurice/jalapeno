@@ -127,6 +127,29 @@ func (m Model) footerView() string {
 	return lipgloss.JoinVertical(0, progressLine, instructions, resolutionSelector)
 }
 
+func combineDiffLinesToColorizedDiffString(lines []string) string {
+
+	oldStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("#FF0000"))
+	newStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("#00FF00"))
+
+	colorizedLines := make([]string, 0)
+	for _, line := range lines {
+		switch line[0] {
+		case ' ':
+			colorizedLines = append(colorizedLines, line)
+			break
+		case '+':
+			colorizedLines = append(colorizedLines, newStyle.Render(line))
+			break
+		case '-':
+			colorizedLines = append(colorizedLines, oldStyle.Render(line))
+			break
+		}
+	}
+	colorizedLines = append(colorizedLines, lipgloss.NewStyle().Foreground(lipgloss.Color("#FFFF00")).Render("-- End of file --"))
+	return strings.Join(colorizedLines, "\n")
+}
+
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
@@ -138,7 +161,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// We need to init the viewport here so we know it's size.
 			m.viewport = viewport.New(msg.Width, calculateViewportHeight(msg.Height, verticalMarginHeight))
 			m.viewport.YPosition = headerHeight
-			m.viewport.SetContent(m.diff.GetUnifiedDiff())
+			diffLines := m.diff.GetUnifiedDiffLines()
+			m.viewport.SetContent(combineDiffLinesToColorizedDiffString(diffLines))
 			m.ready = true
 			m.viewport.YPosition = headerHeight + 1
 		} else {
