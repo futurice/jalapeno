@@ -23,16 +23,16 @@ const (
 )
 
 type Model struct {
-	resolution       ConflictResolution
-	filePath         string
-	fileA            []byte
-	fileB            []byte
-	diff             diff.Diff
-	ready            bool
-	err              error
-	submitted        bool
-	currentDiffIndex int
-	viewport         viewport.Model
+	resolution ConflictResolution
+	filePath   string
+	fileA      []byte
+	fileB      []byte
+	diff       diff.Diff
+	ready      bool
+	err        error
+	submitted  bool
+	viewport   viewport.Model
+	lineCount  int
 }
 
 var (
@@ -76,13 +76,12 @@ func NewModel(filePath string, fileA, fileB []byte) Model {
 	fileDiff := diff.New(string(fileA), string(fileB))
 
 	m := Model{
-		filePath:         filePath,
-		fileA:            fileA,
-		fileB:            fileB,
-		diff:             fileDiff,
-		ready:            false,
-		resolution:       UseOld,
-		currentDiffIndex: 0,
+		filePath:   filePath,
+		fileA:      fileA,
+		fileB:      fileB,
+		diff:       fileDiff,
+		ready:      false,
+		resolution: UseOld,
 	}
 
 	return m
@@ -150,6 +149,31 @@ func combineDiffLinesToColorizedDiffString(lines []string) string {
 	return strings.Join(colorizedLines, "\n")
 }
 
+func findNextDiffLineNumber(diffLineNums []int, curLine int, lastLine int) int {
+	for _, lineNum := range diffLineNums {
+		if lineNum > curLine {
+			return lineNum
+		}
+	}
+	// Did not find any diff that was after current line, go to last line.
+	// We can set the yOffset to the last line, because it still has the
+	// file end marker that will be shown.
+	return lastLine
+}
+
+func findPrevDiffLineNumber(diffLineNums []int, curLine int) int {
+	result := 0
+
+	for _, lineNum := range diffLineNums {
+		if lineNum < curLine {
+			result = lineNum
+		}
+	}
+
+	// if there is no previous diff, go the the 0th line
+	return result
+}
+
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
@@ -165,6 +189,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.viewport.SetContent(combineDiffLinesToColorizedDiffString(diffLines))
 			m.ready = true
 			m.viewport.YPosition = headerHeight + 1
+			m.lineCount = len(diffLines)
 		} else {
 			m.viewport.Width = msg.Width
 			m.viewport.Height = calculateViewportHeight(msg.Height, verticalMarginHeight)
@@ -182,12 +207,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case tea.KeyLeft:
 			m.resolution = max(m.resolution-1, UseOld)
 		case tea.KeyPgDown:
-			diffConflictCount := len(m.diff.GetUnifiedDiffConflictIndices())
-			m.currentDiffIndex = min(diffConflictCount-1, m.currentDiffIndex+1)
-			m.viewport.YOffset = m.diff.GetUnifiedDiffConflictIndices()[m.currentDiffIndex]
+			m.viewport.YOffset = findNextDiffLineNumber(m.diff.GetUnifiedDiffConflictIndices(), m.viewport.YOffset, m.lineCount)
 		case tea.KeyPgUp:
-			m.currentDiffIndex = max(0, m.currentDiffIndex-1)
-			m.viewport.YOffset = m.diff.GetUnifiedDiffConflictIndices()[m.currentDiffIndex]
+			m.viewport.YOffset = findPrevDiffLineNumber(m.diff.GetUnifiedDiffConflictIndices(), m.viewport.YOffset)
 		case tea.KeyDown:
 			m.viewport.YOffset = min(m.viewport.TotalLineCount()-1, m.viewport.YOffset+1)
 		case tea.KeyUp:
