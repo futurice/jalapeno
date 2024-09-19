@@ -2,7 +2,6 @@ package changelog
 
 import (
 	"errors"
-	"log"
 
 	tea "github.com/charmbracelet/bubbletea"
 	changelog "github.com/futurice/jalapeno/pkg/ui/changelog/prompt"
@@ -34,7 +33,7 @@ func RunSelectPrompt() (string, error) {
 	p := tea.NewProgram(changelog.NewSelectModel(options))
 
 	if m, err := p.Run(); err != nil {
-		log.Fatal(err)
+		return "", err
 	} else {
 		sel, ok := m.(changelog.SelectModel)
 		if !ok {
@@ -42,14 +41,13 @@ func RunSelectPrompt() (string, error) {
 		}
 		return sel.Value(), nil
 	}
-	return "", nil
 }
 
 func RunTextAreaPrompt() (string, error) {
 	p := tea.NewProgram(changelog.NewStringModel())
 
 	if m, err := p.Run(); err != nil {
-		log.Fatal(err)
+		return "", err
 	} else {
 		txt, ok := m.(changelog.StringModel)
 		if !ok {
@@ -57,5 +55,4 @@ func RunTextAreaPrompt() (string, error) {
 		}
 		return txt.Value(), nil
 	}
-	return "", nil
 }

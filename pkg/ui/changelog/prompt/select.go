@@ -92,7 +92,10 @@ func (m SelectModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case tea.KeyRunes:
 			switch string(msg.Runes) {
 			case "?":
-				fmt.Printf("Some helper text here")
+				if !m.showDescription {
+					m.showDescription = true
+					return m, nil
+				}
 			}
 		}
 

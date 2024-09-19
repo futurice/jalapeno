@@ -2,7 +2,6 @@ package cli
 
 import (
 	"errors"
-	"fmt"
 	"strconv"
 	"strings"
 
@@ -88,10 +87,15 @@ func runBumpVer(cmd *cobra.Command, opts bumpVerOpts) error {
 		newVer = bumpedVer
 	}
 
-	fmt.Println(newVer, changelogMsg)
+	err = re.Metadata.Update(re, newVer, changelogMsg)
+	if err != nil {
+		return err
+	}
 
-	re.Metadata.Update(re, newVer, changelogMsg)
-	re.Save(opts.WorkingDirectory.Dir)
+	err = re.Save(opts.WorkingDirectory.Dir)
+	if err != nil {
+		return err
+	}
 
 	cmd.Printf("bumped version %s => %s \n", re.Metadata.Version, newVer)
 	cmd.Printf("with changelog message %s \n", changelogMsg)
