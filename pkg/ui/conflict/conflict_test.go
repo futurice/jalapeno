@@ -20,20 +20,28 @@ func TestSolveFileConflict(t *testing.T) {
 		expected []byte
 	}{
 		{
-			name:     "no_answer",
+			name:     "keep_answer",
 			filePath: "README.md",
 			fileA:    []byte("foo"),
 			fileB:    []byte("bar"),
-			input:    "n\n",
+			input:    "\n",
 			expected: []byte("foo"),
 		},
 		{
-			name:     "yes_answer",
+			name:     "overwrite_answer",
 			filePath: "README.md",
 			fileA:    []byte("foo"),
 			fileB:    []byte("bar"),
-			input:    "y\n",
+			input:    "→\n",
 			expected: []byte("bar"),
+		},
+		{
+			name:     "diff_file_answer",
+			filePath: "README.md",
+			fileA:    []byte("foo"),
+			fileB:    []byte("bar"),
+			input:    "→→\n",
+			expected: []byte("<<<<<<< Deleted\nfoo\n=======\nbar\n>>>>>>> Added\n"),
 		},
 	}
 
@@ -54,7 +62,7 @@ func TestSolveFileConflict(t *testing.T) {
 			// Assert that the result is correct
 			result := m.Result()
 			if !bytes.Equal(result, tc.expected) {
-				t.Errorf("Unexpected result. Got %v, expected %v", result, tc.expected)
+				t.Errorf("Unexpected result for test: %s. Got %s, expected %s", tc.name, result, tc.expected)
 			}
 		})
 	}
