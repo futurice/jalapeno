@@ -247,7 +247,7 @@ func (m Model) Result() []byte {
 	if m.resolution == UseOld {
 		return m.fileA
 	} else if m.resolution == UseNew {
-		return m.fileA
+		return m.fileB
 	} else {
 		return []byte(m.diff.GetConflictResolutionTemplate())
 	}
