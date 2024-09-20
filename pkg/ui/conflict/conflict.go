@@ -136,13 +136,10 @@ func combineDiffLinesToColorizedDiffString(lines []string) string {
 		switch line[0] {
 		case ' ':
 			colorizedLines = append(colorizedLines, line)
-			break
 		case '+':
 			colorizedLines = append(colorizedLines, newStyle.Render(line))
-			break
 		case '-':
 			colorizedLines = append(colorizedLines, oldStyle.Render(line))
-			break
 		}
 	}
 	colorizedLines = append(colorizedLines, lipgloss.NewStyle().Foreground(lipgloss.Color("#FFFF00")).Render("-- End of file --"))
