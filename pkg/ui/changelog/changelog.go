@@ -7,27 +7,33 @@ import (
 	changelog "github.com/futurice/jalapeno/pkg/ui/changelog/prompt"
 )
 
-func RunChangelog() ([]string, error) {
-	var changelog []string
-	verInc, err := RunSelectPrompt()
+type Changelog struct {
+	Increment string
+	Msg       string
+}
+
+func RunChangelog() (Changelog, error) {
+	verInc, err := runSelectPrompt()
 
 	if err != nil {
-		return []string{}, errors.New("failed to get version type")
+		return Changelog{}, errors.New("failed to get version type")
 	}
 
-	logmsg, err := RunTextAreaPrompt()
+	logmsg, err := runTextAreaPrompt()
 
 	if err != nil {
-		return []string{}, errors.New("failed to get log message")
+		return Changelog{}, errors.New("failed to get log message")
 	}
 
-	changelog = append(changelog, verInc)
-	changelog = append(changelog, logmsg)
+	changelog := Changelog{
+		Increment: verInc,
+		Msg:       logmsg,
+	}
 
 	return changelog, nil
 }
 
-func RunSelectPrompt() (string, error) {
+func runSelectPrompt() (string, error) {
 	options := []string{"patch", "minor", "major"}
 
 	p := tea.NewProgram(changelog.NewSelectModel(options))
@@ -43,7 +49,7 @@ func RunSelectPrompt() (string, error) {
 	}
 }
 
-func RunTextAreaPrompt() (string, error) {
+func runTextAreaPrompt() (string, error) {
 	p := tea.NewProgram(changelog.NewStringModel())
 
 	if m, err := p.Run(); err != nil {

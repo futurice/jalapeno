@@ -1,19 +1,15 @@
 package cli
 
 import (
-	"errors"
-	"strconv"
-	"strings"
-
+	"github.com/Masterminds/semver/v3"
 	"github.com/futurice/jalapeno/internal/cli/option"
 	"github.com/futurice/jalapeno/pkg/recipe"
 	"github.com/futurice/jalapeno/pkg/ui/changelog"
 	"github.com/spf13/cobra"
-	"golang.org/x/mod/semver"
 )
 
 type bumpVerOpts struct {
-	RecipeName    string
+	RecipePath    string
 	RecipeVersion string
 	ChangelogMsg  string
 	option.Common
@@ -26,8 +22,13 @@ func NewBumpVerCmd() *cobra.Command {
 		Use:   "bumpver",
 		Short: "Bump version number for recipe",
 		Long:  "Bump version number for recipe. By default prompts user for update increment (patch/minor/major) and changelog messsage. These can also be specified directly with the -v and -m flags.",
-		Args:  cobra.NoArgs,
+		Args:  cobra.MaximumNArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) == 1 {
+				opts.RecipePath = args[0]
+			} else {
+				opts.RecipePath = "."
+			}
 			return option.Parse(&opts)
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -39,12 +40,14 @@ func NewBumpVerCmd() *cobra.Command {
 		},
 		Example: `# Prompt version increment and changelog message
 jalapeno bumpver
-		
+
+# Specify recipe directory
+jalapeno bumpver path/to/recipe
+
 # Directly specify version and message
 jalapeno bumpver -v v1.0.0 -m "Hello world"`,
 	}
 
-	cmd.Flags().StringVarP(&opts.RecipeName, "recipe", "r", "", "Name of the recipe to upgrade")
 	cmd.Flags().StringVarP(&opts.RecipeVersion, "version", "v", "", "New semver number for recipe")
 	cmd.Flags().StringVarP(&opts.ChangelogMsg, "message", "m", "", "Optional changelog message")
 
@@ -56,93 +59,57 @@ jalapeno bumpver -v v1.0.0 -m "Hello world"`,
 }
 
 func runBumpVer(cmd *cobra.Command, opts bumpVerOpts) error {
-	var increment string
-	newVer := opts.RecipeVersion
-	changelogMsg := opts.ChangelogMsg
+	var newVer semver.Version
+	var changelogMsg string
 
-	if newVer != "" && !semver.IsValid(newVer) {
-		return errors.New("invalid version format, please enter valid Semantic Version")
-	}
-
-	re, err := recipe.LoadRecipe(opts.RecipeName)
+	re, err := recipe.LoadRecipe(opts.RecipePath)
 	if err != nil {
 		return err
 	}
 
 	if opts.RecipeVersion == "" {
-		cmd.Println()
-		prompt, err := changelog.RunChangelog()
-
+		currentVer, err := semver.NewVersion(re.Metadata.Version)
 		if err != nil {
 			return err
 		}
 
-		increment, changelogMsg = prompt[0], prompt[1]
-		bumpedVer, err := BumpSemVer(re.Metadata.Version, increment)
-
+		changelog, err := changelog.RunChangelog()
 		if err != nil {
 			return err
 		}
 
-		newVer = bumpedVer
+		switch changelog.Increment {
+		case "patch":
+			newVer = currentVer.IncPatch()
+		case "minor":
+			newVer = currentVer.IncMinor()
+		case "major":
+			newVer = currentVer.IncMajor()
+		}
+
+		changelogMsg = changelog.Msg
+
+	} else {
+		optVer, err := semver.NewVersion(opts.RecipeVersion)
+		if err != nil {
+			return err
+		}
+
+		newVer = *optVer
+		changelogMsg = opts.ChangelogMsg
 	}
 
-	err = re.Metadata.Update(re, newVer, changelogMsg)
+	verWithPrefix := "v" + newVer.String()
+
+	re.Metadata.UpdateVersion(re, verWithPrefix, changelogMsg)
+
+	err = re.Save(opts.RecipePath)
 	if err != nil {
 		return err
 	}
 
-	err = re.Save(opts.WorkingDirectory.Dir)
-	if err != nil {
-		return err
-	}
-
-	cmd.Printf("bumped version %s => %s \n", re.Metadata.Version, newVer)
-	cmd.Printf("with changelog message %s \n", changelogMsg)
+	cmd.Printf("bumped version: %s => %s \n", re.Metadata.Version, verWithPrefix)
+	cmd.Printf("with changelog message: %s \n", changelogMsg)
 
 	return nil
-}
-
-// BumpSemVer takes SemVer as string and an increment as string "patch", "minor", or "major"
-// and bumps the version by the increment and returns the new version number
-func BumpSemVer(ver string, by string) (string, error) {
-	trim := strings.TrimPrefix(ver, "v")
-	parsed := strings.Split(trim, ".")
-
-	intArr := make([]int, len(parsed))
-	resultArr := []string{"", "", ""}
-
-	for i, v := range parsed {
-		conv, err := strconv.Atoi(v)
-		if err != nil {
-			return "", err
-		}
-		intArr[i] = conv
-	}
-
-	switch by {
-	case "patch":
-		intArr[2]++
-	case "minor":
-		intArr[2] = 0
-		intArr[1]++
-	case "major":
-		intArr[2] = 0
-		intArr[1] = 0
-		intArr[0]++
-	}
-
-	for i, v := range intArr {
-		conv := strconv.Itoa(v)
-		resultArr[i] = conv
-	}
-
-	resultArr[0] = "v" + resultArr[0]
-	newVer := strings.Join(resultArr, ".")
-
-	if semver.IsValid(newVer) {
-		return newVer, nil
-	} else {
-		return "", errors.New("failed to create valid semantic version")
-	}
 }

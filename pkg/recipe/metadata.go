@@ -76,13 +76,11 @@ func (m *Metadata) Validate() error {
 	return nil
 }
 
-func (m *Metadata) Update(re *Recipe, newVer, msg string) error {
+func (m *Metadata) UpdateVersion(re *Recipe, newVer, msg string) {
 	if re.Changelog == nil {
 		re.Changelog = map[string]string{re.Metadata.Version: "Init version"}
 	}
 
 	re.Changelog[newVer] = msg
 	re.Version = newVer
-
-	return nil
 }
