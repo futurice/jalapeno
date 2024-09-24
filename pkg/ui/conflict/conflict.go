@@ -10,6 +10,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/futurice/jalapeno/pkg/diff"
+	"github.com/futurice/jalapeno/pkg/ui/colors"
 	uiutil "github.com/futurice/jalapeno/pkg/ui/util"
 	"github.com/muesli/termenv"
 )
@@ -130,19 +131,15 @@ func (m Model) footerView() string {
 }
 
 func combineDiffLinesToColorizedDiffString(lines []string) string {
-
-	oldStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("#EF4136"))
-	newStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("#26A568"))
-
 	colorizedLines := make([]string, 0)
 	for _, line := range lines {
 		switch line[0] {
 		case ' ':
 			colorizedLines = append(colorizedLines, line)
 		case '+':
-			colorizedLines = append(colorizedLines, newStyle.Render(line))
+			colorizedLines = append(colorizedLines, colors.Green.Render(line))
 		case '-':
-			colorizedLines = append(colorizedLines, oldStyle.Render(line))
+			colorizedLines = append(colorizedLines, colors.Red.Render(line))
 		}
 	}
 	colorizedLines = append(colorizedLines, lipgloss.NewStyle().Foreground(lipgloss.Color("#FFFF00")).Render("-- End of file --"))

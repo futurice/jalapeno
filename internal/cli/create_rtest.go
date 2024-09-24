@@ -6,6 +6,7 @@ import (
 	"github.com/futurice/jalapeno/internal/cli/option"
 	"github.com/futurice/jalapeno/pkg/recipe"
 	"github.com/futurice/jalapeno/pkg/recipeutil"
+	"github.com/futurice/jalapeno/pkg/ui/colors"
 	"github.com/spf13/cobra"
 )
 
@@ -55,7 +56,7 @@ func runCreateTest(cmd *cobra.Command, opts createTestOptions) error {
 	cmd.Printf(
 		"Test '%s' created %s\n\n",
 		test.Name,
-		ColorGreen.Render("successfully!"),
+		colors.Green.Render("successfully!"),
 	)
 
 	fmt.Printf("Following files were created: \n%s", recipeutil.CreateFileTree(opts.Dir, map[string]recipeutil.FileStatus{

@@ -8,6 +8,7 @@ import (
 
 	"github.com/futurice/jalapeno/internal/cli/option"
 	"github.com/futurice/jalapeno/pkg/recipe"
+	"github.com/futurice/jalapeno/pkg/ui/colors"
 	"github.com/spf13/cobra"
 )
 
@@ -56,6 +57,6 @@ func runEject(cmd *cobra.Command, opts ejectOptions) error {
 		return err
 	}
 
-	cmd.Printf("Ejected %s\n", ColorGreen.Render("successfully!"))
+	cmd.Printf("Ejected %s\n", colors.Green.Render("successfully!"))
 	return nil
 }

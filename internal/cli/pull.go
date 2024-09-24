@@ -7,6 +7,7 @@ import (
 
 	"github.com/futurice/jalapeno/internal/cli/option"
 	"github.com/futurice/jalapeno/pkg/recipe"
+	"github.com/futurice/jalapeno/pkg/ui/colors"
 	"github.com/spf13/cobra"
 )
 
@@ -69,6 +70,6 @@ func runPull(cmd *cobra.Command, opts pullOptions) error {
 		return err
 	}
 
-	cmd.Printf("Recipe pulled %s\n", ColorGreen.Render("successfully!"))
+	cmd.Printf("Recipe pulled %s\n", colors.Green.Render("successfully!"))
 	return nil
 }

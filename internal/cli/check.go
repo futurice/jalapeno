@@ -9,6 +9,7 @@ import (
 	"github.com/futurice/jalapeno/internal/cli/option"
 	"github.com/futurice/jalapeno/pkg/recipe"
 	"github.com/futurice/jalapeno/pkg/recipeutil"
+	"github.com/futurice/jalapeno/pkg/ui/colors"
 	"github.com/spf13/cobra"
 )
 
@@ -197,6 +198,6 @@ func runCheck(cmd *cobra.Command, opts checkOptions) error {
 		}
 	}
 
-	cmd.Printf("All recipes with newer versions upgraded %s\n", ColorGreen.Render("successfully!"))
+	cmd.Printf("All recipes with newer versions upgraded %s\n", colors.Green.Render("successfully!"))
 	return nil
 }
