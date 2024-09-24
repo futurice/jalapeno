@@ -131,7 +131,7 @@ Feature: Upgrade sauce
 		And I change project file "README.md" to contain "Locally modified"
 		And I buffer key presses "\r"
 		When I upgrade recipe "foo"
-		Then CLI produced an output "README\.md: use old"
+		Then CLI produced an output "README\.md: keep old"
 		Then CLI produced an output "no changes were made to any files"
 		And the project directory should contain file "README.md" with "Locally modified"
 

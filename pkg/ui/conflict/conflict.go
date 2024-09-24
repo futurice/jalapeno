@@ -113,12 +113,15 @@ func (m Model) footerView() string {
 	keepOpt := "Keep old"
 	diffOpt := "Write the file with diffs"
 	var resolutionSelector string
+
+	selectedStyle := lipgloss.NewStyle().Bold(true)
+
 	if m.resolution == UseOld {
-		resolutionSelector = fmt.Sprintf("> %s / %s / %s", lipgloss.NewStyle().Bold(true).Render(keepOpt), overwriteOpt, diffOpt)
+		resolutionSelector = fmt.Sprintf("> %s / %s / %s", selectedStyle.Render(keepOpt), overwriteOpt, diffOpt)
 	} else if m.resolution == UseNew {
-		resolutionSelector = fmt.Sprintf("%s / > %s / %s", keepOpt, lipgloss.NewStyle().Bold(true).Render(overwriteOpt), diffOpt)
+		resolutionSelector = fmt.Sprintf("%s / > %s / %s", keepOpt, selectedStyle.Render(overwriteOpt), diffOpt)
 	} else {
-		resolutionSelector = fmt.Sprintf("%s / %s / > %s", keepOpt, overwriteOpt, lipgloss.NewStyle().Bold(true).Render(diffOpt))
+		resolutionSelector = fmt.Sprintf("%s / %s / > %s", keepOpt, overwriteOpt, selectedStyle.Render(diffOpt))
 	}
 
 	instructions := "Use up and down arrows to move up and down the diff file.\nPage down to go the the next conflict and page up to go to the previous conflict."
@@ -128,8 +131,8 @@ func (m Model) footerView() string {
 
 func combineDiffLinesToColorizedDiffString(lines []string) string {
 
-	oldStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("#FF0000"))
-	newStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("#00FF00"))
+	oldStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("#EF4136"))
+	newStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("#26A568"))
 
 	colorizedLines := make([]string, 0)
 	for _, line := range lines {
@@ -222,7 +225,7 @@ func (m Model) View() string {
 	if m.submitted || m.err != nil {
 		s.WriteString(fmt.Sprintf("%s: ", m.filePath))
 		if m.resolution == UseOld {
-			s.WriteString("use old")
+			s.WriteString("keep old")
 		} else if m.resolution == UseNew {
 			s.WriteString("use new")
 		} else {
