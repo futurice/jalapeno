@@ -39,3 +39,7 @@ jobs:
       - name: Validate current commit (last commit) with commitlint
         if: github.event_name == 'push'
         run: npx commitlint --last --verbose
+
+      - name: Validate PR title with commitlint
+        if: github.event_name == 'pull_request'
+        run: echo '${{ github.event.pull_request.title }}' | npx commitlint --verbose
