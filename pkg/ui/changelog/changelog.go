@@ -2,6 +2,7 @@ package changelog
 
 import (
 	"errors"
+	"fmt"
 
 	tea "github.com/charmbracelet/bubbletea"
 	changelog "github.com/futurice/jalapeno/pkg/ui/changelog/prompt"
@@ -16,13 +17,13 @@ func RunChangelog() (Changelog, error) {
 	verInc, err := runSelectPrompt()
 
 	if err != nil {
-		return Changelog{}, errors.New("failed to get version type")
+		return Changelog{}, fmt.Errorf("failed to get version type: %w", err)
 	}
 
 	logmsg, err := runTextAreaPrompt()
 
 	if err != nil {
-		return Changelog{}, errors.New("failed to get log message")
+		return Changelog{}, fmt.Errorf("failed to get log message: %w", err)
 	}
 
 	changelog := Changelog{
