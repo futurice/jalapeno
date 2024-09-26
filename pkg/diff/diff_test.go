@@ -371,12 +371,12 @@ func TestLargerTestCases(t *testing.T) {
 }
 
 func readStringFromFile(name string) (string, error) {
-	fileBytes1, err := os.ReadFile(name)
+	fileBytes, err := os.ReadFile(name)
 	if err != nil {
 		return "", fmt.Errorf("failed to read file: %w", err)
 	}
 
-	return string(fileBytes1), nil
+	return string(fileBytes), nil
 }
 
 func parseIntLines(block string) ([]int, error) {
