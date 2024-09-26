@@ -370,7 +370,7 @@ func TestLargerTestCases(t *testing.T) {
 	}
 }
 
-//go:embed testdata/*
+//go:embed testdata
 var testDataFS embed.FS
 
 func readTestData(name string) (string, error) {
