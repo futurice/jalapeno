@@ -1,8 +1,8 @@
 package diff_test
 
 import (
+	"embed"
 	"fmt"
-	"os"
 	"slices"
 	"strconv"
 	"strings"
@@ -318,22 +318,22 @@ func TestLargerTestCases(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			stringA, err := readStringFromFile(fmt.Sprintf("testdata/%s_a.txt", tc.name))
+			stringA, err := readTestData(fmt.Sprintf("%s_a.txt", tc.name))
 			if err != nil {
 				t.Fatalf("Failed to read file a: %v", err)
 			}
 
-			stringB, err := readStringFromFile(fmt.Sprintf("testdata/%s_b.txt", tc.name))
+			stringB, err := readTestData(fmt.Sprintf("%s_b.txt", tc.name))
 			if err != nil {
 				t.Fatalf("Failed to read file b: %v", err)
 			}
 
-			expectedDiff, err := readStringFromFile(fmt.Sprintf("testdata/%s_diff.txt", tc.name))
+			expectedDiff, err := readTestData(fmt.Sprintf("%s_diff.txt", tc.name))
 			if err != nil {
 				t.Fatalf("Failed to read expected diff: %v", err)
 			}
 
-			expectedConflictLinesBlock, err := readStringFromFile(fmt.Sprintf("testdata/%s_diff_conflict_indices.txt", tc.name))
+			expectedConflictLinesBlock, err := readTestData(fmt.Sprintf("%s_diff_conflict_indices.txt", tc.name))
 			if err != nil {
 				t.Fatalf("Failed to read expected diff conflict indices: %v", err)
 			}
@@ -343,7 +343,7 @@ func TestLargerTestCases(t *testing.T) {
 				t.Fatalf("Failed to parse expected diff conflict indices: %v", err)
 			}
 
-			expectedTemplate, err := readStringFromFile(fmt.Sprintf("testdata/%s_template.txt", tc.name))
+			expectedTemplate, err := readTestData(fmt.Sprintf("%s_template.txt", tc.name))
 			if err != nil {
 				t.Fatalf("Failed to read expected template: %v", err)
 			}
@@ -370,13 +370,16 @@ func TestLargerTestCases(t *testing.T) {
 	}
 }
 
-func readStringFromFile(name string) (string, error) {
-	fileBytes, err := os.ReadFile(name)
+//go:embed testdata/*
+var testDataFS embed.FS
+
+func readTestData(name string) (string, error) {
+	dataBytes, err := testDataFS.ReadFile(fmt.Sprintf("testdata/%s", name))
 	if err != nil {
-		return "", fmt.Errorf("failed to read file: %w", err)
+		return "", fmt.Errorf("failed to read test data file: %w", err)
 	}
 
-	return string(fileBytes), nil
+	return string(dataBytes), nil
 }
 
 func parseIntLines(block string) ([]int, error) {
