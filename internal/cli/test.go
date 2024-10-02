@@ -8,6 +8,7 @@ import (
 	"github.com/futurice/jalapeno/pkg/engine"
 	"github.com/futurice/jalapeno/pkg/recipe"
 	"github.com/futurice/jalapeno/pkg/recipeutil"
+	"github.com/futurice/jalapeno/pkg/ui/colors"
 	"github.com/spf13/cobra"
 )
 
@@ -169,6 +170,6 @@ func updateSnapshots(cmd *cobra.Command, opts testOptions, re *recipe.Recipe) er
 		return fmt.Errorf("failed to save recipe: %w", err)
 	}
 
-	cmd.Printf("Recipe test snapshots updated %s\n", ColorGreen.Render("successfully!"))
+	cmd.Printf("Recipe test snapshots updated %s\n", colors.Green.Render("successfully!"))
 	return nil
 }

@@ -13,6 +13,7 @@ import (
 	"github.com/futurice/jalapeno/pkg/engine"
 	"github.com/futurice/jalapeno/pkg/recipe"
 	"github.com/futurice/jalapeno/pkg/recipeutil"
+	"github.com/futurice/jalapeno/pkg/ui/colors"
 	"github.com/futurice/jalapeno/pkg/ui/survey"
 	"github.com/gofrs/uuid"
 	"github.com/spf13/cobra"
@@ -129,11 +130,11 @@ func runExecute(cmd *cobra.Command, opts executeOptions) error {
 }
 
 func executeRecipe(cmd *cobra.Command, opts executeOptions, re *recipe.Recipe) error {
-	cmd.Printf("%s: %s\n", ColorRed.Render("Recipe name"), re.Metadata.Name)
-	cmd.Printf("%s: %s\n", ColorRed.Render("Version"), re.Metadata.Version)
+	cmd.Printf("%s: %s\n", colors.Red.Render("Recipe name"), re.Metadata.Name)
+	cmd.Printf("%s: %s\n", colors.Red.Render("Version"), re.Metadata.Version)
 
 	if re.Metadata.Description != "" {
-		cmd.Printf("%s: %s\n", ColorRed.Render("Description"), re.Metadata.Description)
+		cmd.Printf("%s: %s\n", colors.Red.Render("Description"), re.Metadata.Description)
 	}
 
 	cmd.Println()
@@ -233,7 +234,7 @@ func executeRecipe(cmd *cobra.Command, opts executeOptions, re *recipe.Recipe) e
 		return err
 	}
 
-	cmd.Printf("Recipe executed %s\n", ColorGreen.Render("successfully!"))
+	cmd.Printf("Recipe executed %s\n", colors.Green.Render("successfully!"))
 
 	files := sauce.Files
 	if opts.Subpath != "" {

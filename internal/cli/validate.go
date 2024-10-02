@@ -6,6 +6,7 @@ import (
 
 	"github.com/futurice/jalapeno/internal/cli/option"
 	"github.com/futurice/jalapeno/pkg/recipe"
+	"github.com/futurice/jalapeno/pkg/ui/colors"
 	"github.com/spf13/cobra"
 )
 
@@ -59,7 +60,7 @@ func runValidate(cmd *cobra.Command, opts validateOptions) error {
 
 	cmd.Printf(
 		"%s The recipe is valid.\n",
-		ColorGreen.Render("Success!"),
+		colors.Green.Render("Success!"),
 	)
 
 	return nil

@@ -129,9 +129,9 @@ Feature: Upgrade sauce
 		And I change recipe "foo" to version "v0.0.2"
 		And I change recipe "foo" template "README.md" to render "New version"
 		And I change project file "README.md" to contain "Locally modified"
-		And I buffer key presses "n\r"
+		And I buffer key presses "\r"
 		When I upgrade recipe "foo"
-		Then CLI produced an output "README\.md: keep"
+		Then CLI produced an output "README\.md: keep old"
 		Then CLI produced an output "no changes were made to any files"
 		And the project directory should contain file "README.md" with "Locally modified"
 
@@ -142,9 +142,9 @@ Feature: Upgrade sauce
 		And I change recipe "foo" to version "v0.0.2"
 		And I change recipe "foo" template "README.md" to render "New version"
 		And I change project file "README.md" to contain "Locally modified"
-		And I buffer key presses "y\r"
+		And I buffer key presses "→\r"
 		When I upgrade recipe "foo"
-		Then CLI produced an output "README\.md: override"
+		Then CLI produced an output "README\.md: use new"
 		Then CLI produced an output "README\.md \(modified\)"
 		And the project directory should contain file "README.md" with "New version"
 
@@ -157,7 +157,7 @@ Feature: Upgrade sauce
 		And I change project file "README.md" to contain "Locally modified"
 		And I buffer key presses "→←→\r"
 		When I upgrade recipe "foo"
-		Then CLI produced an output "README.md: override"
+		Then CLI produced an output "README.md: use new"
 		Then CLI produced an output "README\.md \(modified\)"
 		And the project directory should contain file "README.md" with "New version"
 

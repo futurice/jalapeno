@@ -7,18 +7,15 @@ import (
 	"time"
 
 	"github.com/carlmjohnson/versioninfo"
+	"github.com/futurice/jalapeno/pkg/ui/colors"
 	uiutil "github.com/futurice/jalapeno/pkg/ui/util"
 
-	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"
 )
 
 var (
 	// https://goreleaser.com/cookbooks/using-main.version/
 	version string
-
-	ColorRed   = lipgloss.NewStyle().Foreground(lipgloss.Color("#EF4136"))
-	ColorGreen = lipgloss.NewStyle().Foreground(lipgloss.Color("#26A568"))
 )
 
 type ExitCodeContextKey struct{}
@@ -89,6 +86,6 @@ func errorHandler(cmd *cobra.Command, err error) error {
 	}
 
 	// Color the error message
-	cmd.SetErrPrefix(ColorRed.Render("Error:"))
-	return errors.New(ColorRed.Render(err.Error()))
+	cmd.SetErrPrefix(colors.Red.Render("Error:"))
+	return errors.New(colors.Red.Render(err.Error()))
 }
