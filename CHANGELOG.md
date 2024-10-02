@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.14.0](https://github.com/futurice/jalapeno/compare/v1.13.0...v1.14.0) (2024-10-02)
+
+
+### Features
+
+* improved merge conflict solver ([#139](https://github.com/futurice/jalapeno/issues/139)) ([eb4b162](https://github.com/futurice/jalapeno/commit/eb4b162c4c8c844a9b186386e5de435d58916604))
+* introduce `bumpver` command for bumping recipe version ([7f03a31](https://github.com/futurice/jalapeno/commit/7f03a31f100342858ed67df9a33e8e39f1cff2f1))
+
+
+### Bug Fixes
+
+* **ci:** provide whole commit history to commitlint ([efd35b7](https://github.com/futurice/jalapeno/commit/efd35b7231297493b5cffa7ab14b9e104d0db8af))
+* select output correctly when using diff ([06e5f95](https://github.com/futurice/jalapeno/commit/06e5f953915ab6b09524243b328f8adb8ad2b42a))
+
 ## [1.13.0](https://github.com/futurice/jalapeno/compare/v1.12.1...v1.13.0) (2024-08-26)
 
 
