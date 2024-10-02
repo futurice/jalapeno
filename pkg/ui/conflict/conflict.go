@@ -142,7 +142,7 @@ func combineDiffLinesToColorizedDiffString(lines []string) string {
 			colorizedLines = append(colorizedLines, colors.Red.Render(line))
 		}
 	}
-	colorizedLines = append(colorizedLines, colors.Gray.Render("-- End of file --"))
+	colorizedLines = append(colorizedLines, colors.Highlight.Render("-- End of file --"))
 	return strings.Join(colorizedLines, "\n")
 }
 
