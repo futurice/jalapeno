@@ -146,7 +146,6 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 		}
 
 	} else {
-		opts.ReuseOldValues = false
 		cmd.Printf(
 			"Modifying values for sauce with recipe '%s' version %s\n",
 			oldSauce.Recipe.Name,
@@ -209,6 +208,12 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 	}
 
 	values = recipeutil.MergeValues(reusedValues, providedValues)
+
+	// If the user is updating values for a recipe and hasn't provided any values,
+	// assume that all values needs to be prompted
+	if versionComparison == 0 && len(providedValues) == 0 {
+		opts.ReuseOldValues = false
+	}
 
 	if opts.ReuseOldValues {
 		validatedValues, errs := recipeutil.CleanValues(re.Variables, oldSauce.Values)
