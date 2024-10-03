@@ -1,8 +1,9 @@
 module github.com/futurice/jalapeno
 
-go 1.22.2
+go 1.23
 
 require (
+	github.com/Masterminds/semver/v3 v3.2.0
 	github.com/Masterminds/sprig/v3 v3.2.3
 	github.com/buildkite/shellwords v0.0.0-20180315110454-59467a9b8e10
 	github.com/carlmjohnson/versioninfo v0.22.5
@@ -27,7 +28,6 @@ require (
 )
 
 require (
-	github.com/Masterminds/semver/v3 v3.2.0 // indirect
 	github.com/atotto/clipboard v0.1.4 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/aymanbagabas/go-udiff v0.2.0 // indirect
