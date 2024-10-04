@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.14.2](https://github.com/futurice/jalapeno/compare/v1.14.1...v1.14.2) (2024-10-04)
+
+
+### Bug Fixes
+
+* validate existing table values correctly ([9309384](https://github.com/futurice/jalapeno/commit/93093845c6317e86c13710a8d20526f493889971))
+
 ## [1.14.1](https://github.com/futurice/jalapeno/compare/v1.14.0...v1.14.1) (2024-10-03)
 
 
