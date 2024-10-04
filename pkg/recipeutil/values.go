@@ -185,11 +185,17 @@ func ValidateValue(validator recipe.VariableValidator, value interface{}) error 
 			validatorFunc = staticValidatorFunc
 		}
 
+		columnIndex := 0
+		for _, col := range v.Columns {
+			if col == validator.Column {
+				break
+			}
+			columnIndex++
+		}
+
 		for _, row := range v.Rows {
-			for _, cell := range row {
-				if err := validatorFunc(cell); err != nil {
-					return err
-				}
+			if err := validatorFunc(row[columnIndex]); err != nil {
+				return err
 			}
 		}
 	default:
