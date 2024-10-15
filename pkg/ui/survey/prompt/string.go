@@ -31,7 +31,7 @@ func NewStringModel(v recipe.Variable, styles style.Styles) StringModel {
 	ti.Width = 30
 
 	if v.Default != "" {
-		ti.Width = len(v.Default) - 3
+		ti.Width = max(len(v.Default), ti.Width)
 		ti.SetValue(v.Default)
 	}
 
@@ -71,7 +71,7 @@ func (m StringModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
-		m.textInput.Width = msg.Width - 3
+		m.textInput.Width = msg.Width - 3 // make sure that the '> ' prefix and the input fit on the line
 	}
 
 	m.textInput, cmd = m.textInput.Update(msg)
