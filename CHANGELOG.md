@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.14.3](https://github.com/futurice/jalapeno/compare/v1.14.2...v1.14.3) (2024-10-15)
+
+
+### Bug Fixes
+
+* text input width calculation ([#144](https://github.com/futurice/jalapeno/issues/144)) ([e7e2b9d](https://github.com/futurice/jalapeno/commit/e7e2b9d43f6f88d9de9a728ce4492d5936defa31))
+
 ## [1.14.2](https://github.com/futurice/jalapeno/compare/v1.14.1...v1.14.2) (2024-10-04)
 
 
