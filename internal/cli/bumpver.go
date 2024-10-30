@@ -99,16 +99,17 @@ func runBumpVer(cmd *cobra.Command, opts bumpVerOpts) error {
 		changelogMsg = opts.ChangelogMsg
 	}
 
-	verWithPrefix := "v" + newVer.String()
+	newVerWithPrefix := "v" + newVer.String()
+	prevVer := re.Metadata.Version
 
-	re.Metadata.UpdateVersion(re, verWithPrefix, changelogMsg)
+	re.Metadata.UpdateVersion(re, newVerWithPrefix, changelogMsg)
 
 	err = re.Save(opts.RecipePath)
 	if err != nil {
 		return err
 	}
 
-	cmd.Printf("bumped version: %s => %s \n", re.Metadata.Version, verWithPrefix)
+	cmd.Printf("bumped version: %s => %s \n", prevVer, newVerWithPrefix)
 	cmd.Printf("with changelog message: %s \n", changelogMsg)
 
 	return nil
