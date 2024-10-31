@@ -1,6 +1,9 @@
 package cli
 
 import (
+	"errors"
+	"fmt"
+
 	"github.com/Masterminds/semver/v3"
 	"github.com/futurice/jalapeno/internal/cli/option"
 	"github.com/futurice/jalapeno/pkg/recipe"
@@ -92,6 +95,9 @@ func runBumpVer(cmd *cobra.Command, opts bumpVerOpts) error {
 	} else {
 		optVer, err := semver.NewVersion(opts.RecipeVersion)
 		if err != nil {
+			if errors.Is(err, semver.ErrInvalidSemVer) {
+				return fmt.Errorf("provided version is not valid semver: %s", opts.RecipeVersion)
+			}
 			return err
 		}
 
