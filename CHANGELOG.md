@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.14.4](https://github.com/futurice/jalapeno/compare/v1.14.3...v1.14.4) (2024-10-31)
+
+
+### Bug Fixes
+
+* show versions correctly when bumping recipe version ([78f325b](https://github.com/futurice/jalapeno/commit/78f325bf30491fd351adadda60a63412de00ff56))
+
 ## [1.14.3](https://github.com/futurice/jalapeno/compare/v1.14.2...v1.14.3) (2024-10-15)
 
 
