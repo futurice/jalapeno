@@ -169,5 +169,11 @@ func (s *Sauce) RenderInitHelp() (string, error) {
 		return "", fmt.Errorf("failed to render initHelp template: %w", err)
 	}
 
-	return buf.String(), nil
+	output := buf.String()
+
+	if strings.Contains(output, "<no value>") {
+		return "", fmt.Errorf("some of the variables used in the initHelp template were undefined")
+	}
+
+	return output, nil
 }
