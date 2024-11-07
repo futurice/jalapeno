@@ -1,6 +1,7 @@
 package recipe
 
 import (
+	"errors"
 	"fmt"
 	"path/filepath"
 	"strings"
@@ -172,7 +173,7 @@ func (s *Sauce) RenderInitHelp() (string, error) {
 	output := buf.String()
 
 	if strings.Contains(output, "<no value>") {
-		return "", fmt.Errorf("some of the variables used in the initHelp template were undefined")
+		return "", errors.New("some of the variables used in the initHelp template were undefined")
 	}
 
 	return output, nil
