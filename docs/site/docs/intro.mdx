@@ -9,14 +9,14 @@ hide_title: true
   <img src="img/logo.png" width="70%" />
 </div>
 
-Jalapeno is **a templating system** which support complex templating while staying user friendly. Templates used by Jalapeno are called _recipes_.
+Jalapeno is **a templating system** which supports complex templating while staying user-friendly. Templates used by Jalapeno are called _recipes_.
 
 To get started, [install](/installation) the tool and follow the [getting started](/usage#getting-started) guide.
 
 ## Features
 
-- **Easy to use templates**: The CLI guides the user as much as possible when using recipes. This is done by prompting the user interactively for required template values, providing validation for the values, giving hints about what to do after executing the recipe etc.
+- **Easy to use templates**: The CLI guides the user as much as possible when using recipes. This is done by prompting the user interactively for required template values, providing validation for the values, giving hints about what to do after executing the recipe, etc.
 - **Modular**: A project can use multiple recipes at the same time, so you can compose your projects from multiple smaller template modules. This helps to keep the recipes simple and focused.
-- **Continous integration**: Recipes are versioned, and new versions of the recipe can be merged to existing projects. Recipes can be shared via OCI compatible registries (aka container registries) so project CI/CD pipelines which already utilize the registry can easily check and notify the developers if there are new versions available for the recipes.
-- **Tweakable templates**: Since every project is a little bit different, manual tweaks are often needed after a recipe has been executed. Jalapeno can still update the recipes used in a project by detecting which files has been manually edited and solve the merge conflicts. This way the project can stay up to date with the recipe, while still keeping the manual tweaks.
-- **Snapshots tests**: Recipes can be tested with snapshot tests, which reduces regression when developing the templates by ensuring that the templates produces expected outputs.
+- **Continuous integration**: Recipes are versioned, and new versions of the recipe can be merged into existing projects. Recipes can be shared via OCI compatible registries (aka container registries) so project CI/CD pipelines which already utilize the registry can easily check and notify the developers if there are new versions available for the recipes.
+- **Tweakable templates**: Since every project is a little bit different, manual tweaks are often needed after a recipe has been executed. Jalapeno can still update the recipes used in a project by detecting which files have been manually edited and solving the merge conflicts. This way the project can stay up to date with the recipe, while still keeping the manual tweaks.
+- **Snapshot tests**: Recipes can be tested with snapshot tests, which reduces regression when developing the templates by ensuring that the templates produce expected outputs.

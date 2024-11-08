@@ -33,15 +33,15 @@ winget upgrade jalapeno
 Cross-platform binaries are provided with each release of Jalapeno. These can manually be
 downloaded and installed from [GitHub releases](https://github.com/futurice/jalapeno/releases/).
 
-In short the process is:
+In short, the process is:
 
 1. Download [the latest version of Jalapeno](https://github.com/futurice/jalapeno/releases/latest)
    for your platform
 2. Extract the archive
 3. Make the binary executable
-4. Rename and move the binary to proper location
+4. Rename and move the binary to the proper location
 
-For example on MacOS (running on Apple Silicon) this can be done with:
+For example, on macOS (running on Apple Silicon) this can be done with:
 
 ```bash
 curl -L https://github.com/futurice/jalapeno/releases/latest/download/jalapeno-darwin-arm64.tar.gz -o jalapeno.tar.gz
@@ -52,11 +52,11 @@ mv jalapeno /usr/local/bin/jalapeno
 
 ## Use via Docker
 
-It is possible to use Jalapeno via Docker without installing it locally. Jalapeno image is available
+It is possible to use Jalapeno via Docker without installing it locally. The Jalapeno image is available
 from the GitHub Container Registry, and thus the following command on a \*nix system is equivalent
 to running `jalapeno` locally:
 
-```bash tab={"label":"MacOS and Linux"}
+```bash tab={"label":"macOS and Linux"}
 docker run -it --rm -v $(pwd):/workdir ghcr.io/futurice/jalapeno:latest
 ```
 
@@ -73,7 +73,7 @@ docker run -it --rm -v ${PWD}:/workdir ghcr.io/futurice/jalapeno:latest
 First, make sure you have [Go](https://go.dev/doc/install) and
 [Task](https://taskfile.dev/installation) installed.
 
-Then you can compile the binary with following commands:
+Then you can compile the binary with the following commands:
 
 ```bash
 git clone https://github.com/futurice/jalapeno.git
@@ -81,4 +81,4 @@ cd jalapeno
 task build
 ```
 
-After this the binary is available on path `./bin/jalapeno`.
+After this, the binary is available on the path `./bin/jalapeno`.

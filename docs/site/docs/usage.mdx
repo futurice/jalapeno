@@ -89,7 +89,7 @@ The rest of the files are rendered from the templates. You can edit the template
 
 ## Templating
 
-Templates are done by using [Go templates](https://pkg.go.dev/text/template). Examples how to write these templates can be found in [this article](https://www.digitalocean.com/community/tutorials/how-to-use-templates-in-go#step-4-writing-a-template) and in the [example recipe](https://github.com/futurice/jalapeno/blob/main/examples/variable-types/templates/README.md?plain=1).
+Templates are done by using [Go templates](https://pkg.go.dev/text/template). Examples of how to write these templates can be found in [this article](https://www.digitalocean.com/community/tutorials/how-to-use-templates-in-go#step-4-writing-a-template) and in the [example recipe](https://github.com/futurice/jalapeno/blob/main/examples/variable-types/templates/README.md?plain=1).
 
 The following context is available on the templates:
 
@@ -98,7 +98,7 @@ The following context is available on the templates:
   - `.Recipe.Name`: The name of the recipe
   - `.Recipe.Version`: The current version of the recipe
   - `.Recipe.Source`: URL to source code for this recipe
-- `.ID`: An UUID which is generated after the first execution of the recipe. It can be used to generate unique pseudo-random values which stays the same over the upgrades, for example `my-resource-{{ sha1sum .ID | trunc 5 }}`
+- `.ID`: An UUID which is generated after the first execution of the recipe. It can be used to generate unique pseudo-random values which stay the same over the upgrades, for example `my-resource-{{ sha1sum .ID | trunc 5 }}`
 - `.Variables`: Object which contains the values of the variables defined for the recipe. Example: `{{ .Variables.FOO }}`
 
 :::tip
@@ -119,11 +119,11 @@ By defining `templateExtension` property in the `recipe.yml` file, you can defin
 
 ## Variables
 
-Recipe variables let you define values which user need to provide to be able to render the tempaltes. Variables are defined in the `recipe.yml` file. You can check schema [here](/api#variable).
+Recipe variables let you define values which users need to provide to be able to render the templates. Variables are defined in the `recipe.yml` file. You can check the schema [here](/api#variable).
 
 ### Variable types
 
-Recipe variables supports the following types:
+Recipe variables support the following types:
 
 - [String](https://github.com/futurice/jalapeno/blob/main/examples/variable-types/recipe.yml#L9-L11)
 - [Boolean](https://github.com/futurice/jalapeno/blob/main/examples/variable-types/recipe.yml#L13-L15)
@@ -135,7 +135,7 @@ You can see examples of all the possible variables in the [example recipe](https
 
 :::note
 
-If you need to use numbers in the templates, you can use the `atoi` function to convert a string variable to integer: `{{ .Variables.FOO | atoi }}`
+If you need to use numbers in the templates, you can use the `atoi` function to convert a string variable to an integer: `{{ .Variables.FOO | atoi }}`
 
 :::
 
@@ -145,11 +145,11 @@ Variables can be validated by defining [`validators`](/api#variable) property fo
 
 ## Publishing recipes
 
-Jalapeno supports publishing and storing recipes in OCI compatible registries. This means that versioned recipes can be pushed and pulled to/from ordinary Container Registries. This is useful when you want to make your recipes available or you want to check for updates for the recipe manually or programatically from CI/CD pipeline.
+Jalapeno supports publishing and storing recipes in OCI-compatible registries. This means that versioned recipes can be pushed and pulled to/from ordinary Container Registries. This is useful when you want to make your recipes available or you want to check for updates for the recipe manually or programmatically from a CI/CD pipeline.
 
 ### Pushing a recipe to Container registry
 
-You can push a recipe to a Container registry by using `jalapeno push` command. For authentication you can use `docker login` before pushing the recipe or provide credentials directly to `jalapeno push` command by using flags. For example:
+You can push a recipe to a Container registry by using the `jalapeno push` command. For authentication, you can use `docker login` before pushing the recipe or provide credentials directly to the `jalapeno push` command by using flags. For example:
 
 ```bash
 jalapeno create recipe my-recipe
@@ -160,7 +160,7 @@ docker login ghcr.io -u my-user
 jalapeno push my-recipe ghcr.io/my-user/my-recipe
 ```
 
-After this you should be able to see the recipe in the Container registry from the UI or by running:
+After this, you should be able to see the recipe in the Container registry from the UI or by running:
 
 ```bash
 docker inspect ghcr.io/my-user/my-recipe:v0.0.0
@@ -168,13 +168,13 @@ docker inspect ghcr.io/my-user/my-recipe:v0.0.0
 
 :::note
 
-The tag of the recipe in Container Registry is automatically determined by the version in `recipe.yml` file. So if you want to push a new version of the recipe, you need to update the version in `recipe.yml` file first. If you want to use `latest` tag, set `--latest` flag when pushing the recipe.
+The tag of the recipe in Container Registry is automatically determined by the version in the `recipe.yml` file. So if you want to push a new version of the recipe, you need to update the version in the `recipe.yml` file first. If you want to use the `latest` tag, set the `--latest` flag when pushing the recipe.
 
 :::
 
 ### Executing a recipe from Container registry
 
-You can execute a recipe directly from Container registry by using `jalapeno execute` command. For example:
+You can execute a recipe directly from Container registry by using the `jalapeno execute` command. For example:
 
 ```bash
 mkdir my-project && cd my-project
@@ -214,7 +214,7 @@ jalapeno execute ./path/to/manifest.yml -d my-project
 
 ### Checking updates for a recipe
 
-After you have executed a recipe, Jalapeno will create a `.jalapeno/sauces.yml` file to the project directory. This file contains information about the executed recipes and their versions. If the recipe was executed directly from a Container Registry, the registry URL is also stored in the file for checking for new versions. To check the new versions for the recipes, you can run:
+After you have executed a recipe, Jalapeno will create a `.jalapeno/sauces.yml` file in the project directory. This file contains information about the executed recipes and their versions. If the recipe was executed directly from a Container Registry, the registry URL is also stored in the file for checking for new versions. To check the new versions for the recipes, you can run:
 
 ```bash
 jalapeno check
@@ -226,7 +226,7 @@ This will check for updates for all the recipes in the project directory. You ca
 jalapeno check --recipe my-recipe
 ```
 
-If you've executed the recipe from local directory and the registry URL is still unknown, you can set the registry URL manually by running:
+If you've executed the recipe from a local directory and the registry URL is still unknown, you can set the registry URL manually by running:
 
 ```bash
 jalapeno check --recipe my-recipe --from oci://ghcr.io/my-user/my-recipe
@@ -234,7 +234,7 @@ jalapeno check --recipe my-recipe --from oci://ghcr.io/my-user/my-recipe
 
 :::tip
 
-If you want to run the check in a CI/CD pipeline (like Github Actions), you can check the [`examples/github-action`](https://github.com/futurice/jalapeno/tree/main/examples/github-action) recipe how to do it or you can execute it to your project with `jalapeno execute oci://ghcr.io/futurice/jalapeno/examples/github-action:v0.0.0`.
+If you want to run the check in a CI/CD pipeline (like Github Actions), you can check the [`examples/github-action`](https://github.com/futurice/jalapeno/tree/main/examples/github-action) recipe on how to do it or you can execute it in your project with `jalapeno execute oci://ghcr.io/futurice/jalapeno/examples/github-action:v0.0.0`.
 
 :::
 
@@ -252,20 +252,20 @@ You can upgrade a recipe by running:
 jalapeno upgrade oci://ghcr.io/my-user/my-recipe:v2.0.0
 ```
 
-Note that the new recipe version needs to be same or newer than the previous version. Doing rollbacks with the `upgrade` command is not supported at the moment.
+Note that the new recipe version needs to be the same or newer than the previous version. Doing rollbacks with the `upgrade` command is not supported at the moment.
 
 If you've modified the files which were originally generated by the recipe, Jalapeno will notice them while doing the upgrade. It will ask if you want to overwrite the modified files with the newer versions or keep the modified ones.
 
 ## Updating recipe version and changelog
 
-You can update recipe version number and write a changelog with
+You can update the recipe version number and write a changelog with
 
 ```bash
 jalapeno bumpver path/to/recipe
-````
+```
 
-This will prompt you for the semver increment (patch/minor/major) of the update and an optional multiline comment for changelog. Ctrl+S exits multiline editor and saves your changes.
-If a changelog doesn't already exist for a given recipe, `bumpver` will initialise it with the current version number and message "Init version"
+This will prompt you for the semver increment (patch/minor/major) of the update and an optional multiline comment for the changelog. Ctrl+S exits the multiline editor and saves your changes.
+If a changelog doesn't already exist for a given recipe, `bumpver` will initialize it with the current version number and message "Init version"
 
 You can alternatively specify a version number and message directly with
 
@@ -292,7 +292,7 @@ my-recipe
         └── test.yml
 ```
 
-The [`test.yml`](http://localhost:3001/jalapeno/api#test-schema-testyml) file contains the configuration for the test case which will be executed when running `jalapeno test` command. The configuration contains for example the values for the template variables which should be used when rendering the recipe. The `files` directory contains the expected files which the recipe should generate. You can add more test cases by creating new directories under the `tests` directory. In this case, the test case name is `example`.
+The [`test.yml`](http://localhost:3001/jalapeno/api#test-schema-testyml) file contains the configuration for the test case which will be executed when running the `jalapeno test` command. The configuration contains, for example, the values for the template variables which should be used when rendering the recipe. The `files` directory contains the expected files which the recipe should generate. You can add more test cases by creating new directories under the `tests` directory. In this case, the test case name is `example`.
 
 To update the current recipe output as the expected output to all tests, you can run:
 
