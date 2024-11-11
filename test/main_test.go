@@ -18,6 +18,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"regexp"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -70,7 +71,7 @@ func TestFeatures(t *testing.T) {
 		Options: &godog.Options{
 			Format:      "pretty",
 			Strict:      true,
-			Concurrency: 8,
+			Concurrency: runtime.NumCPU(),
 			Paths:       []string{"features"},
 			TestingT:    t,
 		},
