@@ -24,6 +24,7 @@ func main() {
 
 	output, err := os.OpenFile(os.Getenv("GITHUB_OUTPUT"), os.O_APPEND|os.O_WRONLY, 0644)
 	checkErr(err)
+	defer output.Close()
 
 	// Write contents to the output file and to stdout
 	out := io.MultiWriter(os.Stdout, output)
@@ -48,8 +49,6 @@ func main() {
 	// Write buffer to the file
 	err = output.Sync()
 	checkErr(err)
-
-	output.Close()
 
 	// Map all non error exit codes to 0 so that Github Actions job does not fail
 	if exitCode != cli.ExitCodeError {
