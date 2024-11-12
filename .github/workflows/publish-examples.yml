@@ -17,8 +17,23 @@ jobs:
       packages: write
     env:
       DOCKER_CONFIG: $HOME/.docker
+    strategy:
+      fail-fast: false
+      matrix:
+        recipe_name:
+          - github-action
+          - minimal
+          - terraform-bootstrap
+          - variable-file-names
+          - variable-types
+          - with-tests
     steps:
       - uses: actions/checkout@v4
+
+      - uses: futurice/jalapeno@main
+        name: Test ${{ matrix.recipe_name }}
+        with:
+          cmd: test examples/${{ matrix.recipe_name }}
 
       - uses: docker/login-action@v3
         with:
@@ -26,19 +41,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # TODO: Loop over dynamically through all examples
       - uses: futurice/jalapeno@main
+        name: Push ${{ matrix.recipe_name }}
         with:
-          cmd: push ./examples/github-action oci://ghcr.io/futurice/jalapeno/examples/github-action
-      - uses: futurice/jalapeno@main
-        with:
-          cmd: push ./examples/minimal oci://ghcr.io/futurice/jalapeno/examples/minimal
-      - uses: futurice/jalapeno@main
-        with:
-          cmd: push ./examples/variable-types oci://ghcr.io/futurice/jalapeno/examples/variable-types
-      - uses: futurice/jalapeno@main
-        with:
-          cmd: push ./examples/with-tests oci://ghcr.io/futurice/jalapeno/examples/with-tests
-      - uses: futurice/jalapeno@main
-        with:
-          cmd: push ./examples/terraform-bootstrap oci://ghcr.io/futurice/jalapeno/examples/terraform-bootstrap
+          cmd: push examples/${{ matrix.recipe_name }} ghcr.io/futurice/jalapeno/examples/${{ matrix.recipe_name }} --latest
