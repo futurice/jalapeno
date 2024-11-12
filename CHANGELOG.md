@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.14.5](https://github.com/futurice/jalapeno/compare/v1.14.4...v1.14.5) (2024-11-12)
+
+
+### Bug Fixes
+
+* always close the GHA output file ([7cd1473](https://github.com/futurice/jalapeno/commit/7cd14738e91f71fcd6363f0fe756c69b8b6f0691))
+* validate undefined variables in initHelp template ([#150](https://github.com/futurice/jalapeno/issues/150)) ([8c9efe1](https://github.com/futurice/jalapeno/commit/8c9efe1bad380dd8eae81f0eedd34d97bda71b6a))
+
 ## [1.14.4](https://github.com/futurice/jalapeno/compare/v1.14.3...v1.14.4) (2024-10-31)
 
 
