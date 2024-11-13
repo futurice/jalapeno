@@ -147,8 +147,8 @@ func NewModel(opts ...Option) Model {
 	return m
 }
 
-func (m Model) At(row, cell int) string {
-	return m.rows[row][cell].input.View()
+func (m Model) At(row, column int) string {
+	return m.rows[row][column].input.View()
 }
 
 func (m Model) Columns() int {
@@ -252,9 +252,9 @@ func (m Model) View() string {
 	s.WriteString(m.table.
 		StyleFunc(func(y, x int) lipgloss.Style {
 			switch {
-			case y == 0:
+			case y == table.HeaderRow:
 				return m.styles.Header
-			case y == m.cursorY+1 && x == m.cursorX:
+			case y == m.cursorY && x == m.cursorX:
 				return m.styles.Selected
 			default:
 				return m.styles.Cell
