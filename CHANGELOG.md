@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.14.6](https://github.com/futurice/jalapeno/compare/v1.14.5...v1.14.6) (2024-11-13)
+
+
+### Bug Fixes
+
+* improve bumpver ux ([5d831ec](https://github.com/futurice/jalapeno/commit/5d831ec296e5218fa8241862ef6b22f0d60d3f50))
+
 ## [1.14.5](https://github.com/futurice/jalapeno/compare/v1.14.4...v1.14.5) (2024-11-12)
 
 
