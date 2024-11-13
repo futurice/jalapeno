@@ -76,29 +76,31 @@ func runBumpVer(cmd *cobra.Command, opts bumpVerOpts) error {
 			return err
 		}
 
-		changelog, err := changelog.RunChangelog()
+		changelogModel, err := changelog.RunChangelog(cmd.InOrStdin(), cmd.OutOrStdout())
 		if err != nil {
 			return err
 		}
 
-		switch changelog.Increment {
-		case "patch":
+		switch changelogModel.Increment {
+		case changelog.Patch:
 			newVer = currentVer.IncPatch()
-		case "minor":
+		case changelog.Minor:
 			newVer = currentVer.IncMinor()
-		case "major":
+		case changelog.Major:
 			newVer = currentVer.IncMajor()
 		}
 
-		changelogMsg = changelog.Msg
+		changelogMsg = changelogModel.Msg
 
 	} else {
 		optVer, err := semver.NewVersion(opts.RecipeVersion)
 		if err != nil {
-			if errors.Is(err, semver.ErrInvalidSemVer) {
+			switch {
+			case errors.Is(err, semver.ErrInvalidSemVer):
 				return fmt.Errorf("provided version is not valid semver: %s", opts.RecipeVersion)
+			default:
+				return err
 			}
-			return err
 		}
 
 		newVer = *optVer
@@ -115,8 +117,7 @@ func runBumpVer(cmd *cobra.Command, opts bumpVerOpts) error {
 		return err
 	}
 
-	cmd.Printf("bumped version: %s => %s \n", prevVer, newVerWithPrefix)
-	cmd.Printf("with changelog message: %s \n", changelogMsg)
+	cmd.Printf("Recipe version bumped: %s => %s \n", prevVer, newVerWithPrefix)
 
 	return nil
 }

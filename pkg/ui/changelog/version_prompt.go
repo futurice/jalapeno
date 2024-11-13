@@ -16,15 +16,13 @@ var (
 	selectedItemStyle = lipgloss.NewStyle().PaddingLeft(0).Foreground(lipgloss.Color("170"))
 )
 
-type SelectModel struct {
-	list            list.Model
-	value           string
-	showDescription bool
-	submitted       bool
-	width           int
+type VersionModel struct {
+	list  list.Model
+	value string
+	width int
 }
 
-var _ tea.Model = SelectModel{}
+var _ tea.Model = VersionModel{}
 
 type selectItem string
 
@@ -55,48 +53,36 @@ func (d selectItemDelegate) Render(w io.Writer, m list.Model, index int, listIte
 	fmt.Fprint(w, fn(string(i)))
 }
 
-func NewSelectModel(options []string) SelectModel {
+func NewSelectModel(options []string) VersionModel {
 	items := make([]list.Item, len(options))
 	for i := range options {
 		items[i] = selectItem(options[i])
 	}
 
-	const (
-		defaultWidth  = 20
-		defaultHeight = 14
-	)
-
-	l := list.New(items, selectItemDelegate{}, defaultWidth, defaultHeight)
+	l := list.New(items, selectItemDelegate{}, 6, 5)
 	l.SetShowStatusBar(false)
 	l.SetFilteringEnabled(false)
 	l.SetShowHelp(false)
 	l.SetShowTitle(false)
 
-	return SelectModel{
+	return VersionModel{
 		list: l,
 	}
 }
 
-func (m SelectModel) Init() tea.Cmd {
+func (m VersionModel) Init() tea.Cmd {
 	return nil
 }
 
-func (m SelectModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m VersionModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.Type {
+		case tea.KeyCtrlC, tea.KeyEsc:
+			return m, tea.Quit
 		case tea.KeyEnter:
-			m.submitted = true
 			m.value = string(m.list.SelectedItem().(selectItem))
 			return m, tea.Quit
-		case tea.KeyRunes:
-			switch string(msg.Runes) {
-			case "?":
-				if !m.showDescription {
-					m.showDescription = true
-					return m, nil
-				}
-			}
 		}
 
 	case tea.WindowSizeMsg:
@@ -109,27 +95,16 @@ func (m SelectModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
-func (m SelectModel) View() string {
+func (m VersionModel) View() string {
 	var s strings.Builder
-	if m.submitted {
-		s.WriteString(fmt.Sprintf(": %s", m.value))
-		return s.String()
-	}
 
+	s.WriteString(wordwrap.String("Select which version to bump:", m.width))
 	s.WriteRune('\n')
-	if m.showDescription {
-		s.WriteString(wordwrap.String("Select version update type", m.width))
-		s.WriteRune('\n')
-	}
-
 	s.WriteString(m.list.View())
+
 	return s.String()
 }
 
-func (m SelectModel) Value() string {
+func (m VersionModel) Value() string {
 	return m.value
-}
-
-func (m SelectModel) IsSubmitted() bool {
-	return m.submitted
 }
