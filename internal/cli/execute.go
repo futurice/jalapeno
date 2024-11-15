@@ -212,7 +212,7 @@ func executeRecipe(cmd *cobra.Command, opts executeOptions, re *recipe.Recipe) e
 		return fmt.Errorf("%w\n\n%s", err, retryMessage)
 	}
 
-	sauce.SubPath = opts.Subpath
+	sauce.SubPath = filepath.ToSlash(opts.Subpath)
 
 	// Automatically add recipe origin if the recipe was remote
 	if recipe.DetermineRecipeURLType(opts.RecipeURL) == recipe.OCIType {
@@ -240,7 +240,7 @@ func executeRecipe(cmd *cobra.Command, opts executeOptions, re *recipe.Recipe) e
 	if opts.Subpath != "" {
 		files = make(map[string]recipe.File, len(sauce.Files))
 		for path, file := range sauce.Files {
-			files[filepath.Join(opts.Subpath, path)] = file
+			files[filepath.ToSlash(filepath.Join(opts.Subpath, path))] = file
 		}
 	}
 

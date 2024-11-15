@@ -2,13 +2,14 @@ Feature: Recipes as OCI artifacts
 	By pushing and pulling recipes as artifacts to OCI compatible repositories, we can improve
 	recipe availability and discoverability
 
+	@docker
 	Scenario: Push a recipe to OCI repository
 		Given a recipe "foo"
 		And recipe "foo" generates file "README.md" with content "initial"
 		And a local OCI registry
 		When I push the recipe "foo" to the local OCI repository
 		Then no errors were printed
-
+	@docker
 	Scenario: Pull a recipe from OCI repository
 		Given a recipe "foo"
 		And recipe "foo" generates file "README.md" with content "initial"
@@ -18,6 +19,7 @@ Feature: Recipes as OCI artifacts
 		Then no errors were printed
 		And the project directory should contain file "foo/recipe.yml"
 
+	@docker
 	Scenario: Push a recipe to OCI repository using the 'latest' tag
 		Given a recipe "foo"
 		And recipe "foo" generates file "README.md" with content "initial"
@@ -28,6 +30,7 @@ Feature: Recipes as OCI artifacts
 		Then no errors were printed
 		And the project directory should contain file "foo/recipe.yml" with "version: v0.0.1"
 
+	@docker
 	Scenario: Pushing a recipe to OCI repository using the 'latest' tag pushes the version tag also
 		Given a recipe "foo"
 		And recipe "foo" generates file "README.md" with content "initial"
@@ -38,6 +41,7 @@ Feature: Recipes as OCI artifacts
 		Then no errors were printed
 		And the project directory should contain file "foo/recipe.yml" with "version: v0.0.1"
 
+	@docker
 	Scenario: Pushing a recipe to OCI repository using the 'latest' tag replaces the previous tag
 		Given a recipe "foo"
 		And recipe "foo" generates file "README.md" with content "initial"
@@ -51,6 +55,7 @@ Feature: Recipes as OCI artifacts
 		Then no errors were printed
 		And the project directory should contain file "foo/recipe.yml" with "version: v0.0.2"
 	
+	@docker
 	Scenario: Push a recipe to OCI repository with authentication
 		Given a recipe "foo"
 		And recipe "foo" generates file "README.md" with content "initial"
@@ -58,6 +63,7 @@ Feature: Recipes as OCI artifacts
 		When I push the recipe "foo" to the local OCI repository
 		Then no errors were printed
 
+	@docker
 	Scenario: Pull a recipe from OCI repository with authentication
 		Given a recipe "foo"
 		And recipe "foo" generates file "README.md" with content "initial"
@@ -66,7 +72,8 @@ Feature: Recipes as OCI artifacts
 		When I pull recipe from the local OCI repository "foo:v0.0.1"
 		Then no errors were printed
 		And the project directory should contain file "foo/recipe.yml"
-	
+
+	@docker
 	Scenario: Try to push a recipe to OCI repository without authentication
 		Given a recipe "foo"
 		And recipe "foo" generates file "README.md" with content "initial"
@@ -75,11 +82,13 @@ Feature: Recipes as OCI artifacts
 		When I push the recipe "foo" to the local OCI repository
 		Then CLI produced an error "basic credential not found"
 
+	@docker
 	Scenario: Try to pull a recipe from OCI repository which not exist
 		Given a local OCI registry with authentication
 		When I pull recipe from the local OCI repository "foo:v0.0.1"
 		Then CLI produced an error "recipe not found"
 
+	@docker
 	Scenario: Push a recipe from OCI repository using credentials from config file
 		Given a recipe "foo"
 		And recipe "foo" generates file "README.md" with content "initial"

@@ -95,6 +95,7 @@ Feature: Upgrade sauce
 		And the project directory should contain file "./foo/README.md" with "New version"
 		And the project directory should contain file "./bar/README.md" with "initial"
 
+	@docker
 	Scenario: Upgrade sauce from remote recipe
 		Given a local OCI registry
 		And a recipe "foo"

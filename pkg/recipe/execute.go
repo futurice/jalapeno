@@ -3,6 +3,7 @@ package recipe
 import (
 	"errors"
 	"maps"
+	"path/filepath"
 	"strings"
 
 	"github.com/gofrs/uuid"
@@ -72,7 +73,7 @@ func (re *Recipe) Execute(engine RenderEngine, values VariableValues, id uuid.UU
 			continue
 		}
 
-		filename = strings.TrimSuffix(filename, re.TemplateExtension)
+		filename = filepath.ToSlash(strings.TrimSuffix(filename, re.TemplateExtension))
 
 		sauce.Files[filename] = NewFile(content)
 		idx += 1
