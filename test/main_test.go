@@ -437,7 +437,7 @@ func iClearTheOutput(ctx context.Context) (context.Context, error) {
 
 func theProjectDirectoryShouldContainFile(ctx context.Context, filename string) error {
 	dir := ctx.Value(projectDirectoryPathCtxKey{}).(string)
-	info, err := os.Stat(filepath.Join(dir, filename))
+	info, err := os.Stat(filepath.Join(dir, filepath.Clean(filename)))
 	if err == nil && !info.Mode().IsRegular() {
 		return fmt.Errorf("%s is not a regular file", filename)
 	}
@@ -446,11 +446,11 @@ func theProjectDirectoryShouldContainFile(ctx context.Context, filename string) 
 
 func iCreateAFileWithContentsToTheProjectDir(ctx context.Context, filename, contents string) error {
 	dir := ctx.Value(projectDirectoryPathCtxKey{}).(string)
-	return os.WriteFile(filepath.Join(dir, filename), []byte(contents), 0644)
+	return os.WriteFile(filepath.Join(dir, filepath.Clean(filename)), []byte(contents), 0644)
 }
 
 func theProjectDirectoryShouldContainFileWith(ctx context.Context, filename, searchTerm string) error {
-	content, err := readProjectDirectoryFile(ctx, filename)
+	content, err := readProjectDirectoryFile(ctx, filepath.Clean(filename))
 	if err != nil {
 		return err
 	}

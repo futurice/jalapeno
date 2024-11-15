@@ -61,7 +61,7 @@ Feature: Execute recipes
 		And no errors were printed
 		Then execution of the recipe has succeeded
 		And CLI produced an output "docs[\S\s]+└── README"
-		And the project directory should contain file "docs[/|\\]README"
+		And the project directory should contain file "docs/README"
 		And the sauce in index 0 which should have property "Files.README"
 		And the sauce in index 0 which should have property "SubPath" with value "^docs$"
 
