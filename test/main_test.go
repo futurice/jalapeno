@@ -67,14 +67,21 @@ const (
  */
 
 func TestFeatures(t *testing.T) {
+	opts := &godog.Options{
+		Format:      "pretty",
+		Strict:      true,
+		Concurrency: runtime.NumCPU(),
+		Paths:       []string{"features"},
+		TestingT:    t,
+	}
+
+	// Skip tests needing OCI registry on Windows because there is no windows/amd64 image available
+	if runtime.GOOS == "windows" {
+		opts.Tags = "~@registry"
+	}
+
 	suite := godog.TestSuite{
-		Options: &godog.Options{
-			Format:      "pretty",
-			Strict:      true,
-			Concurrency: runtime.NumCPU(),
-			Paths:       []string{"features"},
-			TestingT:    t,
-		},
+		Options: opts,
 		ScenarioInitializer: func(s *godog.ScenarioContext) {
 			AddCommonSteps(s)
 
@@ -335,7 +342,7 @@ func iRemoveFileFromTheRecipe(ctx context.Context, filename, recipeName string) 
 }
 
 func aLocalOCIRegistry(ctx context.Context) (context.Context, error) {
-	resource, err := createLocalRegistry(&dockertest.RunOptions{Repository: "registry", Tag: "2"})
+	resource, err := createLocalRegistry(&dockertest.RunOptions{Repository: "registry", Tag: "2", Platform: "linux/amd64"})
 	if err != nil {
 		return ctx, err
 	}
@@ -360,6 +367,7 @@ func aLocalOCIRegistryWithAuth(ctx context.Context) (context.Context, error) {
 	resource, err := createLocalRegistry(&dockertest.RunOptions{
 		Repository: "registry",
 		Tag:        "2",
+		Platform:   "linux/amd64",
 		Env: []string{
 			"REGISTRY_AUTH_HTPASSWD_REALM=jalapeno-test-realm",
 			fmt.Sprintf("REGISTRY_AUTH_HTPASSWD_PATH=/auth/%s", HTPASSWD_FILENAME),
