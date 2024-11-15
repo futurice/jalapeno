@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.14.7](https://github.com/futurice/jalapeno/compare/v1.14.6...v1.14.7) (2024-11-15)
+
+
+### Bug Fixes
+
+* improve path handling on Windows ([#155](https://github.com/futurice/jalapeno/issues/155)) ([2dfd3cc](https://github.com/futurice/jalapeno/commit/2dfd3cc227fdaa68e376dd850c72f54ece93833f))
+
 ## [1.14.6](https://github.com/futurice/jalapeno/compare/v1.14.5...v1.14.6) (2024-11-13)
 
 
