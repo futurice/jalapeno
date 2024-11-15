@@ -17,7 +17,7 @@ Feature: Execute manifests
 		And the project directory should contain file "foo.md"
 		And the project directory should contain file "bar.md"
 
-	@registry
+	@docker
 	Scenario: Execute a manifest with remote recipes
 		Given a local OCI registry
 		And a recipe "foo"

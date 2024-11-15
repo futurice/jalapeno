@@ -77,7 +77,7 @@ func TestFeatures(t *testing.T) {
 
 	// Skip tests needing OCI registry on Windows because there is no windows/amd64 image available
 	if runtime.GOOS == "windows" {
-		opts.Tags = "~@registry"
+		opts.Tags = "~@docker"
 	}
 
 	suite := godog.TestSuite{

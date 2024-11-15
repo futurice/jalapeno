@@ -10,7 +10,7 @@ Feature: Execute recipes
 		And the sauce in index 0 which should have property "Recipe.Name" with value "^foo$"
 		And the sauce in index 0 which has a valid ID
 
-	@registry
+	@docker
 	Scenario: Execute single recipe from remote registry
 		Given a recipe "foo"
 		And recipe "foo" generates file "README.md" with content "initial"

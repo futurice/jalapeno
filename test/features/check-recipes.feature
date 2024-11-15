@@ -1,5 +1,5 @@
 Feature: Check for new recipe versions
-	@registry
+	@docker
 	Scenario: Find newer version for a recipe
 		Given a recipe "foo"
 		And recipe "foo" generates file "README.md" with content "initial"
@@ -16,7 +16,7 @@ Feature: Check for new recipe versions
 		Then CLI produced an output "new versions found: v0\.0\.2"
 		Then CLI produced an output "To upgrade recipes to the latest version run:\n  (.*) upgrade oci://localhost:\d+/foo:v0.0.2\n"
 
-	@registry
+	@docker
 	Scenario: Find multiple newer version for a recipe
 		Given a recipe "foo"
 		And recipe "foo" generates file "README.md" with content "initial"
@@ -34,7 +34,7 @@ Feature: Check for new recipe versions
 		Then CLI produced an output "new versions found: v0\.0\.2, v0\.0\.3"
 		Then CLI produced an output "To upgrade recipes to the latest version run:\n  (.*) upgrade oci://localhost:\d+/foo:v0\.0\.3\n"
 
-	@registry
+	@docker
 	Scenario: Find newer version for multiple recipes
 		Given a recipe "foo"
 		And recipe "foo" generates file "foo.md" with content "initial"
@@ -61,7 +61,7 @@ Feature: Check for new recipe versions
 		Then CLI produced an output "foo: new versions found: v0\.0\.2"
 		And CLI produced an output "bar: new versions found: v0\.0\.2"
 
-	@registry
+	@docker
 	Scenario: Unable to find newer recipe versions
 		Given a recipe "foo"
 		And recipe "foo" generates file "README.md" with content "initial"
@@ -76,7 +76,7 @@ Feature: Check for new recipe versions
 		And I check new versions for recipe "foo"
 		Then CLI produced an output "no new versions found"
 	
-	@registry
+	@docker
 	Scenario: Unable to find newer recipe versions for all recipes
 		Given a recipe "foo"
 		And recipe "foo" generates file "foo.md" with content "initial"
@@ -99,7 +99,7 @@ Feature: Check for new recipe versions
 		Then CLI produced an output "foo: new versions found: v0\.0\.2"
 		And CLI produced an output "bar: no new versions found"
 
-	@registry
+	@docker
 	Scenario: Executing remote recipe automatically adds the repo as source for the sauce
 		Given a recipe "foo"
 		And recipe "foo" generates file "README.md" with content "initial"
@@ -113,7 +113,7 @@ Feature: Check for new recipe versions
 		And I check new versions for recipe "foo"
 		Then CLI produced an output "new versions found: v0\.0\.2"
 
-	@registry
+	@docker
 	Scenario: Manually override the check from URL for locally executed recipe
 		Given a recipe "foo"
 		And recipe "foo" generates file "README.md" with content "initial"
@@ -127,7 +127,7 @@ Feature: Check for new recipe versions
 		Then CLI produced an output "new versions found: v0\.0\.2"
 		And the sauce in index 0 which should have property "CheckFrom" with value "^oci://localhost:\d+/foo$"
 
-	@registry
+	@docker
 	Scenario: Find and upgrade newer version for recipes
 		Given a recipe "foo"
 		And recipe "foo" generates file "README.md" with content "initial"
@@ -143,7 +143,7 @@ Feature: Check for new recipe versions
 		Then CLI produced an output "new versions found: v0\.0\.2"
 		Then CLI produced an output "Upgrade completed"
 
-	@registry
+	@docker
 	Scenario: Find and upgrade newer version for a specific recipe
 		Given a recipe "foo"
 		And recipe "foo" generates file "README.md" with content "initial"
@@ -165,7 +165,7 @@ Feature: Check for new recipe versions
 		Then CLI produced an output "new versions found: v0\.0\.2"
 		Then CLI produced an output "Upgrade completed"
 
-	@registry
+	@docker
 	Scenario: Find and upgrade newer versions for multiple recipes
 		Given a recipe "foo"
 		And recipe "foo" generates file "foo.md" with content "initial"
