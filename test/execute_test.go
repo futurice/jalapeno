@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	"github.com/cucumber/godog"
@@ -63,6 +64,11 @@ func iExecuteRemoteRecipe(ctx context.Context, repository string) (context.Conte
 
 func recipesWillBeExecutedToTheSubPath(ctx context.Context, path string) (context.Context, error) {
 	additionalFlags := ctx.Value(cmdAdditionalFlagsCtxKey{}).(map[string]string)
+
+	if runtime.GOOS == "windows" && path[0] == '/' {
+		path = filepath.Clean(filepath.Join("C:/", path[1:]))
+	}
+
 	additionalFlags["subpath"] = path
 
 	return ctx, nil
