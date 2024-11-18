@@ -7,8 +7,16 @@ Feature: Execute recipes
 		When I execute recipe "foo"
 		Then execution of the recipe has succeeded
 		And the project directory should contain file "README.md"
-		And the sauce in index 0 which should have property "Recipe.Name" with value "^foo$"
-		And the sauce in index 0 which has a valid ID
+		And the sauce in index 0 should have property "Recipe::Name" with value "^foo$"
+		And the sauce in index 0 has a valid ID
+
+	Scenario: Execute single recipe with directory hierarcy
+		Given a recipe "foo"
+		And recipe "foo" generates file "foo/bar.md" with content "initial"
+		When I execute recipe "foo"
+		Then execution of the recipe has succeeded
+		And the project directory should contain file "foo/bar.md"
+		And the sauce in index 0 should have property "Files::foo/bar.md"
 
 	@docker
 	Scenario: Execute single recipe from remote registry
@@ -20,7 +28,7 @@ Feature: Execute recipes
 		Then execution of the recipe has succeeded
 		And no errors were printed
 		And the project directory should contain file "README.md"
-		And the sauce in index 0 which should have property "CheckFrom" with value "^oci://.+/foo$"
+		And the sauce in index 0 should have property "CheckFrom" with value "^oci://.+/foo$"
 
 	Scenario: Execute multiple recipes
 		Given a recipe "foo"
@@ -34,8 +42,8 @@ Feature: Execute recipes
 		And no errors were printed
 		And the project directory should contain file "README.md"
 		And the project directory should contain file "Taskfile.yml"
-		And the sauce in index 0 which should have property "Recipe.Name" with value "^foo$"
-		And the sauce in index 1 which should have property "Recipe.Name" with value "^bar$"
+		And the sauce in index 0 should have property "Recipe::Name" with value "^foo$"
+		And the sauce in index 1 should have property "Recipe::Name" with value "^bar$"
 
 	Scenario: New recipe conflicts with the previous recipe
 		Given a recipe "foo"
@@ -55,19 +63,19 @@ Feature: Execute recipes
 
 	Scenario: Execute single recipe to a subpath
 		Given a recipe "foo"
-		And recipe "foo" generates file "README" with content "initial"
-		And recipes will be executed to the subpath "docs"
+		And recipe "foo" generates file "README.md" with content "initial"
+		And recipes will be executed to the subpath "docs/pages"
 		When I execute recipe "foo"
 		And no errors were printed
 		Then execution of the recipe has succeeded
-		And CLI produced an output "docs[\S\s]+└── README"
-		And the project directory should contain file "docs/README"
-		And the sauce in index 0 which should have property "Files.README"
-		And the sauce in index 0 which should have property "SubPath" with value "^docs$"
+		And CLI produced an output "docs[\S\s]+└── pages[\S\s]+└── README\.md"
+		And the project directory should contain file "docs/pages/README.md"
+		And the sauce in index 0 should have property "Files::README.md"
+		And the sauce in index 0 should have property "SubPath" with value "^docs/pages$"
 
 	Scenario: Execute multiple recipes to different subpaths
 		Given a recipe "foo"
-		And recipe "foo" generates file "README" with content "initial"
+		And recipe "foo" generates file "README.md" with content "initial"
 		And recipes will be executed to the subpath "foo"
 		When I execute recipe "foo"
 		Then no errors were printed
@@ -76,12 +84,12 @@ Feature: Execute recipes
 		And I execute recipe "foo"
 		Then no errors were printed
 		And execution of the recipe has succeeded
-		And the project directory should contain file "foo/README"
-		And the project directory should contain file "bar/README"
-		And the sauce in index 0 which should have property "Files.README"
-		And the sauce in index 0 which should have property "SubPath" with value "^foo$"
-		And the sauce in index 1 which should have property "Files.README"
-		And the sauce in index 1 which should have property "SubPath" with value "^bar$"
+		And the project directory should contain file "foo/README.md"
+		And the project directory should contain file "bar/README.md"
+		And the sauce in index 0 should have property "Files::README.md"
+		And the sauce in index 0 should have property "SubPath" with value "^foo$"
+		And the sauce in index 1 should have property "Files::README.md"
+		And the sauce in index 1 should have property "SubPath" with value "^bar$"
 
 	Scenario: Try to execute recipe which escapes the project root
 		Given a recipe "foo"

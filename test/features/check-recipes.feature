@@ -125,7 +125,7 @@ Feature: Check for new recipe versions
 		And the recipe "foo" is pushed to the local OCI repository "foo:v0.0.2"
 		And I check new versions for recipe "foo" from the local OCI repository "foo"
 		Then CLI produced an output "new versions found: v0\.0\.2"
-		And the sauce in index 0 which should have property "CheckFrom" with value "^oci://localhost:\d+/foo$"
+		And the sauce in index 0 should have property "CheckFrom" with value "^oci://localhost:\d+/foo$"
 
 	@docker
 	Scenario: Find and upgrade newer version for recipes

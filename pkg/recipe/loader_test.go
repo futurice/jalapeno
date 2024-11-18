@@ -139,12 +139,12 @@ func TestLoadTests(t *testing.T) {
 	}
 	defer os.RemoveAll(dir)
 
-	if err = os.MkdirAll(filepath.Join(dir, RecipeTemplatesDirName), 0755); err != nil {
+	if err = os.MkdirAll(filepath.Join(dir, TemplatesDirName), 0755); err != nil {
 		t.Fatalf("cannot create templates dir: %s", err)
 	}
 
 	contents := "# file"
-	if err = os.WriteFile(filepath.Join(dir, RecipeTemplatesDirName, "file.md"), []byte(contents), 0644); err != nil {
+	if err = os.WriteFile(filepath.Join(dir, TemplatesDirName, "file.md"), []byte(contents), 0644); err != nil {
 		t.Fatalf("cannot write rendered template: %s", err)
 	}
 
@@ -154,24 +154,24 @@ version: v1.0.0
 description: foo recipe
 `
 
-	if err = os.WriteFile(filepath.Join(dir, RecipeFileName+YAMLExtension), []byte(recipe), 0644); err != nil {
+	if err = os.WriteFile(filepath.Join(dir, MetadataFileName+YAMLExtension), []byte(recipe), 0644); err != nil {
 		t.Fatal("cannot write recipe file", err)
 	}
 
 	testMetaFile := "values: {}"
-	if err = os.MkdirAll(filepath.Join(dir, RecipeTestsDirName, "test_foo"), 0755); err != nil {
+	if err = os.MkdirAll(filepath.Join(dir, TestsDirName, "test_foo"), 0755); err != nil {
 		t.Fatalf("cannot create test dir: %s", err)
 	}
 
-	if err = os.WriteFile(filepath.Join(dir, RecipeTestsDirName, "test_foo", RecipeTestMetaFileName+YAMLExtension), []byte(testMetaFile), 0644); err != nil {
+	if err = os.WriteFile(filepath.Join(dir, TestsDirName, "test_foo", TestMetaFileName+YAMLExtension), []byte(testMetaFile), 0644); err != nil {
 		t.Fatalf("cannot write recipe test file: %s", err)
 	}
 
-	if err = os.MkdirAll(filepath.Join(dir, RecipeTestsDirName, "test_foo", RecipeTestFilesDirName), 0755); err != nil {
+	if err = os.MkdirAll(filepath.Join(dir, TestsDirName, "test_foo", TestFilesDirName), 0755); err != nil {
 		t.Fatalf("cannot create test file dir: %s", err)
 	}
 
-	if err = os.WriteFile(filepath.Join(dir, RecipeTestsDirName, "test_foo", RecipeTestFilesDirName, "file.md"), []byte(contents), 0644); err != nil {
+	if err = os.WriteFile(filepath.Join(dir, TestsDirName, "test_foo", TestFilesDirName, "file.md"), []byte(contents), 0644); err != nil {
 		t.Fatalf("cannot create test file dir: %s", err)
 	}
 

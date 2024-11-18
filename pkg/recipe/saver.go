@@ -43,7 +43,7 @@ func (re *Recipe) Save(dest string) error {
 		return fmt.Errorf("can not create directory %s: %v", dest, err)
 	}
 
-	recipeFilepath := filepath.Join(dest, RecipeFileName+YAMLExtension)
+	recipeFilepath := filepath.Join(dest, MetadataFileName+YAMLExtension)
 	file, err := os.Create(recipeFilepath)
 	if err != nil {
 		return fmt.Errorf("failed to create recipe file: %w", err)
@@ -80,7 +80,7 @@ func (re *Recipe) saveTests(dest string) error {
 		return nil
 	}
 
-	testRootDir := filepath.Join(dest, RecipeTestsDirName)
+	testRootDir := filepath.Join(dest, TestsDirName)
 
 	err := os.MkdirAll(testRootDir, defaultFileMode)
 	if err != nil {
@@ -94,7 +94,7 @@ func (re *Recipe) saveTests(dest string) error {
 			return fmt.Errorf("failed to create test directory for test '%s': %w", test.Name, err)
 		}
 
-		meta, err := os.Create(filepath.Join(testDirPath, RecipeTestMetaFileName+YAMLExtension))
+		meta, err := os.Create(filepath.Join(testDirPath, TestMetaFileName+YAMLExtension))
 		if err != nil {
 			return fmt.Errorf("failed to create recipe test file: %w", err)
 		}
@@ -108,7 +108,7 @@ func (re *Recipe) saveTests(dest string) error {
 			return fmt.Errorf("failed to write recipe test to a file: %w", err)
 		}
 
-		testFileDirPath := filepath.Join(testDirPath, RecipeTestFilesDirName)
+		testFileDirPath := filepath.Join(testDirPath, TestFilesDirName)
 		err = os.RemoveAll(testFileDirPath)
 		if err != nil {
 			return fmt.Errorf("failed to clean up test file directory for test '%s': %w", test.Name, err)
@@ -131,7 +131,7 @@ func (re *Recipe) saveTests(dest string) error {
 }
 
 func (re *Recipe) saveTemplates(dest string) error {
-	templateDir := filepath.Join(dest, RecipeTemplatesDirName)
+	templateDir := filepath.Join(dest, TemplatesDirName)
 	err := os.MkdirAll(templateDir, defaultFileMode)
 	if err != nil {
 		return fmt.Errorf("can not save templates to the directory: %w", err)

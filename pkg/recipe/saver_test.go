@@ -47,14 +47,14 @@ func TestSaveRecipe(t *testing.T) {
 	}
 
 	expectedFiles := []string{
-		filepath.Join(RecipeFileName + YAMLExtension),
+		filepath.Join(MetadataFileName + YAMLExtension),
 		filepath.Join("templates", "foo.md"),
 		filepath.Join("templates", "foo", "bar.md"),
 		filepath.Join("templates", "foo", "bar", "baz.md"),
-		filepath.Join("tests", re.Tests[0].Name, RecipeTestMetaFileName+YAMLExtension),
-		filepath.Join("tests", re.Tests[0].Name, RecipeTestFilesDirName, "foo.md"),
-		filepath.Join("tests", re.Tests[0].Name, RecipeTestFilesDirName, "foo", "bar.md"),
-		filepath.Join("tests", re.Tests[0].Name, RecipeTestFilesDirName, "foo", "bar", "baz.md"),
+		filepath.Join("tests", re.Tests[0].Name, TestMetaFileName+YAMLExtension),
+		filepath.Join("tests", re.Tests[0].Name, TestFilesDirName, "foo.md"),
+		filepath.Join("tests", re.Tests[0].Name, TestFilesDirName, "foo", "bar.md"),
+		filepath.Join("tests", re.Tests[0].Name, TestFilesDirName, "foo", "bar", "baz.md"),
 	}
 
 	checkFiles(t, dir, expectedFiles)

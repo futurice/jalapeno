@@ -14,14 +14,14 @@ import (
 )
 
 const (
-	YAMLExtension          = ".yml"
-	RecipeFileName         = "recipe"
-	RecipeTemplatesDirName = "templates"
-	RecipeTestsDirName     = "tests"
-	RecipeTestMetaFileName = "test"
-	RecipeTestFilesDirName = "files"
-	IgnoreFileName         = ".jalapenoignore"
-	ManifestFileName       = "manifest"
+	YAMLExtension    = ".yml"
+	MetadataFileName = "recipe"
+	TemplatesDirName = "templates"
+	TestsDirName     = "tests"
+	TestMetaFileName = "test"
+	TestFilesDirName = "files"
+	IgnoreFileName   = ".jalapenoignore"
+	ManifestFileName = "manifest"
 )
 
 var (
@@ -36,7 +36,7 @@ func LoadRecipe(path string) (*Recipe, error) {
 		return nil, err
 	}
 
-	recipeFile := filepath.Join(rootDir, RecipeFileName+YAMLExtension)
+	recipeFile := filepath.Join(rootDir, MetadataFileName+YAMLExtension)
 	dat, err := os.ReadFile(recipeFile)
 	if err != nil {
 		return nil, err
@@ -48,12 +48,12 @@ func LoadRecipe(path string) (*Recipe, error) {
 		return nil, err
 	}
 
-	recipe.Templates, err = loadTemplates(filepath.Join(rootDir, RecipeTemplatesDirName))
+	recipe.Templates, err = loadTemplates(filepath.Join(rootDir, TemplatesDirName))
 	if err != nil {
 		return nil, fmt.Errorf("error when loading recipe templates: %w", err)
 	}
 
-	recipe.Tests, err = loadTests(filepath.Join(rootDir, RecipeTestsDirName))
+	recipe.Tests, err = loadTests(filepath.Join(rootDir, TestsDirName))
 	if err != nil {
 		return nil, fmt.Errorf("error when loading recipe tests: %w", err)
 	}
@@ -117,7 +117,7 @@ func loadTests(path string) ([]Test, error) {
 
 		test := Test{}
 		testDirPath := filepath.Join(path, dir.Name())
-		contents, err := os.ReadFile(filepath.Join(testDirPath, RecipeTestMetaFileName+YAMLExtension))
+		contents, err := os.ReadFile(filepath.Join(testDirPath, TestMetaFileName+YAMLExtension))
 		if err != nil {
 			return nil, err
 		}
@@ -129,7 +129,7 @@ func loadTests(path string) ([]Test, error) {
 
 		test.Name = dir.Name()
 		test.Files = make(map[string]File)
-		testFileDirPath := filepath.Join(testDirPath, RecipeTestFilesDirName)
+		testFileDirPath := filepath.Join(testDirPath, TestFilesDirName)
 
 		walk := func(path string, info os.FileInfo, err error) error {
 			if err != nil {

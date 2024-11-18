@@ -158,10 +158,10 @@ func AddCommonSteps(s *godog.ScenarioContext) {
 	s.Step(`^no errors were printed$`, noErrorsWerePrinted)
 	s.Step(`^CLI produced an output "([^"]*)"$`, expectGivenOutput)
 	s.Step(`^CLI produced an error "(.*)"$`, expectGivenError)
-	s.Step(`^the sauce in index (\d) which should have property "([^"]*)"$`, theSauceShouldHaveProperty)
-	s.Step(`^the sauce in index (\d) which should not have property "([^"]*)"$`, theSauceFileShouldNotHaveProperty)
-	s.Step(`^the sauce in index (\d) which should have property "([^"]*)" with value "([^"]*)"$`, theSauceFileShouldHavePropertyWithValue)
-	s.Step(`^the sauce in index (\d) which has a valid ID$`, theSauceFileShouldHasAValidID)
+	s.Step(`^the sauce in index (\d) should have property "([^"]*)"$`, theSauceShouldHaveProperty)
+	s.Step(`^the sauce in index (\d) should not have property "([^"]*)"$`, theSauceFileShouldNotHaveProperty)
+	s.Step(`^the sauce in index (\d) should have property "([^"]*)" with value "([^"]*)"$`, theSauceFileShouldHavePropertyWithValue)
+	s.Step(`^the sauce in index (\d) has a valid ID$`, theSauceFileShouldHasAValidID)
 	s.Step(`^the project directory should contain file "([^"]*)"$`, theProjectDirectoryShouldContainFile)
 	s.Step(`^the project directory should contain file "([^"]*)" with "([^"]*)"$`, theProjectDirectoryShouldContainFileWith)
 	s.Step(`^the project directory should not contain file "([^"]*)"$`, theProjectDirectoryShouldNotContainFile)
@@ -318,14 +318,24 @@ func aRecipe(ctx context.Context, recipeName string) (context.Context, error) {
 
 func recipeGeneratesFileWithContent(ctx context.Context, recipeName, filename, content string) (context.Context, error) {
 	dir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
-	re, err := recipe.LoadRecipe(filepath.Join(dir, recipeName))
+
+	recipePath := filepath.Join(dir, recipeName)
+	filePath := filepath.Join(recipePath, recipe.TemplatesDirName, filename)
+
+	err := os.MkdirAll(filepath.Dir(filePath), 0700)
 	if err != nil {
 		return ctx, err
 	}
 
-	re.Templates[filename] = recipe.NewFile([]byte(content))
+	file, err := os.Create(filepath.Join(recipePath, recipe.TemplatesDirName, filename))
+	if err != nil {
+		return ctx, err
+	}
 
-	if err := re.Save(filepath.Join(dir, recipeName)); err != nil {
+	defer file.Close()
+
+	_, err = file.WriteString(content)
+	if err != nil {
 		return ctx, err
 	}
 
@@ -335,7 +345,7 @@ func recipeGeneratesFileWithContent(ctx context.Context, recipeName, filename, c
 func iRemoveFileFromTheRecipe(ctx context.Context, filename, recipeName string) (context.Context, error) {
 	recipesDir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
 
-	templateDir := filepath.Join(recipesDir, recipeName, recipe.RecipeTemplatesDirName)
+	templateDir := filepath.Join(recipesDir, recipeName, recipe.TemplatesDirName)
 
 	err := os.Remove(filepath.Join(templateDir, filename))
 	return ctx, err
@@ -757,7 +767,7 @@ func addRegistryRelatedFlags(ctx context.Context) context.Context {
 
 func getDeepPropertyFromStruct(v any, key string) reflect.Value {
 	r := reflect.ValueOf(v)
-	for _, k := range strings.Split(key, ".") {
+	for _, k := range strings.Split(key, "::") {
 		switch reflect.Indirect(r).Kind() {
 		case reflect.Struct:
 			r = reflect.Indirect(r).FieldByName(k)
