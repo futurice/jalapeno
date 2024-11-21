@@ -20,9 +20,10 @@ type ejectOptions struct {
 func NewEjectCmd() *cobra.Command {
 	var opts ejectOptions
 	var cmd = &cobra.Command{
-		Use:   "eject",
-		Short: "Remove all Jalapeno-specific files from a project",
-		Long:  "Remove all the files and directories that are for Jalapeno internal use, and leave only the rendered project files.",
+		Use:        "eject",
+		Short:      "Remove all Jalapeno-specific files from a project",
+		Long:       "Remove all the files and directories that are for Jalapeno internal use, and leave only the rendered project files.",
+		Deprecated: "use 'delete --all' instead",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			return option.Parse(&opts)
 		},
