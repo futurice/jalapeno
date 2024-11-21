@@ -278,3 +278,28 @@ func LoadManifest(path string) (*Manifest, error) {
 
 	return manifest, nil
 }
+
+// SaveSauces saves the given sauces to the project directory
+func SaveSauces(projectDir string, sauces []*Sauce) error {
+	if err := os.MkdirAll(filepath.Join(projectDir, SauceDirName), 0755); err != nil {
+		return fmt.Errorf("failed to create sauce directory: %w", err)
+	}
+
+	sauceFile := filepath.Join(projectDir, SauceDirName, SaucesFileName+YAMLExtension)
+	f, err := os.Create(sauceFile)
+	if err != nil {
+		return fmt.Errorf("failed to create sauce file: %w", err)
+	}
+	defer f.Close()
+
+	encoder := yaml.NewEncoder(f)
+	defer encoder.Close()
+
+	for _, sauce := range sauces {
+		if err := encoder.Encode(sauce); err != nil {
+			return fmt.Errorf("failed to encode sauce: %w", err)
+		}
+	}
+
+	return nil
+}
