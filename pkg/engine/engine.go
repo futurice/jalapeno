@@ -16,7 +16,7 @@ func New() Engine {
 
 func (e Engine) Render(templates map[string][]byte, values map[string]interface{}) (map[string][]byte, error) {
 	t := template.New("gotpl")
-	t.Funcs(funcMap())
+	t.Funcs(funcMap(t))
 
 	rendered := make(map[string][]byte)
 

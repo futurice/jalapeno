@@ -30,13 +30,14 @@ func TestRender(t *testing.T) {
 		{
 			"macros",
 			map[string][]byte{
+				"templates/main":    []byte("{{ template \"helper1\" }} {{ template \"helper2\" }} {{ include \"helper3\" . | upper }}"),
 				"templates/helper1": []byte("{{ define \"helper1\" }}ONE{{ end }}"),
-				"templates/main":    []byte("{{ template \"helper1\" }} {{ template \"helper2\" }}"),
 				"templates/helper2": []byte("{{ define \"helper2\" }}TWO{{ end }}"),
+				"templates/helper3": []byte("{{ define \"helper3\" }}three{{ end }}"),
 			},
 			map[string]interface{}{},
 			map[string][]byte{
-				"templates/main": []byte("ONE TWO"),
+				"templates/main": []byte("ONE TWO THREE"),
 			},
 		},
 	}
