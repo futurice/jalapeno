@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.15.0](https://github.com/futurice/jalapeno/compare/v1.14.7...v1.15.0) (2024-11-27)
+
+
+### Features
+
+* add include template function ([aea0de0](https://github.com/futurice/jalapeno/commit/aea0de0dab19107da975c3a27696c9e8b1cb8e74))
+
 ## [1.14.7](https://github.com/futurice/jalapeno/compare/v1.14.6...v1.14.7) (2024-11-15)
 
 
