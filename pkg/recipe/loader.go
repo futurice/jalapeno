@@ -45,7 +45,7 @@ func LoadRecipe(path string) (*Recipe, error) {
 	recipe := NewRecipe()
 	err = yaml.Unmarshal(dat, &recipe)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error when reading %s file: %w", MetadataFileName+YAMLExtension, err)
 	}
 
 	recipe.Templates, err = loadTemplates(filepath.Join(rootDir, TemplatesDirName))
