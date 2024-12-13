@@ -82,3 +82,11 @@ task build
 ```
 
 After this, the binary is available on the path `./bin/jalapeno`.
+
+You can also build the binary from source with [`go install`](https://go.dev/ref/mod#go-install) command:
+
+```bash
+go install github.com/futurice/jalapeno/cmd/cli@latest
+```
+
+This will install the binary to `$GOPATH/bin` or `$HOME/go/bin` depending on your Go environment.
