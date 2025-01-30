@@ -70,7 +70,7 @@ jalapeno check --recipe my-recipe --from oci://my-registry.com/my-recipe`,
 		&opts.UseDetailedExitCode,
 		"detailed-exitcode",
 		false,
-		fmt.Sprintf("Returns a detailed exit code when the command exits. When provided, this argument changes the exit codes and their meanings to provide more granular information about what the resulting plan contains: %d = Succeeded with no updates available, %d = Error, %d = Succeeded with updates available", ExitCodeOK, ExitCodeUpdatesAvailable, ExitCodeUpdatesAvailable))
+		fmt.Sprintf("Returns a detailed exit code when the command exits. When provided, this argument changes the exit codes and their meanings to provide more granular information about what the resulting plan contains: %d = Succeeded with no updates available, %d = Error, %d = Succeeded with updates available", ExitCodeOK, ExitCodeError, ExitCodeUpdatesAvailable))
 
 	if err := option.ApplyFlags(&opts, cmd.Flags()); err != nil {
 		return nil
