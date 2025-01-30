@@ -163,7 +163,7 @@ jalapeno push my-recipe ghcr.io/my-user/my-recipe
 After this, you should be able to see the recipe in the Container registry from the UI or by running:
 
 ```bash
-docker inspect ghcr.io/my-user/my-recipe:v0.0.0
+docker inspect ghcr.io/my-user/my-recipe:latest
 ```
 
 :::note
@@ -178,14 +178,14 @@ You can execute a recipe directly from Container registry by using the `jalapeno
 
 ```bash
 mkdir my-project && cd my-project
-jalapeno execute oci://ghcr.io/my-user/my-recipe:v0.0.0
+jalapeno execute oci://ghcr.io/my-user/my-recipe:latest
 ```
 
 Another way is to pull the recipe first on your local machine and then execute it:
 
 ```bash
 mkdir my-project && cd my-project
-jalapeno pull oci://ghcr.io/my-user/my-recipe:v0.0.0
+jalapeno pull oci://ghcr.io/my-user/my-recipe:latest
 jalapeno execute my-recipe
 ```
 
@@ -234,7 +234,7 @@ jalapeno check --recipe my-recipe --from oci://ghcr.io/my-user/my-recipe
 
 :::tip
 
-If you want to run the check in a CI/CD pipeline (like Github Actions), you can check the [`examples/github-action`](https://github.com/futurice/jalapeno/tree/main/examples/github-action) recipe on how to do it or you can execute it in your project with `jalapeno execute oci://ghcr.io/futurice/jalapeno/examples/github-action:v0.0.0`.
+If you want to run the check in a CI/CD pipeline (like Github Actions), you can check the [`examples/github-action`](https://github.com/futurice/jalapeno/tree/main/examples/github-action) recipe on how to do it or you can execute it in your project with `jalapeno execute oci://ghcr.io/futurice/jalapeno/examples/github-action:latest`.
 
 :::
 
