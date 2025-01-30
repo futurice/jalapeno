@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.15.1](https://github.com/futurice/jalapeno/compare/v1.15.0...v1.15.1) (2025-01-30)
+
+
+### Bug Fixes
+
+* **docs:** fix typo in command flag description ([235a42d](https://github.com/futurice/jalapeno/commit/235a42db4ae6c170e20feaff87f75b88900efe87))
+
 ## [1.15.0](https://github.com/futurice/jalapeno/compare/v1.14.7...v1.15.0) (2024-11-27)
 
 
