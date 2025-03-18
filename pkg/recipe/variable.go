@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/expr-lang/expr"
+	"gopkg.in/yaml.v3"
 )
 
 type Variable struct {
@@ -75,6 +76,8 @@ type TableValue struct {
 	Columns []string   `yaml:"columns"`
 	Rows    [][]string `yaml:"rows,flow"`
 }
+
+var _ yaml.Unmarshaler = (*VariableValues)(nil)
 
 var startsWithNumber = regexp.MustCompile(`^\d.*`)
 
@@ -293,9 +296,9 @@ func (t TableValue) ToMapSlice() []map[string]string {
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler interface
-func (vv *VariableValues) UnmarshalYAML(unmarshal func(interface{}) error) error {
+func (vv *VariableValues) UnmarshalYAML(value *yaml.Node) error {
 	rawYaml := make(map[string]interface{})
-	err := unmarshal(rawYaml)
+	err := value.Decode(rawYaml)
 	if err != nil {
 		return err
 	}
