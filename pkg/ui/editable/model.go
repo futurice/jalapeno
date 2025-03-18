@@ -348,7 +348,7 @@ func (m *Model) Move(y, x int) tea.Cmd {
 
 	if y != 0 {
 		if m.cursorY+y >= len(m.rows) {
-			for i := 0; i < m.cursorY+y-len(m.rows)+1; i++ {
+			for range m.cursorY + y - len(m.rows) + 1 {
 				m.AddRow()
 			}
 		}

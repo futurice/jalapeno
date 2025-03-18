@@ -34,7 +34,7 @@ const recursionMaxNums = 100
 func stableRandomAlphanumeric(length int, str string) string {
 	p := prngForStr(str)
 	chars := make([]byte, length)
-	for i := 0; i < length; i++ {
+	for i := range length {
 		chars[i] = alphanumeric[p.Intn(len(alphanumeric))]
 	}
 	return string(chars)

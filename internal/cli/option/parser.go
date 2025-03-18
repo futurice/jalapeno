@@ -36,7 +36,7 @@ func Parse(optsPtr any) error {
 // public AND typed T.
 func rangeFields[T any](ptr any, fn func(T) error) error {
 	v := reflect.ValueOf(ptr).Elem()
-	for i := 0; i < v.NumField(); i++ {
+	for i := range v.NumField() {
 		f := v.Field(i)
 		if f.CanSet() {
 			iface := f.Addr().Interface()
