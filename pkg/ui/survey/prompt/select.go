@@ -140,7 +140,7 @@ func (m SelectModel) Name() string {
 	return m.variable.Name
 }
 
-func (m SelectModel) Value() interface{} {
+func (m SelectModel) Value() any {
 	return m.value
 }
 

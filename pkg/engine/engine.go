@@ -14,7 +14,7 @@ func New() Engine {
 	return Engine{}
 }
 
-func (e Engine) Render(templates map[string][]byte, values map[string]interface{}) (map[string][]byte, error) {
+func (e Engine) Render(templates map[string][]byte, values map[string]any) (map[string][]byte, error) {
 	t := template.New("gotpl")
 	t.Funcs(funcMap(t))
 

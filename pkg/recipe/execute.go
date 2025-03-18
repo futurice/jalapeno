@@ -22,7 +22,7 @@ type TemplateContext struct {
 }
 
 type RenderEngine interface {
-	Render(templates map[string][]byte, values map[string]interface{}) (map[string][]byte, error)
+	Render(templates map[string][]byte, values map[string]any) (map[string][]byte, error)
 }
 
 // Execute executes the recipe and returns a sauce

@@ -126,7 +126,7 @@ func (s *Sauce) Conflicts(other *Sauce) []RecipeConflict {
 	return conflicts
 }
 
-func (s *Sauce) CreateTemplateContext() (map[string]interface{}, error) {
+func (s *Sauce) CreateTemplateContext() (map[string]any, error) {
 	if err := s.Validate(); err != nil {
 		return nil, err
 	}

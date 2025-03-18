@@ -99,7 +99,7 @@ func (m ConfirmModel) Name() string {
 	return m.variable.Name
 }
 
-func (m ConfirmModel) Value() interface{} {
+func (m ConfirmModel) Value() any {
 	return m.value
 }
 

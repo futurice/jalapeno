@@ -26,7 +26,7 @@ type FlagParser interface {
 
 // Parse parses applicable fields of the passed-in option pointer and returns
 // error during parsing.
-func Parse(optsPtr interface{}) error {
+func Parse(optsPtr any) error {
 	return rangeFields(optsPtr, func(fp FlagParser) error {
 		return fp.Parse()
 	})

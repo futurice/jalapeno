@@ -124,7 +124,7 @@ func (m StringModel) Name() string {
 	return m.variable.Name
 }
 
-func (m StringModel) Value() interface{} {
+func (m StringModel) Value() any {
 	return m.textInput.Value()
 }
 

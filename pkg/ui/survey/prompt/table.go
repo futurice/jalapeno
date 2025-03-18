@@ -171,7 +171,7 @@ func (m TableModel) Name() string {
 	return m.variable.Name
 }
 
-func (m TableModel) Value() interface{} {
+func (m TableModel) Value() any {
 	return recipe.TableValue{
 		Columns: m.variable.Columns,
 		Rows:    m.table.Values(),

@@ -189,7 +189,7 @@ func (m MultiSelectModel) Name() string {
 	return m.variable.Name
 }
 
-func (m MultiSelectModel) Value() interface{} {
+func (m MultiSelectModel) Value() any {
 	return m.getSelectedValues()
 }
 

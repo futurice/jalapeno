@@ -151,7 +151,7 @@ func CleanValues(variables []recipe.Variable, values recipe.VariableValues) (rec
 	return validatedValues, errs
 }
 
-func ValidateValue(validator recipe.VariableValidator, value interface{}) error {
+func ValidateValue(validator recipe.VariableValidator, value any) error {
 	switch v := value.(type) {
 	case string:
 		validatorFunc, err := validator.CreateValidatorFunc()

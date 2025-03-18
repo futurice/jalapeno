@@ -13,7 +13,7 @@ type TestRenderEngine struct{}
 
 var _ RenderEngine = TestRenderEngine{}
 
-func (e TestRenderEngine) Render(templates map[string][]byte, values map[string]interface{}) (map[string][]byte, error) {
+func (e TestRenderEngine) Render(templates map[string][]byte, values map[string]any) (map[string][]byte, error) {
 	rendered := make(map[string][]byte)
 
 	for name, data := range templates {

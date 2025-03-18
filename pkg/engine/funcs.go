@@ -61,8 +61,8 @@ func resetRngs() {
 	prngs = make(map[string]*rand.Rand)
 }
 
-func includeFun(t *template.Template, includedNames map[string]int) func(string, interface{}) (string, error) {
-	return func(name string, data interface{}) (string, error) {
+func includeFun(t *template.Template, includedNames map[string]int) func(string, any) (string, error) {
+	return func(name string, data any) (string, error) {
 		var buf strings.Builder
 		if v, ok := includedNames[name]; ok {
 			if v > recursionMaxNums {

@@ -9,7 +9,7 @@ func TestRender(t *testing.T) {
 	testCases := []struct {
 		Name           string
 		Templates      map[string][]byte
-		Values         map[string]interface{}
+		Values         map[string]any
 		ExpectedOutput map[string][]byte
 	}{
 		{
@@ -18,7 +18,7 @@ func TestRender(t *testing.T) {
 				"templates/test1":     []byte("{{.var1 | title }} {{.var2 | title}}"),
 				"templates/{{.var1}}": []byte("{{.var1}}"),
 			},
-			map[string]interface{}{
+			map[string]any{
 				"var1": "first",
 				"var2": "second",
 			},
@@ -35,7 +35,7 @@ func TestRender(t *testing.T) {
 				"templates/helper2": []byte("{{ define \"helper2\" }}TWO{{ end }}"),
 				"templates/helper3": []byte("{{ define \"helper3\" }}three{{ end }}"),
 			},
-			map[string]interface{}{},
+			map[string]any{},
 			map[string][]byte{
 				"templates/main": []byte("ONE TWO THREE"),
 			},

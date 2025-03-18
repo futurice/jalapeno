@@ -111,7 +111,7 @@ func TestFeatures(t *testing.T) {
 				ctx = context.WithValue(ctx, cmdStdInCtxKey{}, NewBlockBuffer())
 				ctx = context.WithValue(ctx, scenarioNameCtxKey{}, sc.Name)
 
-				dirs := map[interface{}]string{
+				dirs := map[any]string{
 					projectDirectoryPathCtxKey{}:  "jalapeno-test-project",
 					recipesDirectoryPathCtxKey{}:  "jalapeno-test-recipes",
 					manifestDirectoryPathCtxKey{}: "jalapeno-test-manifest",
@@ -198,7 +198,7 @@ func executeCLI(ctx context.Context, args ...string) (context.Context, error) {
 }
 
 func cleanTempDirs(ctx context.Context, sc *godog.Scenario, lastStepErr error) (context.Context, error) {
-	directoryCtxKeys := []interface{}{
+	directoryCtxKeys := []any{
 		projectDirectoryPathCtxKey{},
 		recipesDirectoryPathCtxKey{},
 		certDirectoryPathCtxKey{},

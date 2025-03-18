@@ -68,7 +68,7 @@ type VariableValidator struct {
 }
 
 // VariableValues stores values for each variable
-type VariableValues map[string]interface{}
+type VariableValues map[string]any
 
 type MultiSelectValue []string
 
@@ -297,7 +297,7 @@ func (t TableValue) ToMapSlice() []map[string]string {
 
 // UnmarshalYAML implements yaml.Unmarshaler interface
 func (vv *VariableValues) UnmarshalYAML(value *yaml.Node) error {
-	rawYaml := make(map[string]interface{})
+	rawYaml := make(map[string]any)
 	err := value.Decode(rawYaml)
 	if err != nil {
 		return err
@@ -308,13 +308,13 @@ func (vv *VariableValues) UnmarshalYAML(value *yaml.Node) error {
 		switch v := value.(type) {
 
 		// Check if the value is a TableValue
-		case map[string]interface{}:
+		case map[string]any:
 			_, columnsExist := v["columns"]
 			_, rowsExist := v["rows"]
 
 			// If the value is a TableValue, parse it
 			if columnsExist && rowsExist {
-				rawColumns, ok := v["columns"].([]interface{})
+				rawColumns, ok := v["columns"].([]any)
 				if !ok {
 					return fmt.Errorf("failed to parse table columns for variable '%s'", name)
 				}
@@ -327,14 +327,14 @@ func (vv *VariableValues) UnmarshalYAML(value *yaml.Node) error {
 					}
 				}
 
-				rawRows, ok := v["rows"].([]interface{})
+				rawRows, ok := v["rows"].([]any)
 				if !ok {
 					return fmt.Errorf("failed to parse table rows for variable '%s'", name)
 				}
 
 				rows := make([][]string, len(rawRows))
 				for i := range rawRows {
-					rawRow, ok := rawRows[i].([]interface{})
+					rawRow, ok := rawRows[i].([]any)
 					if !ok {
 						return fmt.Errorf("failed to parse table row for variable '%s'", name)
 					}
@@ -353,8 +353,8 @@ func (vv *VariableValues) UnmarshalYAML(value *yaml.Node) error {
 					Rows:    rows,
 				}
 			}
-		// Multiselect values without a value are an empty []interface{} and we want to cast them into MultiSelectValues
-		case []interface{}:
+		// Multiselect values without a value are an empty []any and we want to cast them into MultiSelectValues
+		case []any:
 			multiV := make(MultiSelectValue, len(v))
 			for i, interfaceV := range v {
 				str, ok := interfaceV.(string)
@@ -389,7 +389,7 @@ func (v Variable) DetermineType() VariableType {
 	}
 }
 
-func (v Variable) ParseDefaultValue() (interface{}, error) {
+func (v Variable) ParseDefaultValue() (any, error) {
 	switch v.DetermineType() {
 	case VariableTypeBoolean:
 		return v.Default == "true", nil
