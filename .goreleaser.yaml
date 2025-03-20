@@ -28,7 +28,8 @@ builds:
 
 kos:
   - id: jalapeno
-    repository: ghcr.io/futurice/jalapeno
+    repositories:
+      - ghcr.io/futurice/jalapeno
     build: jalapeno
     base_image: alpine
     tags:
@@ -70,17 +71,16 @@ kos:
 
 archives:
   - id: jalapeno
-    builds: [jalapeno]
     name_template: "{{ .ProjectName }}-{{ .Os }}-{{ .Arch }}"
     format_overrides:
       - goos: windows
-        format: zip
+        formats: [zip]
 
 checksum:
   name_template: "{{ .ProjectName }}-checksums.txt"
 
 snapshot:
-  name_template: "{{ incpatch .Version }}-next"
+  version_template: "{{ incpatch .Version }}-next"
 
 changelog:
   sort: asc
