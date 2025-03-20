@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.15.2](https://github.com/futurice/jalapeno/compare/v1.15.2...v1.15.2) (2025-03-20)
+
+
+### Bug Fixes
+
+* fetch whole git repo when releasing ([4a84f19](https://github.com/futurice/jalapeno/commit/4a84f196a68116f62010d63f4d72867655390962))
+
 ## [1.15.2](https://github.com/futurice/jalapeno/compare/v1.15.1...v1.15.2) (2025-03-20)
 
 
