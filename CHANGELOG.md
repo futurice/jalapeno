@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.15.3](https://github.com/futurice/jalapeno/compare/v1.15.2...v1.15.3) (2025-03-21)
+
+
+### Bug Fixes
+
+* remove duplicate table value print ([143aea8](https://github.com/futurice/jalapeno/commit/143aea81fc9ab4ed6650bb92e4c7ad3d285aa3db))
+
 ## [1.15.2](https://github.com/futurice/jalapeno/compare/v1.15.1...v1.15.2) (2025-03-20)
 
 
