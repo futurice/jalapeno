@@ -54,7 +54,8 @@ kos:
       org.opencontainers.image.source: "https://github.com/futurice/jalapeno"
       org.opencontainers.image.documentation: "https://futurice.github.io/jalapeno/"
   - id: github-action
-    repository: ghcr.io/futurice/jalapeno
+    repositories:
+      - ghcr.io/futurice/jalapeno
     build: github-action
     base_image: alpine
     tags:
@@ -71,6 +72,7 @@ kos:
 
 archives:
   - id: jalapeno
+    builds: [jalapeno]
     name_template: "{{ .ProjectName }}-{{ .Os }}-{{ .Arch }}"
     format_overrides:
       - goos: windows
