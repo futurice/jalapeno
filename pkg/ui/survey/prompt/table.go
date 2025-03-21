@@ -127,8 +127,6 @@ func (m TableModel) View() string {
 		} else {
 			s.WriteString(m.tableAsCSV)
 		}
-
-		s.WriteString(m.tableAsCSV)
 		return s.String()
 	}
 
