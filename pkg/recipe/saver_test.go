@@ -107,6 +107,15 @@ func TestSaveSauce(t *testing.T) {
 	}
 
 	checkFiles(t, dir, expectedFiles)
+
+	dat, err := os.ReadFile(filepath.Join(dir, SauceDirName, SaucesFileName+YAMLExtension))
+	if err != nil {
+		t.Fatalf("failed to read sauce: %s", err)
+	}
+
+	if !strings.HasPrefix(string(dat), sauceFileComment) {
+		t.Fatal("sauce file does not have the correct comment header")
+	}
 }
 
 func TestSaveSauceDoesNotWriteOutsideDest(t *testing.T) {
