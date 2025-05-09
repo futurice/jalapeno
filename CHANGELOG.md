@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.16.0](https://github.com/futurice/jalapeno/compare/v1.15.3...v1.16.0) (2025-05-09)
+
+
+### Features
+
+* add comment to sauces.yml files about the origin ([3770e98](https://github.com/futurice/jalapeno/commit/3770e9889aeb109124f3bb78c5f02ac2ed9c0ee6))
+
 ## [1.15.3](https://github.com/futurice/jalapeno/compare/v1.15.2...v1.15.3) (2025-03-21)
 
 
