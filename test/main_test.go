@@ -376,8 +376,7 @@ func aLocalOCIRegistryWithAuth(ctx context.Context) (context.Context, error) {
 
 	resource, err := createLocalRegistry(&dockertest.RunOptions{
 		Repository: "registry",
-		Tag:        "2",
-		Platform:   "linux/amd64",
+		Tag:        "3",
 		Env: []string{
 			"REGISTRY_AUTH_HTPASSWD_REALM=jalapeno-test-realm",
 			fmt.Sprintf("REGISTRY_AUTH_HTPASSWD_PATH=/auth/%s", HTPASSWD_FILENAME),
