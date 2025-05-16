@@ -68,10 +68,10 @@ Feature: Execute recipes
 		When I execute recipe "foo"
 		And no errors were printed
 		Then execution of the recipe has succeeded
-		And CLI produced an output "docs[\S\s]+└── pages[\S\s]+└── README\.md"
+		And CLI produced an output "docs/pages[\S\s]+└── README\.md"
 		And the project directory should contain file "docs/pages/README.md"
 		And the sauce in index 0 should have property "Files::README.md"
-		And the sauce in index 0 should have property "SubPath" with value "^docs/pages$"
+		And the sauce in index 0 should have property "Subpath" with value "^docs/pages$"
 
 	Scenario: Execute multiple recipes to different subpaths
 		Given a recipe "foo"
@@ -87,9 +87,9 @@ Feature: Execute recipes
 		And the project directory should contain file "foo/README.md"
 		And the project directory should contain file "bar/README.md"
 		And the sauce in index 0 should have property "Files::README.md"
-		And the sauce in index 0 should have property "SubPath" with value "^foo$"
+		And the sauce in index 0 should have property "Subpath" with value "^foo$"
 		And the sauce in index 1 should have property "Files::README.md"
-		And the sauce in index 1 should have property "SubPath" with value "^bar$"
+		And the sauce in index 1 should have property "Subpath" with value "^bar$"
 
 	Scenario: Try to execute recipe which escapes the project root
 		Given a recipe "foo"

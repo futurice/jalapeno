@@ -16,6 +16,23 @@ Feature: Upgrade sauce
 		And the project directory should contain file "README.md" with "New version"
 		And no conflicts were reported
 
+	Scenario: Upgrade sauce in a subpath
+		Given a recipe "foo"
+		And recipe "foo" generates file "README.md" with content "initial"
+		And recipes will be executed to the subpath "a/b/c"
+		And I execute recipe "foo"
+		And I change recipe "foo" to version "v0.0.2"
+		And I change recipe "foo" template "README.md" to render "New version"
+		And recipe "foo" generates file "new_file.md" with content "initial"
+		When I upgrade recipe "foo"
+		Then no errors were printed
+		And CLI produced an output "(.*)/a/b/c"
+		And CLI produced an output "README\.md \(modified\)"
+		And CLI produced an output "new_file\.md \(added\)"
+		And the project directory should contain file ".jalapeno/sauces.yml" with "version: v0\.0\.2"
+		And the project directory should contain file "a/b/c/README.md" with "New version"
+		And no conflicts were reported
+
 	Scenario: Upgrade sauce with same version
 		Given a recipe "foo"
 		And recipe "foo" generates file "README.md" with content "initial"
@@ -61,12 +78,12 @@ Feature: Upgrade sauce
 		And recipes will be executed to the subpath "foo"
 		And I execute recipe "shared"
 		Then execution of the recipe has succeeded
-		And the sauce in index 0 should have property "SubPath" with value "^foo$"
+		And the sauce in index 0 should have property "Subpath" with value "^foo$"
 		And the project directory should contain file "./foo/README.md"
 		When recipes will be executed to the subpath "bar"
 		And I execute recipe "shared"
 		Then execution of the recipe has succeeded
-		And the sauce in index 1 should have property "SubPath" with value "^bar$"
+		And the sauce in index 1 should have property "Subpath" with value "^bar$"
 		And the project directory should contain file "./bar/README.md"
 		When I change recipe "shared" to version "v0.0.2"
 		And I change recipe "shared" template "README.md" to render "New version"
@@ -79,12 +96,12 @@ Feature: Upgrade sauce
 		And recipes will be executed to the subpath "foo"
 		And I execute recipe "shared"
 		Then execution of the recipe has succeeded
-		And the sauce in index 0 should have property "SubPath" with value "^foo$"
+		And the sauce in index 0 should have property "Subpath" with value "^foo$"
 		And the project directory should contain file "./foo/README.md"
 		When recipes will be executed to the subpath "bar"
 		And I execute recipe "shared"
 		Then execution of the recipe has succeeded
-		And the sauce in index 1 should have property "SubPath" with value "^bar$"
+		And the sauce in index 1 should have property "Subpath" with value "^bar$"
 		And the project directory should contain file "./bar/README.md"
 		When I change recipe "shared" to version "v0.0.2"
 		And I change recipe "shared" template "README.md" to render "New version"

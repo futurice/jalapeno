@@ -201,8 +201,8 @@ func (s *Sauce) Save(dest string) error {
 		fileMap[filename] = file.Content
 	}
 
-	if s.SubPath != "" {
-		dest = filepath.Join(dest, s.SubPath)
+	if s.Subpath != "" {
+		dest = filepath.Join(dest, s.Subpath)
 	}
 
 	err = saveFileMap(s.Files, dest)

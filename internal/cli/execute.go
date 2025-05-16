@@ -90,7 +90,7 @@ func runExecute(cmd *cobra.Command, opts executeOptions) error {
 		return errors.New("output path does not exist")
 	}
 
-	if err := recipe.ValidateSubpath(opts.Subpath); err != nil {
+	if err := recipe.ValidateSubPath(opts.Subpath); err != nil {
 		return err
 	}
 
@@ -212,7 +212,7 @@ func executeRecipe(cmd *cobra.Command, opts executeOptions, re *recipe.Recipe) e
 		return fmt.Errorf("%w\n\n%s", err, retryMessage)
 	}
 
-	sauce.SubPath = filepath.ToSlash(opts.Subpath)
+	sauce.Subpath = filepath.ToSlash(opts.Subpath)
 
 	// Automatically add recipe origin if the recipe was remote
 	if recipe.DetermineRecipeURLType(opts.RecipeURL) == recipe.OCIType {
@@ -236,20 +236,17 @@ func executeRecipe(cmd *cobra.Command, opts executeOptions, re *recipe.Recipe) e
 
 	cmd.Printf("Recipe executed %s\n", colors.Green.Render("successfully!"))
 
-	files := sauce.Files
-	if opts.Subpath != "" {
-		files = make(map[string]recipe.File, len(sauce.Files))
-		for path, file := range sauce.Files {
-			files[filepath.ToSlash(filepath.Join(opts.Subpath, path))] = file
-		}
-	}
-
-	fileTreeFiles := make(map[string]recipeutil.FileStatus, len(files))
-	for path := range files {
+	fileTreeFiles := make(map[string]recipeutil.FileStatus, len(sauce.Files))
+	for path := range sauce.Files {
 		fileTreeFiles[path] = recipeutil.FileAdded
 	}
 
-	tree := recipeutil.CreateFileTree(opts.Dir, fileTreeFiles)
+	root := opts.Dir
+	if opts.Subpath != "" {
+		root = filepath.ToSlash(filepath.Join(root, opts.Subpath))
+	}
+
+	tree := recipeutil.CreateFileTree(root, fileTreeFiles)
 	cmd.Printf("The following files were created:\n\n%s", tree)
 
 	if re.InitHelp != "" {

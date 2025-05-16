@@ -283,7 +283,7 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 		newSauce.CheckFrom = strings.TrimSuffix(opts.RecipeURL, fmt.Sprintf(":%s", re.Metadata.Version))
 	}
 
-	newSauce.SubPath = oldSauce.SubPath
+	newSauce.Subpath = oldSauce.Subpath
 
 	// read common ignore file if it exists
 	ignorePatterns := make([]string, 0)
@@ -414,7 +414,13 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 		if status != recipeutil.FileUnchanged {
 			changesFound = true
 			cmd.Printf("Recipe upgraded %s\n", colors.Green.Render("successfully!"))
-			tree := recipeutil.CreateFileTree(opts.Dir, fileStatuses)
+
+			root := opts.Dir
+			if newSauce.Subpath != "" {
+				root = filepath.ToSlash(filepath.Join(root, newSauce.Subpath))
+			}
+
+			tree := recipeutil.CreateFileTree(root, fileStatuses)
 			cmd.Printf("The following files have been processed by the recipe:\n\n%s", tree)
 			break
 		}

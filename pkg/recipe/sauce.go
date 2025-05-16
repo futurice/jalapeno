@@ -30,9 +30,9 @@ type Sauce struct {
 	// for template random functions to provide same result on each template
 	ID uuid.UUID `yaml:"id"`
 
-	// SubPath is used as a prefix when saving and loading the files rendered by the sauce.
+	// Subpath is used as a prefix when saving and loading the files rendered by the sauce.
 	// This is useful for example in monorepos where the sauce is rendered to a subdirectory of the project directory.
-	SubPath string `yaml:"subPath,omitempty"`
+	Subpath string `yaml:"subPath,omitempty"`
 
 	// CheckFrom defines the repository where updates should be checked for the recipe
 	CheckFrom string `yaml:"from,omitempty"`
@@ -71,7 +71,7 @@ func (s *Sauce) Validate() error {
 		return fmt.Errorf("currently recipe updates can only be checked from OCI repositories, got: %s", s.CheckFrom)
 	}
 
-	if err := ValidateSubpath(s.SubPath); err != nil {
+	if err := ValidateSubPath(s.Subpath); err != nil {
 		return err
 	}
 
@@ -91,7 +91,7 @@ func (s *Sauce) Validate() error {
 	return nil
 }
 
-func ValidateSubpath(path string) error {
+func ValidateSubPath(path string) error {
 	p := filepath.Clean(path)
 	switch {
 	case p == ".":
@@ -107,7 +107,7 @@ func ValidateSubpath(path string) error {
 
 // Check if the recipe conflicts with another recipe. Recipes conflict if they touch the same files.
 func (s *Sauce) Conflicts(other *Sauce) []RecipeConflict {
-	if s.SubPath != other.SubPath {
+	if s.Subpath != other.Subpath {
 		return nil
 	}
 

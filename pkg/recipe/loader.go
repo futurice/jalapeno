@@ -195,7 +195,7 @@ func LoadSauces(projectDir string) ([]*Sauce, error) {
 
 		// read rendered files
 		for path, file := range sauce.Files {
-			data, err := os.ReadFile(filepath.Join(projectDir, filepath.Clean(sauce.SubPath), path))
+			data, err := os.ReadFile(filepath.Join(projectDir, filepath.Clean(sauce.Subpath), path))
 			if err != nil {
 				// The file have been removed by the user after the sauce was created
 				if errors.Is(err, os.ErrNotExist) {
