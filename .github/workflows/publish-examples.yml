@@ -11,7 +11,7 @@ on:
 jobs:
   publish:
     name: Publish example recipes
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04 # TODO: Switch to ubuntu-24.04-arm when ARM jalapeno Docker image exists
     permissions:
       contents: write
       packages: write
