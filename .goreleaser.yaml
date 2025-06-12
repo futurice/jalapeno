@@ -25,6 +25,7 @@ builds:
       - linux
     goarch:
       - amd64
+      - arm64
 
 kos:
   - id: jalapeno
