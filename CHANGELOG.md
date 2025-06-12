@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.16.1](https://github.com/futurice/jalapeno/compare/v1.16.0...v1.16.1) (2025-06-12)
+
+
+### Bug Fixes
+
+* show file tree correctly when upgrading a sauce with a subpath ([ae4b93b](https://github.com/futurice/jalapeno/commit/ae4b93b20ae11f12c603a2cf19f260a0641e083a))
+
 ## [1.16.0](https://github.com/futurice/jalapeno/compare/v1.15.3...v1.16.0) (2025-05-09)
 
 
