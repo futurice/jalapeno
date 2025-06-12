@@ -56,6 +56,7 @@ func (opts *OCIRepository) readPassword() (err error) {
 }
 
 func (opts *OCIRepository) Repository(url string) oci.Repository {
+	// If the version is not provided by GoReleaser, default it to development version.
 	if version == "" {
 		version = "0.0.0-dev"
 	}

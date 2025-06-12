@@ -7,8 +7,9 @@ import (
 	"os"
 
 	"github.com/buildkite/shellwords"
-	"github.com/futurice/jalapeno/internal/cli"
 	"github.com/gofrs/uuid"
+
+	"github.com/futurice/jalapeno/internal/cli"
 )
 
 const (
