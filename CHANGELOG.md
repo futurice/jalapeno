@@ -2,6 +2,14 @@
 
 ## [1.16.2](https://github.com/futurice/jalapeno/compare/v1.16.1...v1.16.2) (2025-06-12)
 
+### Installation
+
+Due to [the deprecation of homebrew formulae in GoReleaser](https://goreleaser.com/deprecations/#brews), we need to use `casks` to install Jalapeno via homebrew. So if you have installed Jalapeno with homebrew and want to upgrade it to this version or later, you need to run
+
+```
+brew uninstall jalapeno
+brew install --cask jalapeno
+```
 
 ### Continuous Integration
 
