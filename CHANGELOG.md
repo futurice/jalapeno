@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.16.2](https://github.com/futurice/jalapeno/compare/v1.16.1...v1.16.2) (2025-06-12)
+
+
+### Continuous Integration
+
+* release arm64 Github Action image ([d99b448](https://github.com/futurice/jalapeno/commit/d99b448ea2aa8c699846bb213718a6848482da11))
+
 ## [1.16.1](https://github.com/futurice/jalapeno/compare/v1.16.0...v1.16.1) (2025-06-12)
 
 
