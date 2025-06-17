@@ -8,25 +8,40 @@ title: Installation
 
 ## Using a package manager
 
-```bash tab={"label":"Homebrew"}
-brew tap futurice/jalapeno
-brew install --cask jalapeno
-```
-
-```powershell tab={"label":"Winget"}
-winget install jalapeno
-```
+<Tabs groupId="package-managers">
+  <TabItem value="homebrew" label="Homebrew" default>
+    ```bash  
+    brew tap futurice/jalapeno
+    brew install --cask jalapeno
+    ```
+  </TabItem>
+  
+  <TabItem value="winget" label="Winget">
+    ```powershell
+    winget install jalapeno
+    ```
+  </TabItem>
+</Tabs>
 
 ## Updating with package manager
 
-```bash tab={"label":"Homebrew"}
-brew update
-brew upgrade --cask jalapeno
-```
+<Tabs groupId="package-managers">
+  <TabItem value="homebrew" label="Homebrew" default>
+    ```bash
+    brew update
+    brew upgrade --cask jalapeno
+    ```
 
-```powershell tab={"label":"Winget"}
-winget upgrade jalapeno
-```
+    :::note
+    If you are upgrading from a version prior to **1.16.2**, you need to run `brew uninstall jalapeno && brew install --cask jalapeno`.
+    :::
+  </TabItem>
+  <TabItem value="winget" label="Winget">
+   ```powershell
+   winget upgrade jalapeno
+   ```
+  </TabItem>
+</Tabs>
 
 ## From the Binary Releases
 
