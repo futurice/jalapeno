@@ -101,7 +101,7 @@ func runExecute(cmd *cobra.Command, opts executeOptions) error {
 
 	switch recipe.DetermineRecipeURLType(opts.RecipeURL) {
 	case recipe.OCIType:
-		ctx, cancel := context.WithTimeout(cmd.Context(), opts.Timeout.Duration)
+		ctx, cancel := context.WithTimeout(cmd.Context(), opts.Timeout.Duration) // nolint:staticcheck
 		defer cancel()
 
 		re, err = recipe.PullRecipe(ctx, opts.Repository(opts.RecipeURL))
@@ -130,11 +130,11 @@ func runExecute(cmd *cobra.Command, opts executeOptions) error {
 }
 
 func executeRecipe(cmd *cobra.Command, opts executeOptions, re *recipe.Recipe) error {
-	cmd.Printf("%s: %s\n", colors.Red.Render("Recipe name"), re.Metadata.Name)
-	cmd.Printf("%s: %s\n", colors.Red.Render("Version"), re.Metadata.Version)
+	cmd.Printf("%s: %s\n", colors.Red.Render("Recipe name"), re.Name)
+	cmd.Printf("%s: %s\n", colors.Red.Render("Version"), re.Version)
 
-	if re.Metadata.Description != "" {
-		cmd.Printf("%s: %s\n", colors.Red.Render("Description"), re.Metadata.Description)
+	if re.Description != "" {
+		cmd.Printf("%s: %s\n", colors.Red.Render("Description"), re.Description)
 	}
 
 	cmd.Println()
@@ -161,6 +161,7 @@ func executeRecipe(cmd *cobra.Command, opts executeOptions, re *recipe.Recipe) e
 		}
 	}
 
+	// nolint:staticcheck
 	providedValues, err := recipeutil.ParseProvidedValues(
 		re.Variables,
 		opts.Values.Flags,
@@ -265,14 +266,14 @@ func executeManifest(cmd *cobra.Command, opts executeOptions, manifest *recipe.M
 		cmd.Printf("Executing manifest with %d recipes...\n\n", len(manifest.Recipes))
 	}
 
-	if len(opts.Values.Flags) > 0 {
+	if len(opts.Values.Flags) > 0 { // nolint:staticcheck
 		return errors.New("values can not be provided when executing a manifest. Use values in the manifest file instead")
 	}
 
 	for i, manifestRecipe := range manifest.Recipes {
 		var re *recipe.Recipe
 		var err error
-		ctx, cancel := context.WithTimeout(cmd.Context(), opts.Timeout.Duration)
+		ctx, cancel := context.WithTimeout(cmd.Context(), opts.Timeout.Duration) // nolint:staticcheck
 		defer cancel()
 
 		switch recipe.DetermineRecipeURLType(manifestRecipe.Repository) {
@@ -296,7 +297,7 @@ func executeManifest(cmd *cobra.Command, opts executeOptions, manifest *recipe.M
 			valueFlags = append(valueFlags, fmt.Sprintf("%s=%s", name, value))
 		}
 
-		opts.Values.Flags = valueFlags
+		opts.Values.Flags = valueFlags // nolint:staticcheck
 
 		if err := executeRecipe(cmd, opts, re); err != nil {
 			return err

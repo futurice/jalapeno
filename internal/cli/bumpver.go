@@ -71,7 +71,7 @@ func runBumpVer(cmd *cobra.Command, opts bumpVerOpts) error {
 	}
 
 	if opts.RecipeVersion == "" {
-		currentVer, err := semver.NewVersion(re.Metadata.Version)
+		currentVer, err := semver.NewVersion(re.Version)
 		if err != nil {
 			return err
 		}
@@ -108,9 +108,9 @@ func runBumpVer(cmd *cobra.Command, opts bumpVerOpts) error {
 	}
 
 	newVerWithPrefix := "v" + newVer.String()
-	prevVer := re.Metadata.Version
+	prevVer := re.Version
 
-	re.Metadata.UpdateVersion(re, newVerWithPrefix, changelogMsg)
+	re.UpdateVersion(re, newVerWithPrefix, changelogMsg)
 
 	err = re.Save(opts.RecipePath)
 	if err != nil {

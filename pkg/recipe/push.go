@@ -33,7 +33,7 @@ func PushRecipe(ctx context.Context, path string, opts oci.Repository, replaceLa
 		return err
 	}
 
-	defer store.Close()
+	defer store.Close() //nolint:errcheck
 
 	// TODO: Add each file separately so media types can be set correctly. Also, the recipe directory
 	//       could contain additional files which are not related directly to the recipe.

@@ -25,7 +25,7 @@ func main() {
 
 	output, err := os.OpenFile(os.Getenv("GITHUB_OUTPUT"), os.O_APPEND|os.O_WRONLY, 0644)
 	checkErr(err)
-	defer output.Close()
+	defer output.Close() //nolint:errcheck
 
 	// Write contents to the output file and to stdout
 	out := io.MultiWriter(os.Stdout, output)
@@ -35,7 +35,7 @@ func main() {
 	checkErr(err)
 
 	delimiter := uuid.Must(uuid.NewV4()).String()
-	fmt.Fprintf(output, "%s<<%s\n", OutputResult, delimiter)
+	fmt.Fprintf(output, "%s<<%s\n", OutputResult, delimiter) //nolint:errcheck
 
 	rootCmd := cli.NewRootCmd()
 	rootCmd.SetOut(out)
@@ -44,8 +44,8 @@ func main() {
 
 	exitCode := cli.Execute(rootCmd)
 
-	fmt.Fprintf(output, "%s\n", delimiter)
-	fmt.Fprintf(output, "%s=%d\n", OutputExitCode, exitCode)
+	fmt.Fprintf(output, "%s\n", delimiter)                   //nolint:errcheck
+	fmt.Fprintf(output, "%s=%d\n", OutputExitCode, exitCode) //nolint:errcheck
 
 	// Write buffer to the file
 	err = output.Sync()

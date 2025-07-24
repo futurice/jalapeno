@@ -78,7 +78,7 @@ func (m *Metadata) Validate() error {
 
 func (m *Metadata) UpdateVersion(re *Recipe, newVer, msg string) {
 	if re.Changelog == nil {
-		re.Changelog = map[string]string{re.Metadata.Version: "Init version"}
+		re.Changelog = map[string]string{re.Version: "Init version"}
 	}
 
 	re.Changelog[newVer] = msg

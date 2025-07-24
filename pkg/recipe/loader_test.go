@@ -12,7 +12,7 @@ func TestLoadNoSauces(t *testing.T) {
 	if err != nil {
 		t.Fatalf("cannot create temp dir: %s", err)
 	}
-	defer os.RemoveAll(dir)
+	defer os.RemoveAll(dir) //nolint:errcheck
 
 	sauces, err := LoadSauces(dir)
 	if err != nil {
@@ -28,7 +28,7 @@ func TestLoadMultipleSauces(t *testing.T) {
 	if err != nil {
 		t.Fatalf("cannot create temp dir: %s", err)
 	}
-	defer os.RemoveAll(dir)
+	defer os.RemoveAll(dir) //nolint:errcheck
 
 	if err = os.MkdirAll(filepath.Join(dir, SauceDirName), 0755); err != nil {
 		t.Fatalf("cannot create metadata dir: %s", err)
@@ -91,7 +91,7 @@ func TestLoadSauceWithMissingFile(t *testing.T) {
 	if err != nil {
 		t.Fatalf("cannot create temp dir: %s", err)
 	}
-	defer os.RemoveAll(dir)
+	defer os.RemoveAll(dir) //nolint:errcheck
 
 	if err = os.MkdirAll(filepath.Join(dir, SauceDirName), 0755); err != nil {
 		t.Fatalf("cannot create metadata dir: %s", err)
@@ -137,7 +137,7 @@ func TestLoadTests(t *testing.T) {
 	if err != nil {
 		t.Fatalf("cannot create temp dir: %s", err)
 	}
-	defer os.RemoveAll(dir)
+	defer os.RemoveAll(dir) //nolint:errcheck
 
 	if err = os.MkdirAll(filepath.Join(dir, TemplatesDirName), 0755); err != nil {
 		t.Fatalf("cannot create templates dir: %s", err)

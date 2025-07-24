@@ -50,7 +50,7 @@ func (d selectItemDelegate) Render(w io.Writer, m list.Model, index int, listIte
 		}
 	}
 
-	fmt.Fprint(w, fn(string(i)))
+	fmt.Fprint(w, fn(string(i))) //nolint:errcheck
 }
 
 func NewSelectModel(options []string) VersionModel {

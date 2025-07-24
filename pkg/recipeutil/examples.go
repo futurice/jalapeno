@@ -8,10 +8,10 @@ func CreateExampleRecipe(name string) recipe.Recipe {
 	variableName := "MY_VAR"
 	defaultValue := "Hello World!"
 
-	r.Metadata.Name = name
-	r.Metadata.Version = "v0.0.0"
-	r.Metadata.Description = "Description about what the recipe is used for and what it contains. For example tech stack, cloud environments, tools"
-	r.Metadata.InitHelp = "The recipe user will see this message after the recipe execution. Templating is supported, for example: The recipe name is {{ .Recipe.Name }}."
+	r.Name = name
+	r.Version = "v0.0.0"
+	r.Description = "Description about what the recipe is used for and what it contains. For example tech stack, cloud environments, tools"
+	r.InitHelp = "The recipe user will see this message after the recipe execution. Templating is supported, for example: The recipe name is {{ .Recipe.Name }}."
 	r.Variables = []recipe.Variable{
 		{Name: variableName, Default: defaultValue},
 	}

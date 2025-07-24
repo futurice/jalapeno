@@ -15,7 +15,7 @@ func TestSaveRecipe(t *testing.T) {
 	if err != nil {
 		t.Fatalf("cannot create temp dir: %s", err)
 	}
-	defer os.RemoveAll(dir)
+	defer os.RemoveAll(dir) //nolint:errcheck
 
 	re := NewRecipe()
 	re.Name = "Test"
@@ -65,7 +65,7 @@ func TestSaveSauce(t *testing.T) {
 	if err != nil {
 		t.Fatalf("cannot create temp dir: %s", err)
 	}
-	defer os.RemoveAll(dir)
+	defer os.RemoveAll(dir) //nolint:errcheck
 
 	re := NewRecipe()
 	re.Name = "Test"
@@ -123,7 +123,7 @@ func TestSaveSauceDoesNotWriteOutsideDest(t *testing.T) {
 	if err != nil {
 		t.Fatalf("cannot create temp dir: %s", err)
 	}
-	defer os.RemoveAll(dir)
+	defer os.RemoveAll(dir) //nolint:errcheck
 
 	re := NewRecipe()
 	re.Name = "Test"

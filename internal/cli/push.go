@@ -57,7 +57,7 @@ jalapeno push path/to/recipe oci://ghcr.io/user/my-recipe`,
 }
 
 func runPush(cmd *cobra.Command, opts pushOptions) error {
-	ctx, cancel := context.WithTimeout(cmd.Context(), opts.Timeout.Duration)
+	ctx, cancel := context.WithTimeout(cmd.Context(), opts.Timeout.Duration) // nolint:staticcheck
 	defer cancel()
 
 	err := recipe.PushRecipe(ctx, opts.RecipePath, opts.Repository(opts.TargetURL), opts.PushToLatest)

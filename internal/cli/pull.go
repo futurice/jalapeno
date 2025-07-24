@@ -57,7 +57,7 @@ jalapeno pull oci://ghcr.io/user/my-recipe:latest --dir other/dir`,
 }
 
 func runPull(cmd *cobra.Command, opts pullOptions) error {
-	ctx, cancel := context.WithTimeout(cmd.Context(), opts.Timeout.Duration)
+	ctx, cancel := context.WithTimeout(cmd.Context(), opts.Timeout.Duration) // nolint:staticcheck
 	defer cancel()
 
 	err := recipe.SaveRemoteRecipe(ctx, opts.Dir, opts.Repository(opts.TargetRef))

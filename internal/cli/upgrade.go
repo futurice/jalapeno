@@ -90,7 +90,7 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 	)
 
 	if strings.HasPrefix(opts.RecipeURL, "oci://") {
-		ctx, cancel := context.WithTimeout(cmd.Context(), opts.Timeout.Duration)
+		ctx, cancel := context.WithTimeout(cmd.Context(), opts.Timeout.Duration) // nolint:staticcheck
 		defer cancel()
 
 		re, err = recipe.PullRecipe(ctx, opts.Repository(opts.RecipeURL))
@@ -124,7 +124,7 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 		return err
 	}
 
-	versionComparison := semver.Compare(re.Metadata.Version, oldSauce.Recipe.Metadata.Version)
+	versionComparison := semver.Compare(re.Version, oldSauce.Recipe.Version)
 	if versionComparison < 0 {
 		return errors.New("new recipe version is less than the existing one")
 	}
@@ -133,15 +133,15 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 		if opts.TargetSauceID == "" {
 			cmd.Printf("Upgrading sauce with recipe '%s' from version %s to %s\n",
 				oldSauce.Recipe.Name,
-				oldSauce.Recipe.Metadata.Version,
-				re.Metadata.Version,
+				oldSauce.Recipe.Version,
+				re.Version,
 			)
 		} else {
 			cmd.Printf("Upgrading sauce (ID '%s') with recipe '%s' from version %s to %s\n",
 				oldSauce.ID,
-				oldSauce.Recipe.Metadata.Name,
-				oldSauce.Recipe.Metadata.Version,
-				re.Metadata.Version,
+				oldSauce.Recipe.Name,
+				oldSauce.Recipe.Version,
+				re.Version,
 			)
 		}
 
@@ -149,7 +149,7 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 		cmd.Printf(
 			"Modifying values for sauce with recipe '%s' version %s\n",
 			oldSauce.Recipe.Name,
-			re.Metadata.Version,
+			re.Version,
 		)
 	}
 
@@ -197,6 +197,7 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 		}
 	}
 
+	// nolint:staticcheck
 	providedValues, err := recipeutil.ParseProvidedValues(
 		re.Variables,
 		opts.Values.Flags,
@@ -280,7 +281,7 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 	if oldSauce.CheckFrom != "" {
 		newSauce.CheckFrom = oldSauce.CheckFrom
 	} else if strings.HasPrefix(opts.RecipeURL, "oci://") {
-		newSauce.CheckFrom = strings.TrimSuffix(opts.RecipeURL, fmt.Sprintf(":%s", re.Metadata.Version))
+		newSauce.CheckFrom = strings.TrimSuffix(opts.RecipeURL, fmt.Sprintf(":%s", re.Version))
 	}
 
 	newSauce.Subpath = oldSauce.Subpath

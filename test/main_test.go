@@ -209,7 +209,7 @@ func cleanTempDirs(ctx context.Context, sc *godog.Scenario, lastStepErr error) (
 
 	for _, key := range directoryCtxKeys {
 		if dir := ctx.Value(key); dir != nil {
-			os.RemoveAll(dir.(string))
+			os.RemoveAll(dir.(string)) //nolint:errcheck
 		}
 	}
 
@@ -332,7 +332,7 @@ func recipeGeneratesFileWithContent(ctx context.Context, recipeName, filename, c
 		return ctx, err
 	}
 
-	defer file.Close()
+	defer file.Close() //nolint:errcheck
 
 	_, err = file.WriteString(content)
 	if err != nil {

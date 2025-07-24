@@ -58,11 +58,12 @@ func ParseProvidedValues(variables []recipe.Variable, flags []string, delimiter 
 
 		switch {
 		case targetedVariable.Confirm:
-			if varValue == "true" {
+			switch varValue {
+			case "true":
 				values[varName] = true
-			} else if varValue == "false" {
+			case "false":
 				values[varName] = false
-			} else {
+			default:
 				return nil, fmt.Errorf("value provided for variable '%s' was not a boolean", varName)
 			}
 

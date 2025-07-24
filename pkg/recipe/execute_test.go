@@ -35,8 +35,8 @@ func (e TestRenderEngine) Render(templates map[string][]byte, values map[string]
 
 func TestRecipeRenderChecksums(t *testing.T) {
 	recipe := NewRecipe()
-	recipe.Metadata.Name = "test"
-	recipe.Metadata.Version = "v1.0.0"
+	recipe.Name = "test"
+	recipe.Version = "v1.0.0"
 	recipe.Variables = []Variable{{Name: "foo"}}
 	recipe.Templates = map[string]File{
 		"README.md": NewFile([]byte("{{ .Variables.foo }}")),
@@ -56,8 +56,8 @@ func TestRecipeRenderChecksums(t *testing.T) {
 
 func TestRecipeRenderID(t *testing.T) {
 	recipe := NewRecipe()
-	recipe.Metadata.Name = "test"
-	recipe.Metadata.Version = "v1.0.0"
+	recipe.Name = "test"
+	recipe.Version = "v1.0.0"
 
 	sauce, err := recipe.Execute(TestRenderEngine{}, nil, uuid.Must(uuid.NewV4()))
 	if err != nil {
@@ -71,8 +71,8 @@ func TestRecipeRenderID(t *testing.T) {
 
 func TestRecipeRenderIDReuse(t *testing.T) {
 	recipe := NewRecipe()
-	recipe.Metadata.Name = "test"
-	recipe.Metadata.Version = "v1.0.0"
+	recipe.Name = "test"
+	recipe.Version = "v1.0.0"
 
 	sauce1, err := recipe.Execute(TestRenderEngine{}, nil, TestID)
 	if err != nil {
@@ -92,8 +92,8 @@ func TestRecipeRenderIDReuse(t *testing.T) {
 func TestRecipeRenderEmptyFiles(t *testing.T) {
 	recipe := NewRecipe()
 
-	recipe.Metadata.Name = "test"
-	recipe.Metadata.Version = "v1.0.0"
+	recipe.Name = "test"
+	recipe.Version = "v1.0.0"
 	recipe.Variables = []Variable{{Name: "foo"}}
 	recipe.Templates = map[string]File{
 		"empty-file":                           NewFile([]byte("")),
@@ -123,14 +123,14 @@ func TestRecipeRenderEmptyFiles(t *testing.T) {
 
 func TestRecipeRenderWithTemplateExtension(t *testing.T) {
 	recipe := NewRecipe()
-	recipe.Metadata.Name = "test"
-	recipe.Metadata.Version = "v1.0.0"
+	recipe.Name = "test"
+	recipe.Version = "v1.0.0"
 	recipe.Variables = []Variable{{Name: "foo"}}
 	recipe.Templates = map[string]File{
 		"subdirectory/file.md.tmpl": NewFile([]byte("{{ .Variables.foo }}")),
 		"file":                      NewFile([]byte("{{ .Variables.foo }}")),
 	}
-	recipe.Metadata.TemplateExtension = ".tmpl"
+	recipe.TemplateExtension = ".tmpl"
 
 	sauce, err := recipe.Execute(TestRenderEngine{}, VariableValues{"foo": "bar"}, uuid.Must(uuid.NewV4()))
 	if err != nil {

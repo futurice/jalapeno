@@ -77,7 +77,7 @@ func loadConfigFile(path string) (*configfile.ConfigFile, error) {
 		if err != nil {
 			return nil, err
 		}
-		defer file.Close()
+		defer file.Close() //nolint:errcheck
 		cfg = configfile.New(path)
 		if err := cfg.LoadFromReader(file); err != nil {
 			return nil, err

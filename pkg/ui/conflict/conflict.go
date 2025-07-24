@@ -117,11 +117,12 @@ func (m Model) footerView() string {
 
 	selectedStyle := lipgloss.NewStyle().Bold(true)
 
-	if m.resolution == UseOld {
+	switch m.resolution {
+	case UseOld:
 		resolutionSelector = fmt.Sprintf("> %s / %s / %s", selectedStyle.Render(keepOpt), overwriteOpt, diffOpt)
-	} else if m.resolution == UseNew {
+	case UseNew:
 		resolutionSelector = fmt.Sprintf("%s / > %s / %s", keepOpt, selectedStyle.Render(overwriteOpt), diffOpt)
-	} else {
+	default:
 		resolutionSelector = fmt.Sprintf("%s / %s / > %s", keepOpt, overwriteOpt, selectedStyle.Render(diffOpt))
 	}
 
@@ -221,11 +222,12 @@ func (m Model) View() string {
 
 	if m.submitted || m.err != nil {
 		s.WriteString(fmt.Sprintf("%s: ", m.filePath))
-		if m.resolution == UseOld {
+		switch m.resolution {
+		case UseOld:
 			s.WriteString("keep old")
-		} else if m.resolution == UseNew {
+		case UseNew:
 			s.WriteString("use new")
-		} else {
+		default:
 			s.WriteString("write diff file")
 		}
 
@@ -244,11 +246,12 @@ func (m Model) View() string {
 }
 
 func (m Model) Result() []byte {
-	if m.resolution == UseOld {
+	switch m.resolution {
+	case UseOld:
 		return m.fileA
-	} else if m.resolution == UseNew {
+	case UseNew:
 		return m.fileB
-	} else {
+	default:
 		return []byte(m.diff.GetConflictResolutionTemplate())
 	}
 }

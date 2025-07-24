@@ -16,7 +16,7 @@ func PullRecipe(ctx context.Context, repo oci.Repository) (*Recipe, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer os.RemoveAll(dir)
+	defer os.RemoveAll(dir) //nolint:errcheck
 
 	err = SaveRemoteRecipe(ctx, dir, repo)
 	if err != nil {

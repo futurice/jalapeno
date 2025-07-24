@@ -76,7 +76,7 @@ func TestParsePredefinedValues(t *testing.T) {
 				if err != nil {
 					t.Fatal("failed to set environment variable")
 				}
-				defer os.Unsetenv(envName)
+				defer os.Unsetenv(envName) //nolint:errcheck
 			}
 
 			actual, err := recipeutil.ParseProvidedValues(test.vars, test.flags, ',', true)

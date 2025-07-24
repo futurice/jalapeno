@@ -99,11 +99,11 @@ func (re *Recipe) saveTests(dest string) error {
 		if err != nil {
 			return fmt.Errorf("failed to create recipe test file: %w", err)
 		}
-		defer meta.Close()
+		defer meta.Close() //nolint:errcheck
 
 		encoder := yaml.NewEncoder(meta)
 		encoder.SetIndent(yamlIndent)
-		defer encoder.Close()
+		defer encoder.Close() //nolint:errcheck
 
 		if err := encoder.Encode(test); err != nil {
 			return fmt.Errorf("failed to write recipe test to a file: %w", err)
@@ -179,7 +179,7 @@ func (s *Sauce) Save(dest string) error {
 	if err != nil {
 		return fmt.Errorf("failed to create sauce file: %w", err)
 	}
-	defer file.Close()
+	defer file.Close() //nolint:errcheck
 
 	_, err = file.WriteString(sauceFileComment)
 	if err != nil {
@@ -188,7 +188,7 @@ func (s *Sauce) Save(dest string) error {
 
 	encoder := yaml.NewEncoder(file)
 	encoder.SetIndent(yamlIndent)
-	defer encoder.Close()
+	defer encoder.Close() //nolint:errcheck
 
 	for _, sauce := range sauces {
 		if err := encoder.Encode(sauce); err != nil {
@@ -242,7 +242,7 @@ func saveFileMap(files map[string]File, dest string) error {
 		if err != nil {
 			return err
 		}
-		defer f.Close()
+		defer f.Close() //nolint:errcheck
 
 		// Write the data to the file
 		_, err = f.Write(file.Content)
