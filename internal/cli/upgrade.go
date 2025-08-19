@@ -18,7 +18,6 @@ import (
 	"github.com/futurice/jalapeno/pkg/ui/colors"
 	"github.com/futurice/jalapeno/pkg/ui/conflict"
 	"github.com/futurice/jalapeno/pkg/ui/survey"
-	"github.com/gofrs/uuid"
 	"github.com/spf13/cobra"
 	"golang.org/x/mod/semver"
 )
@@ -103,12 +102,7 @@ func runUpgrade(cmd *cobra.Command, opts upgradeOptions) error {
 	}
 
 	if opts.TargetSauceID != "" {
-		id, uuidErr := uuid.FromString(opts.TargetSauceID)
-		if uuidErr != nil {
-			return fmt.Errorf("invalid sauce ID: %w", err)
-		}
-
-		oldSauce, err = recipe.LoadSauceByID(opts.Dir, id)
+		oldSauce, err = recipe.LoadSauceByID(opts.Dir, opts.TargetSauceID)
 	} else {
 		oldSauce, err = recipe.LoadSauceByRecipe(opts.Dir, re.Name)
 		if err != nil && errors.Is(err, recipe.ErrAmbiguousSauce) {

@@ -67,12 +67,7 @@ func runDelete(cmd *cobra.Command, opts deleteOptions) error {
 }
 
 func deleteSauce(cmd *cobra.Command, opts deleteOptions) error {
-	id, err := uuid.FromString(opts.SauceID)
-	if err != nil {
-		return fmt.Errorf("invalid sauce ID: %w", err)
-	}
-
-	sauce, err := recipe.LoadSauceByID(opts.Dir, id)
+	sauce, err := recipe.LoadSauceByID(opts.Dir, opts.SauceID)
 	if err != nil {
 		if errors.Is(err, recipe.ErrSauceNotFound) {
 			return fmt.Errorf("sauce with ID '%s' not found", opts.SauceID)
@@ -97,7 +92,7 @@ func deleteSauce(cmd *cobra.Command, opts deleteOptions) error {
 
 	filteredSauces := make([]*recipe.Sauce, 0, len(sauces))
 	for _, s := range sauces {
-		if s.ID != id {
+		if s.ID.String() != opts.SauceID {
 			filteredSauces = append(filteredSauces, s)
 		}
 	}

@@ -165,7 +165,7 @@ func loadTests(path string) ([]Test, error) {
 	return tests, nil
 }
 
-// Load all sauces from a project directory. Returns empty slice if the project directory did not contain any sayces
+// Load all sauces from a project directory. Returns empty slice if the project directory did not contain any sauces
 func LoadSauces(projectDir string) ([]*Sauce, error) {
 	var sauces []*Sauce
 
@@ -245,14 +245,19 @@ func LoadSauceByRecipe(projectDir, recipeName string) (*Sauce, error) {
 	return nil, ErrSauceNotFound
 }
 
-func LoadSauceByID(projectDir string, id uuid.UUID) (*Sauce, error) {
+func LoadSauceByID(projectDir string, id string) (*Sauce, error) {
+	uid, err := uuid.FromString(id)
+	if err != nil {
+		return nil, fmt.Errorf("invalid sauce ID: %w", err)
+	}
+
 	sauces, err := LoadSauces(projectDir)
 	if err != nil {
 		return nil, err
 	}
 
 	for _, s := range sauces {
-		if s.ID == id {
+		if s.ID == uid {
 			return s, nil
 		}
 	}
@@ -277,29 +282,4 @@ func LoadManifest(path string) (*Manifest, error) {
 	}
 
 	return manifest, nil
-}
-
-// SaveSauces saves the given sauces to the project directory
-func SaveSauces(projectDir string, sauces []*Sauce) error {
-	if err := os.MkdirAll(filepath.Join(projectDir, SauceDirName), 0755); err != nil {
-		return fmt.Errorf("failed to create sauce directory: %w", err)
-	}
-
-	sauceFile := filepath.Join(projectDir, SauceDirName, SaucesFileName+YAMLExtension)
-	f, err := os.Create(sauceFile)
-	if err != nil {
-		return fmt.Errorf("failed to create sauce file: %w", err)
-	}
-	defer f.Close()
-
-	encoder := yaml.NewEncoder(f)
-	defer encoder.Close()
-
-	for _, sauce := range sauces {
-		if err := encoder.Encode(sauce); err != nil {
-			return fmt.Errorf("failed to encode sauce: %w", err)
-		}
-	}
-
-	return nil
 }
