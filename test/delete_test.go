@@ -11,16 +11,36 @@ import (
 	"github.com/futurice/jalapeno/pkg/recipe"
 )
 
-func AddEjectSteps(s *godog.ScenarioContext) {
-	s.Step(`^I eject Jalapeno from the project$`, iRunEject)
+func AddDeleteSteps(s *godog.ScenarioContext) {
+	s.Step(`^I delete the sauce from the index (\d)$`, iRunDelete)
+	s.Step(`^I delete all sauces from the project$`, iRunDeleteAll)
 	s.Step(`^there should not be a sauce directory in the project directory$`, thereShouldNotBeASauceDirectoryInTheProjectDirectory)
 }
 
-func iRunEject(ctx context.Context) (context.Context, error) {
+func iRunDelete(ctx context.Context, i int) (context.Context, error) {
+	projectDir := ctx.Value(projectDirectoryPathCtxKey{}).(string)
+	sauces, err := recipe.LoadSauces(projectDir)
+	if err != nil {
+		return ctx, err
+	}
+
+	if i < 0 || i >= len(sauces) {
+		return ctx, fmt.Errorf("invalid sauce index: %d", i)
+	}
+
+	return executeCLI(ctx,
+		"delete",
+		sauces[i].ID.String(),
+		fmt.Sprintf("--dir=%s", projectDir),
+	)
+}
+
+func iRunDeleteAll(ctx context.Context) (context.Context, error) {
 	projectDir := ctx.Value(projectDirectoryPathCtxKey{}).(string)
 
 	return executeCLI(ctx,
-		"eject",
+		"delete",
+		"--all",
 		fmt.Sprintf("--dir=%s", projectDir),
 	)
 }

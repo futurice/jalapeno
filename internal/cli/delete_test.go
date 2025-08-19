@@ -15,7 +15,7 @@ func TestDelete(t *testing.T) {
 	if err != nil {
 		t.Fatalf("cannot create temp dir: %s", err)
 	}
-	defer os.RemoveAll(dir)
+	defer os.RemoveAll(dir) //nolint:errcheck
 
 	// Create test files and directories
 	if err = os.MkdirAll(filepath.Join(dir, recipe.SauceDirName), 0755); err != nil {
@@ -41,8 +41,8 @@ func TestDelete(t *testing.T) {
 			Recipe: recipe.Recipe{
 				Metadata: recipe.Metadata{
 					APIVersion: "v1",
-					Name:      "foo",
-					Version:   "v1.0.0",
+					Name:       "foo",
+					Version:    "v1.0.0",
 				},
 			},
 			Files: map[string]recipe.File{
@@ -55,8 +55,8 @@ func TestDelete(t *testing.T) {
 			Recipe: recipe.Recipe{
 				Metadata: recipe.Metadata{
 					APIVersion: "v1",
-					Name:      "bar",
-					Version:   "v2.0.0",
+					Name:       "bar",
+					Version:    "v2.0.0",
 				},
 			},
 			Files: map[string]recipe.File{
@@ -65,8 +65,11 @@ func TestDelete(t *testing.T) {
 		},
 	}
 
-	if err = recipe.SaveSauces(dir, sauces); err != nil {
-		t.Fatalf("cannot save test sauces: %s", err)
+	for _, sauce := range sauces {
+		err := sauce.Save(dir)
+		if err != nil {
+			t.Fatalf("cannot save test sauces: %s", err)
+		}
 	}
 
 	t.Run("delete specific sauce", func(t *testing.T) {
@@ -150,4 +153,4 @@ func TestDelete(t *testing.T) {
 			t.Fatal("expected error when deleting non-existent sauce")
 		}
 	})
-} 
+}

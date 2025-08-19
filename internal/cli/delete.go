@@ -9,7 +9,6 @@ import (
 	"github.com/futurice/jalapeno/internal/cli/option"
 	"github.com/futurice/jalapeno/pkg/recipe"
 	"github.com/futurice/jalapeno/pkg/ui/colors"
-	"github.com/gofrs/uuid"
 	"github.com/spf13/cobra"
 )
 
@@ -28,6 +27,7 @@ func NewDeleteCmd() *cobra.Command {
 		Short: "Delete sauce(s) from the project",
 		Long: `Delete sauce(s) from the project. This will remove the rendered files and the sauce entry from sauces.yml.
 If no sauce ID is provided and --all flag is not set, this command will fail.`,
+		Args: cobra.MaximumNArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) > 0 {
 				opts.SauceID = args[0]
@@ -41,7 +41,7 @@ If no sauce ID is provided and --all flag is not set, this command will fail.`,
 		Example: `# Delete a specific sauce
 jalapeno delete 21872763-f48e-4728-bc49-57f5898e098a
 
-# Delete all sauces (same as 'jalapeno eject')
+# Delete all sauces
 jalapeno delete --all`,
 	}
 
@@ -97,16 +97,15 @@ func deleteSauce(cmd *cobra.Command, opts deleteOptions) error {
 		}
 	}
 
-	// If this was the last sauce, delete the entire .jalapeno directory
-	if len(filteredSauces) == 0 {
-		jalapenoPath := filepath.Join(opts.Dir, recipe.SauceDirName)
-		err = os.RemoveAll(jalapenoPath)
-		if err != nil {
-			return err
-		}
-	} else {
-		// Otherwise just save the filtered sauces
-		err = recipe.SaveSauces(opts.Dir, filteredSauces)
+	// Delete .jalapeno directory
+	err = os.RemoveAll(filepath.Join(opts.Dir, recipe.SauceDirName))
+	if err != nil {
+		return err
+	}
+
+	// Otherwise just save the filtered sauces
+	for _, sauce := range filteredSauces {
+		err := sauce.Save(opts.Dir)
 		if err != nil {
 			return err
 		}
@@ -117,18 +116,16 @@ func deleteSauce(cmd *cobra.Command, opts deleteOptions) error {
 }
 
 func deleteAll(cmd *cobra.Command, opts deleteOptions) error {
-	jalapenoPath := filepath.Join(opts.Dir, recipe.SauceDirName)
-
-	if stat, err := os.Stat(jalapenoPath); os.IsNotExist(err) || !stat.IsDir() {
-		return fmt.Errorf("'%s' is not a Jalapeno project", opts.Dir)
-	}
-
-	// Delete all rendered files first
 	sauces, err := recipe.LoadSauces(opts.Dir)
 	if err != nil {
 		return err
 	}
 
+	if len(sauces) == 0 {
+		return fmt.Errorf("the directory '%s' did not contain any sauces to delete", opts.Dir)
+	}
+
+	// Delete all rendered files first
 	for _, sauce := range sauces {
 		for path := range sauce.Files {
 			fullPath := filepath.Join(opts.Dir, path)
@@ -140,8 +137,7 @@ func deleteAll(cmd *cobra.Command, opts deleteOptions) error {
 	}
 
 	// Delete .jalapeno directory
-	cmd.Printf("Deleting %s...\n", jalapenoPath)
-	err = os.RemoveAll(jalapenoPath)
+	err = os.RemoveAll(filepath.Join(opts.Dir, recipe.SauceDirName))
 	if err != nil {
 		return err
 	}
