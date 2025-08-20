@@ -25,9 +25,8 @@ func NewDeleteCmd() *cobra.Command {
 	var cmd = &cobra.Command{
 		Use:   "delete [SAUCE_ID]",
 		Short: "Delete sauce(s) from the project",
-		Long: `Delete sauce(s) from the project. This will remove the rendered files and the sauce entry from sauces.yml.
-If no sauce ID is provided and --all flag is not set, this command will fail.`,
-		Args: cobra.MaximumNArgs(1),
+		Long:  fmt.Sprintf(`Delete sauce(s) from the project. This will remove the rendered files and the sauce entry from %s%s.`, recipe.SaucesFileName, recipe.YAMLExtension),
+		Args:  cobra.MaximumNArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) > 0 {
 				opts.SauceID = args[0]
