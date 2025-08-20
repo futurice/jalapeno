@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.17.0](https://github.com/futurice/jalapeno/compare/v1.16.2...v1.17.0) (2025-08-20)
+
+
+### Features
+
+* introduce `delete` and `list` commands ([#170](https://github.com/futurice/jalapeno/issues/170)) ([89473fe](https://github.com/futurice/jalapeno/commit/89473fe9148fd7818b8290d0379795b7b33d482d))
+
 ## [1.16.2](https://github.com/futurice/jalapeno/compare/v1.16.1...v1.16.2) (2025-06-12)
 
 ### Installation
