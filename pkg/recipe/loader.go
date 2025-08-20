@@ -165,7 +165,7 @@ func loadTests(path string) ([]Test, error) {
 	return tests, nil
 }
 
-// Load all sauces from a project directory. Returns empty slice if the project directory did not contain any sayces
+// Load all sauces from a project directory. Returns empty slice if the project directory did not contain any sauces
 func LoadSauces(projectDir string) ([]*Sauce, error) {
 	var sauces []*Sauce
 
@@ -245,14 +245,19 @@ func LoadSauceByRecipe(projectDir, recipeName string) (*Sauce, error) {
 	return nil, ErrSauceNotFound
 }
 
-func LoadSauceByID(projectDir string, id uuid.UUID) (*Sauce, error) {
+func LoadSauceByID(projectDir string, id string) (*Sauce, error) {
+	uid, err := uuid.FromString(id)
+	if err != nil {
+		return nil, fmt.Errorf("invalid sauce ID: %w", err)
+	}
+
 	sauces, err := LoadSauces(projectDir)
 	if err != nil {
 		return nil, err
 	}
 
 	for _, s := range sauces {
-		if s.ID == id {
+		if s.ID == uid {
 			return s, nil
 		}
 	}

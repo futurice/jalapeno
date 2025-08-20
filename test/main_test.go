@@ -89,8 +89,9 @@ func TestFeatures(t *testing.T) {
 			AddBumpverSteps(s)
 			AddCheckSteps(s)
 			AddCreateSteps(s)
-			AddEjectSteps(s)
+			AddDeleteSteps(s)
 			AddExecuteSteps(s)
+			AddListSteps(s)
 			AddPullSteps(s)
 			AddPushSteps(s)
 			AddTestSteps(s)
@@ -320,6 +321,10 @@ func recipeGeneratesFileWithContent(ctx context.Context, recipeName, filename, c
 	dir := ctx.Value(recipesDirectoryPathCtxKey{}).(string)
 
 	recipePath := filepath.Join(dir, recipeName)
+	if _, err := os.Stat(recipePath); err != nil {
+		return ctx, err
+	}
+
 	filePath := filepath.Join(recipePath, recipe.TemplatesDirName, filename)
 
 	err := os.MkdirAll(filepath.Dir(filePath), 0700)
