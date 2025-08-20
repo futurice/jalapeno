@@ -66,6 +66,7 @@ func runDelete(cmd *cobra.Command, opts deleteOptions) error {
 	return deleteSauce(cmd, opts)
 }
 
+// TODO: The operation should be atomic
 func deleteSauce(cmd *cobra.Command, opts deleteOptions) error {
 	sauce, err := recipe.LoadSauceByID(opts.Dir, opts.SauceID)
 	if err != nil {
@@ -75,21 +76,16 @@ func deleteSauce(cmd *cobra.Command, opts deleteOptions) error {
 		return err
 	}
 
-	// Delete rendered files
-	for path := range sauce.Files {
-		fullPath := filepath.Join(opts.Dir, path)
-		err := os.Remove(fullPath)
-		if err != nil && !errors.Is(err, os.ErrNotExist) {
-			return fmt.Errorf("failed to delete file '%s': %w", path, err)
-		}
+	if err := deleteSauceFiles(sauce, opts.Dir); err != nil {
+		return err
 	}
 
-	// Delete sauce entry
 	sauces, err := recipe.LoadSauces(opts.Dir)
 	if err != nil {
 		return err
 	}
 
+	// Delete sauce entry
 	filteredSauces := make([]*recipe.Sauce, 0, len(sauces))
 	for _, s := range sauces {
 		if s.ID.String() != opts.SauceID {
@@ -97,13 +93,11 @@ func deleteSauce(cmd *cobra.Command, opts deleteOptions) error {
 		}
 	}
 
-	// Delete .jalapeno directory
-	err = os.RemoveAll(filepath.Join(opts.Dir, recipe.SauceDirName))
-	if err != nil {
+	if err := deleteSauceDir(opts.Dir); err != nil {
 		return err
 	}
 
-	// Otherwise just save the filtered sauces
+	// Save remaining sauces
 	for _, sauce := range filteredSauces {
 		err := sauce.Save(opts.Dir)
 		if err != nil {
@@ -115,6 +109,7 @@ func deleteSauce(cmd *cobra.Command, opts deleteOptions) error {
 	return nil
 }
 
+// TODO: The operation should be atomic
 func deleteAll(cmd *cobra.Command, opts deleteOptions) error {
 	sauces, err := recipe.LoadSauces(opts.Dir)
 	if err != nil {
@@ -125,23 +120,31 @@ func deleteAll(cmd *cobra.Command, opts deleteOptions) error {
 		return fmt.Errorf("the directory '%s' did not contain any sauces to delete", opts.Dir)
 	}
 
-	// Delete all rendered files first
 	for _, sauce := range sauces {
-		for path := range sauce.Files {
-			fullPath := filepath.Join(opts.Dir, path)
-			err := os.Remove(fullPath)
-			if err != nil && !errors.Is(err, os.ErrNotExist) {
-				return fmt.Errorf("failed to delete file '%s': %w", path, err)
-			}
+		if err := deleteSauceFiles(sauce, opts.Dir); err != nil {
+			return err
 		}
 	}
 
-	// Delete .jalapeno directory
-	err = os.RemoveAll(filepath.Join(opts.Dir, recipe.SauceDirName))
-	if err != nil {
+	if err := deleteSauceDir(opts.Dir); err != nil {
 		return err
 	}
 
 	cmd.Printf("All sauces deleted %s\n", colors.Green.Render("successfully!"))
 	return nil
+}
+
+func deleteSauceFiles(sauce *recipe.Sauce, dir string) error {
+	for path := range sauce.Files {
+		fullPath := filepath.Join(dir, path)
+		err := os.Remove(fullPath)
+		if err != nil && !errors.Is(err, os.ErrNotExist) {
+			return fmt.Errorf("failed to delete file '%s': %w", path, err)
+		}
+	}
+	return nil
+}
+
+func deleteSauceDir(dir string) error {
+	return os.RemoveAll(filepath.Join(dir, recipe.SauceDirName))
 }
