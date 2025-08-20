@@ -38,6 +38,7 @@ func NewDeleteCmd() *cobra.Command {
 			return errorHandler(cmd, err)
 		},
 		Example: `# Delete a specific sauce
+jalapeno list
 jalapeno delete 21872763-f48e-4728-bc49-57f5898e098a
 
 # Delete all sauces

@@ -91,6 +91,7 @@ func TestFeatures(t *testing.T) {
 			AddCreateSteps(s)
 			AddDeleteSteps(s)
 			AddExecuteSteps(s)
+			AddListSteps(s)
 			AddPullSteps(s)
 			AddPushSteps(s)
 			AddTestSteps(s)
