@@ -145,6 +145,7 @@ func AddCommonSteps(s *godog.ScenarioContext) {
 	s.Step(`^recipe "([^"]*)" generates file "([^"]*)" with content "([^"]*)"$`, recipeGeneratesFileWithContent)
 	s.Step(`^recipe "([^"]*)" ignores pattern "([^"]*)"$`, recipeIgnoresPattern)
 	s.Step(`^I remove file "([^"]*)" from the recipe "([^"]*)"$`, iRemoveFileFromTheRecipe)
+	s.Step(`^I remove file "([^"]*)" from the project$`, iRemoveFileFromTheProject)
 	s.Step(`^I create a file "([^"]*)" with contents "([^"]*)" to the project directory$`, iCreateAFileWithContentsToTheProjectDir)
 	s.Step(`^a local OCI registry$`, aLocalOCIRegistry)
 	s.Step(`^a local OCI registry with authentication$`, aLocalOCIRegistryWithAuth)
@@ -353,6 +354,13 @@ func iRemoveFileFromTheRecipe(ctx context.Context, filename, recipeName string) 
 	templateDir := filepath.Join(recipesDir, recipeName, recipe.TemplatesDirName)
 
 	err := os.Remove(filepath.Join(templateDir, filename))
+	return ctx, err
+}
+
+func iRemoveFileFromTheProject(ctx context.Context, filename string) (context.Context, error) {
+	projectDir := ctx.Value(projectDirectoryPathCtxKey{}).(string)
+
+	err := os.Remove(filepath.Join(projectDir, filename))
 	return ctx, err
 }
 

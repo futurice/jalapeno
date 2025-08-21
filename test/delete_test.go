@@ -14,7 +14,7 @@ import (
 func AddDeleteSteps(s *godog.ScenarioContext) {
 	s.Step(`^I delete the sauce from the index (\d)$`, iRunDelete)
 	s.Step(`^I delete all sauces from the project$`, iRunDeleteAll)
-	s.Step(`^there should not be a sauce directory in the project directory$`, thereShouldNotBeASauceDirectoryInTheProjectDirectory)
+	s.Step(`^there should not be a sauce directory in the project directory$`, thereShouldNotBeASauceDirInTheProjectDir)
 }
 
 func iRunDelete(ctx context.Context, i int) (context.Context, error) {
@@ -45,7 +45,7 @@ func iRunDeleteAll(ctx context.Context) (context.Context, error) {
 	)
 }
 
-func thereShouldNotBeASauceDirectoryInTheProjectDirectory(ctx context.Context) (context.Context, error) {
+func thereShouldNotBeASauceDirInTheProjectDir(ctx context.Context) (context.Context, error) {
 	projectDir := ctx.Value(projectDirectoryPathCtxKey{}).(string)
 	_, err := os.Stat(filepath.Join(projectDir, recipe.SauceDirName))
 	if err != nil {

@@ -34,3 +34,12 @@ Feature: Delete
 		And the project directory should contain file "baz.md"
 		And the sauce in index 0 should have property "Recipe::Name" with value "^foo$"
 		And the sauce in index 1 should have property "Recipe::Name" with value "^baz$"
+
+	Scenario: Trying to delete specific sauce when files have been deleted manually
+		Given a recipe "foo"
+		And recipe "foo" generates file "README.md" with content "initial"
+		When I execute recipe "foo"
+		And I remove file "README.md" from the project
+		And I delete the sauce from the index 0
+		Then no errors were printed
+		And there should not be a sauce directory in the project directory
