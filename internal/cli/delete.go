@@ -105,7 +105,7 @@ func deleteSauce(cmd *cobra.Command, opts deleteOptions) error {
 		}
 	}
 
-	cmd.Printf("Sauce '%s' deleted %s\n", sauce.Recipe.Name, colors.Green.Render("successfully!"))
+	cmd.Printf("Sauce '%s' (from recipe '%s') deleted %s\n", sauce.ID, sauce.Recipe.Name, colors.Green.Render("successfully!"))
 	return nil
 }
 
