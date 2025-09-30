@@ -102,8 +102,6 @@ homebrew_casks:
       git:
         url: "git@github.com:futurice/homebrew-jalapeno.git"
         private_key: "{{ .Env.HOMEBREW_TAP_PRIVATE_KEY }}"
-    conflicts:
-      - formula: jalapeno # https://goreleaser.com/deprecations/#brews
     homepage: "https://futurice.github.io/jalapeno/"
     description: "Jalapeno is a CLI for creating, managing and sharing spiced up project templates"
     license: "Apache-2.0"
