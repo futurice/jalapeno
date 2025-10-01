@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.17.1](https://github.com/futurice/jalapeno/compare/v1.17.0...v1.17.1) (2025-10-01)
+
+
+### Miscellaneous Chores
+
+* remove deprecated "conflicts_with formula" ([46cd6fa](https://github.com/futurice/jalapeno/commit/46cd6fa7deb95c386b1b42c36500111202971852))
+
 ## [1.17.0](https://github.com/futurice/jalapeno/compare/v1.16.2...v1.17.0) (2025-08-20)
 
 
