@@ -16,7 +16,7 @@ Then you can bootstrap a new _recipe_ (aka template) by running:
 jalapeno create recipe my-recipe
 ```
 
-After this you should have a new folder called `my-recipe` with the following structure:
+After this you should have a new directory called `my-recipe` with the following structure:
 
 ```
 my-recipe
@@ -147,9 +147,9 @@ Variables can be validated by defining [`validators`](/api#variable) property fo
 
 Jalapeno supports publishing and storing recipes in OCI-compatible registries. This means that versioned recipes can be pushed and pulled to/from ordinary Container Registries. This is useful when you want to make your recipes available or you want to check for updates for the recipe manually or programmatically from a CI/CD pipeline.
 
-### Pushing a recipe to Container registry
+### Pushing a recipe to container registry
 
-You can push a recipe to a Container registry by using the `jalapeno push` command. For authentication, you can use `docker login` before pushing the recipe or provide credentials directly to the `jalapeno push` command by using flags. For example:
+You can push a recipe to container registry by using the `jalapeno push` command. For authentication, you can use `docker login` before pushing the recipe or provide credentials directly to the `jalapeno push` command by using flags. For example:
 
 ```bash
 jalapeno create recipe my-recipe
@@ -160,7 +160,7 @@ docker login ghcr.io -u my-user
 jalapeno push my-recipe ghcr.io/my-user/my-recipe
 ```
 
-After this, you should be able to see the recipe in the Container registry from the UI or by running:
+After this, you should be able to see the recipe in the container registry from the UI or by running:
 
 ```bash
 docker inspect ghcr.io/my-user/my-recipe:latest
@@ -168,13 +168,13 @@ docker inspect ghcr.io/my-user/my-recipe:latest
 
 :::note
 
-The tag of the recipe in Container Registry is automatically determined by the version in the `recipe.yml` file. So if you want to push a new version of the recipe, you need to update the version in the `recipe.yml` file first. If you want to use the `latest` tag, set the `--latest` flag when pushing the recipe.
+The tag of the recipe in container registry is automatically determined by the version in the `recipe.yml` file. So if you want to push a new version of the recipe, you need to update the version in the `recipe.yml` file first. If you want to use the `latest` tag, set the `--latest` flag when pushing the recipe.
 
 :::
 
-### Executing a recipe from Container registry
+### Executing a recipe from container registry
 
-You can execute a recipe directly from Container registry by using the `jalapeno execute` command. For example:
+You can execute a recipe directly from container registry by using the `jalapeno execute` command. For example:
 
 ```bash
 mkdir my-project && cd my-project
@@ -191,7 +191,7 @@ jalapeno execute my-recipe
 
 ### Executing multiple recipes with a manifest file
 
-You can execute multiple recipes at once by using a manifest file. The manifest file is a YAML file which contains the list of recipes which should be executed. The manifest file should be in the following format:
+You can execute multiple recipes at once by using a [manifest file](https://futurice.github.io/jalapeno/api#manifest-schema-manifestyml). The manifest file is a YAML file which contains the list of recipes which should be executed. The manifest file should be in the following format:
 
 ```yaml
 apiVersion: v1
@@ -214,7 +214,7 @@ jalapeno execute ./path/to/manifest.yml -d my-project
 
 ### Checking updates for a recipe
 
-After you have executed a recipe, Jalapeno will create a `.jalapeno/sauces.yml` file in the project directory. This file contains information about the executed recipes and their versions. If the recipe was executed directly from a Container Registry, the registry URL is also stored in the file for checking for new versions. To check the new versions for the recipes, you can run:
+After you have executed a recipe, Jalapeno will create a `.jalapeno/sauces.yml` file in the project directory. This file contains information about the executed recipes and their versions. If the recipe was executed directly from a container registry, the registry URL is also stored in the file for checking for new versions. To check the new versions for the recipes, you can run:
 
 ```bash
 jalapeno check
@@ -292,7 +292,7 @@ my-recipe
         └── test.yml
 ```
 
-The [`test.yml`](http://localhost:3001/jalapeno/api#test-schema-testyml) file contains the configuration for the test case which will be executed when running the `jalapeno test` command. The configuration contains, for example, the values for the template variables which should be used when rendering the recipe. The `files` directory contains the expected files which the recipe should generate. You can add more test cases by creating new directories under the `tests` directory. In this case, the test case name is `example`.
+The [`test.yml`](https://futurice.github.io/jalapeno/api#test-schema-testyml) file contains the configuration for the test case which will be executed when running the `jalapeno test` command. The configuration contains, for example, the values for the template variables which should be used when rendering the recipe. The `files` directory contains the expected files which the recipe should generate. You can add more test cases by creating new directories under the `tests` directory. In this case, the test case name is `example`.
 
 To update the current recipe output as the expected output to all tests, you can run:
 
@@ -304,4 +304,20 @@ After you've created the test cases, you can run the tests by running:
 
 ```bash
 jalapeno test ./my-recipe
+```
+
+## Deleting a rendered recipe (aka _sauce_) from a project
+
+You can delete the files generated by a recipe by using the `jalapeno delete` command. For example:
+
+```bash
+  jalapeno list
+  # <-- Select a sauce you want to delete and check the ID -->
+  jalapeno delete <SAUCE_ID>
+```
+
+If you want to delete all the sauces from the project, you can use the `--all` flag:
+
+```bash
+  jalapeno delete --all
 ```
