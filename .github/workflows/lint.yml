@@ -16,7 +16,7 @@ jobs:
           cache: false # Disable cache since golangci-lint does its own caching
 
       - name: Lint source code
-        uses: golangci/golangci-lint-action@v4
+        uses: golangci/golangci-lint-action@1e7e51e771db61008b38414a730f564565cf7c20 #v9.2.0
         with:
           version: latest
           install-mode: goinstall
