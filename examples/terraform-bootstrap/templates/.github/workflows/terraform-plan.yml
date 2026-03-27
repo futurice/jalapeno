@@ -85,7 +85,7 @@ jobs:
         run: exit 1
 
       - name: Archive Terraform plan
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v7
         with:
           name: terraform-plan-{{ "${{ inputs.ENVIRONMENT }}" }}
           path: ./terraform
