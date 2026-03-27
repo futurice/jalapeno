@@ -39,7 +39,7 @@ jobs:
           terraform_version: {{ "${{ inputs.TERRAFORM_VERSION }}" }}
 
       - name: Download the plan
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v8
         with:
           name: terraform-plan-{{ "${{ inputs.ENVIRONMENT }}" }}
 
