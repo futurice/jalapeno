@@ -28,7 +28,7 @@ jobs:
           - variable-types
           - with-tests
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: futurice/jalapeno@main
         name: Test ${{ matrix.recipe_name }}
