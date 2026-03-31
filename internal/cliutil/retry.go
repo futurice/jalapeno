@@ -26,7 +26,7 @@ func MakeRetryMessage(args []string, values recipe.VariableValues) string {
 		if idx <= 1 || strings.HasPrefix(arg, "-") {
 			commandline.WriteString(arg)
 		} else {
-			commandline.WriteString(fmt.Sprintf("\"%s\"", arg))
+			fmt.Fprintf(&commandline, "\"%s\"", arg)
 		}
 		commandline.WriteString(" ")
 	}
@@ -43,17 +43,17 @@ func MakeRetryMessage(args []string, values recipe.VariableValues) string {
 		commandline.WriteString("--set ")
 		switch value := values[key].(type) {
 		case bool:
-			commandline.WriteString(fmt.Sprintf("\"%s=%t\" ", key, value))
+			fmt.Fprintf(&commandline, "\"%s=%t\" ", key, value)
 		case recipe.MultiSelectValue:
-			commandline.WriteString(fmt.Sprintf("\"%s=%s\" ", key, value.ToString(',')))
+			fmt.Fprintf(&commandline, "\"%s=%s\" ", key, value.ToString(','))
 		case recipe.TableValue:
 			csv, err := value.ToCSV(',')
 			if err != nil {
 				panic(err)
 			}
-			commandline.WriteString(fmt.Sprintf("\"%s=%s\" ", key, strings.ReplaceAll(strings.TrimRight(csv, "\n"), "\n", "\\n")))
+			fmt.Fprintf(&commandline, "\"%s=%s\" ", key, strings.ReplaceAll(strings.TrimRight(csv, "\n"), "\n", "\\n"))
 		default:
-			commandline.WriteString(fmt.Sprintf("\"%s=%s\" ", key, value))
+			fmt.Fprintf(&commandline, "\"%s=%s\" ", key, value)
 		}
 	}
 	return fmt.Sprintf("To re-run the recipe with the same values, use the following command:\n\n%s", strings.TrimSpace(commandline.String()))

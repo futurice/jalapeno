@@ -28,14 +28,14 @@ jobs:
           - variable-types
           - with-tests
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: futurice/jalapeno@main
         name: Test ${{ matrix.recipe_name }}
         with:
           cmd: test examples/${{ matrix.recipe_name }}
 
-      - uses: docker/login-action@v3
+      - uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2 #v4.0.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}

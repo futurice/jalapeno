@@ -118,7 +118,7 @@ func (m SelectModel) View() string {
 	var s strings.Builder
 	s.WriteString(m.styles.VariableName.Render(m.variable.Name))
 	if m.submitted {
-		s.WriteString(fmt.Sprintf(": %s", m.value))
+		fmt.Fprintf(&s, ": %s", m.value)
 		return s.String()
 	}
 
