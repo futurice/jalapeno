@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.17.2](https://github.com/futurice/jalapeno/compare/v1.17.1...v1.17.2) (2026-03-31)
+
+
+### Bug Fixes
+
+* trigger release ([ed7b16c](https://github.com/futurice/jalapeno/commit/ed7b16ce10afc67963b325c858d268c09e2cf099))
+
 ## [1.17.1](https://github.com/futurice/jalapeno/compare/v1.17.0...v1.17.1) (2025-10-01)
 
 
