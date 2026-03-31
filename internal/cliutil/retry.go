@@ -51,9 +51,9 @@ func MakeRetryMessage(args []string, values recipe.VariableValues) string {
 			if err != nil {
 				panic(err)
 			}
-			commandline.WriteString(fmt.Sprintf("\"%s=%s\" ", key, strings.ReplaceAll(strings.TrimRight(csv, "\n"), "\n", "\\n")))
+			fmt.Fprintf(&commandline, "\"%s=%s\" ", key, strings.ReplaceAll(strings.TrimRight(csv, "\n"), "\n", "\\n"))
 		default:
-			commandline.WriteString(fmt.Sprintf("\"%s=%s\" ", key, value))
+			fmt.Fprintf(&commandline, "\"%s=%s\" ", key, value)
 		}
 	}
 	return fmt.Sprintf("To re-run the recipe with the same values, use the following command:\n\n%s", strings.TrimSpace(commandline.String()))

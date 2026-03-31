@@ -221,7 +221,7 @@ func (m Model) View() string {
 	var s strings.Builder
 
 	if m.submitted || m.err != nil {
-		s.WriteString(fmt.Sprintf("%s: ", m.filePath))
+		fmt.Fprintf(&s, "%s: ", m.filePath)
 		switch m.resolution {
 		case UseOld:
 			s.WriteString("keep old")

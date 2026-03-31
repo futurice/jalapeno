@@ -140,7 +140,7 @@ func (m MultiSelectModel) View() string {
 
 	for i, item := range m.items {
 		if i == m.index {
-			s.WriteString(fmt.Sprintf("%s ", cursorStyle.Render(">")))
+			fmt.Fprintf(&s, "%s ", cursorStyle.Render(">"))
 		} else {
 			s.WriteString("  ")
 		}

@@ -87,9 +87,9 @@ func (m ConfirmModel) View() string {
 	}
 
 	if m.value {
-		s.WriteString(fmt.Sprintf("> No/%s", m.styles.Bold.Render("Yes")))
+		fmt.Fprintf(&s, "> No/%s", m.styles.Bold.Render("Yes"))
 	} else {
-		s.WriteString(fmt.Sprintf("> %s/Yes", m.styles.Bold.Render("No")))
+		fmt.Fprintf(&s, "> %s/Yes", m.styles.Bold.Render("No"))
 	}
 
 	return s.String()
